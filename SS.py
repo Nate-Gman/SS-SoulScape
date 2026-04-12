@@ -200,6 +200,23 @@ canvas{display:block}
 .ab-item .abi-desc{font-size:6px;color:#887;text-align:center}
 .ab-slot.drag-over{border-color:#ffd700!important;box-shadow:0 0 12px rgba(255,215,0,.5)!important}
 #ab-hint{padding:6px;text-align:center;font-size:9px;color:#665;border-top:1px solid #3a2a1a}
+/* Spell Book */
+#spell-book{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:900;display:none;background:linear-gradient(180deg,rgba(20,10,30,.97),rgba(15,8,25,.98));border:2px solid #8a4ac8;border-radius:8px;width:500px;max-height:70vh;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.8);font-family:'Times New Roman',serif}
+#spell-book.active{display:flex;flex-direction:column}
+#sb-header{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-bottom:1px solid #5a2a8a;background:rgba(40,20,60,.5)}
+#sb-header h3{margin:0;font-size:16px;color:#c88aff;letter-spacing:2px}
+#sb-close{cursor:pointer;font-size:20px;color:#a87acc}#sb-close:hover{color:#f44}
+#sb-cats{display:flex;gap:2px;padding:6px 10px;border-bottom:1px solid #3a1a5a;flex-wrap:wrap}
+.sb-cat{padding:4px 10px;font-size:10px;cursor:pointer;border:1px solid #3a1a5a;border-radius:3px;color:#a98acc;background:#1a1018;transition:all .15s}
+.sb-cat.active,.sb-cat:hover{border-color:#a84aff;color:#c88aff;background:#2a1828}
+#sb-list{flex:1;overflow-y:auto;padding:8px;display:grid;grid-template:repeat(5,1fr);gap:4px}
+#sb-list::-webkit-scrollbar{width:5px}#sb-list::-webkit-scrollbar-thumb{background:#6a4282;border-radius:3px}
+.sb-item{width:80px;height:64px;background:linear-gradient(180deg,#2a1828,#1a1018);border:2px solid #3a1a5a;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;transition:all .15s;padding:2px}
+.sb-item:hover{border-color:#a84aff;transform:scale(1.05);box-shadow:0 0 8px rgba(168,74,255,.3)}
+.sb-item .sbi-ico{font-size:22px;line-height:1}
+.sb-item .sbi-name{font-size:7px;color:#c98aff;text-align:center;white-space:nowrap;overflow:hidden;max-width:74px}
+.sb-item .sbi-desc{font-size:6px;color:#987acc;text-align:center}
+#sb-hint{padding:6px;text-align:center;font-size:9px;color:#876;border-top:1px solid #3a1a5a}
 #loot-prompt{position:fixed;bottom:180px;left:50%;transform:translateX(-50%);z-index:300;display:none;flex-direction:column;align-items:center;pointer-events:none;font-family:'Times New Roman',serif}
 #loot-prompt.active{display:flex}
 #loot-prompt .lp-title{font-size:18px;color:#ffd700;text-shadow:0 0 12px rgba(255,215,0,.6),0 2px 4px rgba(0,0,0,.8);letter-spacing:2px;margin-bottom:4px}
@@ -390,13 +407,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="chat-tab">Clan</div>
 </div>
 </div>
-<div id="controls"><b style="color:#ffd700">ESC</b> Options &#183; WASD Move &#183; <b style="color:#ffd700">Shift/J</b> Jump &#183; Space Roll &#183; <b style="color:#ffd700">1</b> Atk &#183; 2 Parry &#183; 3 Heal &#183; E Pickup &#183; <b style="color:#ffd700">F</b> Lock-On &#183; Tab Cycle Lock &#183; G Gather &#183; <b style="color:#ffd700">P</b> Abilities &#183; I Inv &#183; M Map</div>
+<div id="controls"><b style="color:#ffd700">ESC</b> Options &#183; WASD Move &#183; <b style="color:#ffd700">Shift/J</b> Jump &#183; Space Roll &#183; <b style="color:#ffd700">1</b> Atk &#183; 2 Parry &#183; 3 Heal &#183; E Pickup &#183; <b style="color:#ffd700">F</b> Lock-On &#183; Tab Cycle Lock &#183; G Gather &#183; <b style="color:#ffd700">P</b> Abilities &#183; I Inv &#183; M Map &#183; <b style="color:#ffd700">U</b> Dungeon</div>
 <div id="target-frame"><div id="tf-icon">👹</div><div id="tf-info"><div><span id="tf-name">Enemy</span><span id="tf-lv">Lv 1</span></div><div id="tf-hp-bg"><div id="tf-hp-fill" style="width:100%"></div></div><div id="tf-hp-text">100/100</div></div></div>
 <div id="world-map"><div id="wm-title">WORLD MAP</div><canvas id="wm-canvas" width="900" height="700"></canvas><div id="wm-coords">Player: 0, 0</div><div id="wm-close">&times;</div></div>
 <canvas id="loot-label-canvas"></canvas>
 <div id="loot-prompt"><span class="lp-title">—</span><span class="lp-key">Press E to pick up</span></div>
 <div id="item-tooltip"><span class="tt-ico"></span><div class="tt-name"></div><div class="tt-desc"></div><div class="tt-stats"></div><div class="tt-use"></div></div>
 <div id="ability-browser"><div id="ab-header"><h3>ABILITIES &amp; ACTIONS</h3><span id="ab-close">&times;</span></div><div id="ab-cats"></div><div id="ab-list"></div><div id="ab-hint">Drag an ability onto an action bar slot to assign it. Press P to close.</div></div>
+
+<!-- === SPELL BOOK === -->
+<div id="spell-book"><div id="sb-header"><h3>SPELL BOOK</h3><span id="sb-close">&times;</span></div><div id="sb-cats"></div><div id="sb-list"></div><div id="sb-hint">Drag a spell onto an action bar slot to assign it. Press S to close.</div></div>
 
 <!-- === ESC PAUSE / OPTIONS MENU === -->
 <div id="esc-menu">
@@ -438,7 +458,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="ctrl-entry"><span class="ctrl-desc">Parry / Block</span><span class="ctrl-key">2 / RMB</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Heal (Estus)</span><span class="ctrl-key">3</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Gather / Chop</span><span class="ctrl-key">G</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Sprint</span><span class="ctrl-key">Q (hold)</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Sprint</span><span class="ctrl-key">Q / L-Ctrl (hold)</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Interact / Pickup</span><span class="ctrl-key">E</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Lock-On Toggle</span><span class="ctrl-key">F</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Lock-On Cycle</span><span class="ctrl-key">Tab</span></div>
@@ -446,7 +466,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="ctrl-entry"><span class="ctrl-desc">Skills</span><span class="ctrl-key">K</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">World Map</span><span class="ctrl-key">M</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Teleport Menu</span><span class="ctrl-key">T</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Dungeon / Gauntlet</span><span class="ctrl-key">U</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Ability Browser</span><span class="ctrl-key">P</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Spell Book</span><span class="ctrl-key">S</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Options Menu</span><span class="ctrl-key">ESC</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Quick Save</span><span class="ctrl-key">F5</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Prayer</span><span class="ctrl-key">5</span></div>
@@ -465,6 +487,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="ctrl-entry"><span class="ctrl-desc">Lock-On Cycle</span><span class="ctrl-key">L3 / LS Click</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Heal (Estus)</span><span class="ctrl-key">A / Cross</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Roll / Dodge</span><span class="ctrl-key">B / Circle</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Sprint</span><span class="ctrl-key">L3 (press L-Stick)</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Jump</span><span class="ctrl-key">Y / Triangle</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Interact</span><span class="ctrl-key">X / Square</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Inventory</span><span class="ctrl-key">Start</span></div>
@@ -769,6 +792,29 @@ d.innerHTML='<span class="abi-ico">'+ab.ico+'</span><span class="abi-name">'+ab.
 d.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',ab.id);e.dataTransfer.effectAllowed='copy'});
 abListEl.appendChild(d)})}
 buildAbCats();buildAbList();
+
+// === SPELL BOOK ===
+const allSpells=allAbilities.filter(a=>a.cat==='Magic');
+const sbCats=['All Magic','Strike','Bolt','Blast','Wave','Surge','Utility'];
+const sbBrowser=document.getElementById('spell-book');
+const sbCatsEl=document.getElementById('sb-cats');
+const sbListEl=document.getElementById('sb-list');
+document.getElementById('sb-close').onclick=()=>sbBrowser.classList.remove('active');
+let sbCurCat='All Magic';
+function buildSbCats(){sbCatsEl.innerHTML='';sbCats.forEach(c=>{
+const d=document.createElement('div');d.className='sb-cat'+(c===sbCurCat?' active':'');d.textContent=c;
+d.onclick=()=>{sbCurCat=c;buildSbCats();buildSbList()};sbCatsEl.appendChild(d)})}
+function buildSbList(){sbListEl.innerHTML='';
+let filtered;
+if(sbCurCat==='All Magic')filtered=allSpells;
+else if(sbCurCat==='Utility')filtered=allSpells.filter(s=>['low_alch','high_alch'].includes(s.id));
+else filtered=allSpells.filter(s=>s.id.indexOf(sbCurCat.toLowerCase())>=0);
+filtered.forEach(sp=>{const d=document.createElement('div');d.className='sb-item';d.draggable=true;
+d.innerHTML='<span class="sbi-ico">'+sp.ico+'</span><span class="sbi-name">'+sp.name+'</span><span class="sbi-desc">'+sp.desc+'</span>';
+d.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',sp.id);e.dataTransfer.effectAllowed='copy'});
+sbListEl.appendChild(d)})}
+buildSbCats();buildSbList();
+
 // Make action bar slots accept drops
 abSlots.forEach((slot,idx)=>{
 slot.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='copy';slot.classList.add('drag-over')});
@@ -907,6 +953,19 @@ targetRing.position.set(ePos.x,ePos.y+eH+2+Math.sin(time*3)*.6,ePos.z);
 targetRing.rotation.y=time*2;targetRing.rotation.x=time*1.5;
 const sc=.9+Math.sin(time*4)*.1;targetRing.scale.set(sc,sc,sc);}
 }
+// Animate dungeon entrance portals
+function animateDungeonPortals(){
+for(const d of dungeons){
+if(d.portalMesh&&d.portalMesh.userData){
+const {portalPlane,ring,theme}=d.portalMesh.userData;
+// Pulse opacity
+portalPlane.material.opacity=.5+.3*Math.sin(time*2);
+// Rotate ring
+ring.rotation.z+=.02;
+// Color shift based on theme
+const col={fire:0xff4400,undead:0x4422aa,cave:0x22aa44}[theme];
+portalPlane.material.color.setHex(col);}}
+}
 function clickTarget(e){
 if(!gameStarted||!cam||e.button!==0)return;
 clickMouse.x=(e.clientX/innerWidth)*2-1;clickMouse.y=-(e.clientY/innerHeight)*2+1;
@@ -994,7 +1053,7 @@ const solidMeshes=[];
 const solidBoxes=[];
 const circleColliders=[];
 // Dungeon system globals (must be accessible from game loop)
-let inDungeon=null;let dungeonGroup=null;const dungeons=[];const dungeonObjs=[];const enterableBuildings=[];
+let inDungeon=null;let dungeonGroup=null;const dungeons=[];const dungeonObjs=[];const enterableBuildings=[];let insideBuilding=null;let buildingGroup=null;
 // Culling globals
 let cullFrame=0;let distanceCull=null,shadowCull=null,checkInteractions=null;
 // Terrain mesh reference for accurate height + door system
@@ -1865,7 +1924,7 @@ const cN=Math.max(2,Math.floor(w/4));for(let i=0;i<cN;i++){if(i%2===0){const cr=
 const slitN=Math.max(1,Math.floor(w/8));for(let i=0;i<slitN;i++){const sl=new THREE.Mesh(new THREE.BoxGeometry(.4,2,.2),new MS({color:0x0a0a0a,roughness:1}));sl.position.set(-w/2+w/(slitN+1)*(i+1),h*.6,1.6);g.add(sl)}
 const base=new THREE.Mesh(new THREE.BoxGeometry(w+1,1,3.8),mt.stD);base.position.y=.5;g.add(base);
 g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
-function hut(x,z,rot,s){s=s||1;const h=meshTerrainH(x,z);const g=new THREE.Group();
+function hut(x,z,rot,s){s=(s||1)*2;const h=meshTerrainH(x,z);const g=new THREE.Group();
 // RNG variation per hut
 const hseed=Math.abs(Math.sin(x*73.7+z*157.3)*43758.5453)%1;
 const wW=(10+hseed*8)*s,wD=(8+hseed*6)*s,wH=(7+hseed*5)*s,wallT=(.5+hseed*.3)*s;const doorW=(2.5+hseed)*s,doorH2=(4.5+hseed*2)*s;
@@ -1936,7 +1995,7 @@ const tbl=new THREE.Mesh(new THREE.BoxGeometry(3*s,.15*s,2*s),mt.wd);tbl.positio
 const tblLeg1=new THREE.Mesh(new THREE.CylinderGeometry(.1*s,.1*s,2*s,4),mt.wd);
 [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([lx,lz])=>{const lg=tblLeg1.clone();lg.position.set(lx*1.3*s,2.4*s,-2*s+lz*.8*s);g.add(lg)});
 g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g)}
-function tower(x,z,s,mat){s=s||1;mat=mat||mt.st;const h=meshTerrainH(x,z);const g=new THREE.Group();
+function tower(x,z,s,mat){s=(s||1)*2;mat=mat||mt.st;const h=meshTerrainH(x,z);const g=new THREE.Group();
 // === RNG VARIATION per tower instance ===
 const seed=Math.abs(Math.sin(x*127.1+z*311.7)*43758.5453)%1;
 const bodyH=(24+seed*18)*s;  // height 24-42
@@ -2099,7 +2158,7 @@ g.position.set(tx,th,tz);scene.add(g);
 torchPositions.push({x:tx,y:th+11,z:tz,mesh:fm,ph:Math.random()*6.28,big:false})}
 
 // === GOTHIC ARCHITECTURE BUILDERS ===
-function gothicSpire(x,z,h,sc){sc=sc||1;const bY=meshTerrainH(x,z);const g=new THREE.Group();
+function gothicSpire(x,z,h,sc){sc=(sc||1)*2;const bY=meshTerrainH(x,z);const g=new THREE.Group();
 // Base pillar (octagonal)
 const base=new THREE.Mesh(new THREE.CylinderGeometry(4*sc,5*sc,h*.6,8),mt.stGoth);base.position.y=h*.3;base.castShadow=true;g.add(base);
 addCircleSolid(x,z,5*sc,bY,bY+h*1.2);
@@ -2121,7 +2180,7 @@ g.position.set(x,bY,z);scene.add(g);
 const fm=new THREE.Mesh(new THREE.SphereGeometry(1.5,6,6),mt.fl);fm.position.set(x,bY+h*.55,z);scene.add(fm);
 torchPositions.push({x,y:bY+h*.55,z,mesh:fm,ph:Math.random()*6.28,big:false})}
 
-function gothicArch(x,z,rot,sc){sc=sc||1;const bY=meshTerrainH(x,z);const g=new THREE.Group();
+function gothicArch(x,z,rot,sc){sc=(sc||1)*2;const bY=meshTerrainH(x,z);const g=new THREE.Group();
 // Two pillars
 addCircleSolid(x,z,10*sc,bY,bY+30*sc);
 [-1,1].forEach(s=>{const p=new THREE.Mesh(new THREE.BoxGeometry(3*sc,24*sc,3*sc),mt.stGoth);p.position.set(s*7*sc,12*sc,0);p.castShadow=true;g.add(p);
@@ -2138,7 +2197,7 @@ for(let i=0;i<6;i++){const rb=new THREE.Mesh(new THREE.IcosahedronGeometry(.8+Ma
 rb.position.set((Math.random()-.5)*12*sc,Math.random()*1.5,(Math.random()-.5)*5);rb.rotation.set(Math.random(),Math.random(),Math.random());g.add(rb)}
 g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
 
-function flyingButtress(x,z,rot,sc){sc=sc||1;const bY=meshTerrainH(x,z);const g=new THREE.Group();
+function flyingButtress(x,z,rot,sc){sc=(sc||1)*2;const bY=meshTerrainH(x,z);const g=new THREE.Group();
 // Base pier
 const pier=new THREE.Mesh(new THREE.BoxGeometry(2.5*sc,18*sc,2.5*sc),mt.stGoth);pier.position.set(0,9*sc,0);pier.castShadow=true;g.add(pier);
 // Arch arm (angled)
@@ -2147,7 +2206,7 @@ const arm=new THREE.Mesh(new THREE.BoxGeometry(1.5*sc,2*sc,14*sc),mt.st);arm.pos
 const pin=new THREE.Mesh(new THREE.ConeGeometry(1.5*sc,6*sc,6),mt.stD);pin.position.set(0,21*sc,0);pin.castShadow=true;g.add(pin);
 g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
 
-function cathedral(x,z,rot,sc){sc=sc||1;const bY=meshTerrainH(x,z);const g=new THREE.Group();
+function cathedral(x,z,rot,sc){sc=(sc||1)*2;const bY=meshTerrainH(x,z);const g=new THREE.Group();
 // Main nave
 const nave=new THREE.Mesh(new THREE.BoxGeometry(20*sc,25*sc,40*sc),mt.stGoth);nave.position.y=12.5*sc;nave.castShadow=true;g.add(nave);
 addCircleSolid(x,z,22*sc,bY,bY+50*sc);
@@ -2177,7 +2236,7 @@ const fm1=new THREE.Mesh(new THREE.SphereGeometry(1.2,6,6),mt.fl);fm1.position.s
 torchPositions.push({x,y:bY+10*sc,z,mesh:fm1,ph:Math.random()*6.28,big:true});
 g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
 
-function grandStairs(x,z,rot,steps,w,sc){sc=sc||1;steps=steps||12;w=w||10;const bY=meshTerrainH(x,z);const g=new THREE.Group();
+function grandStairs(x,z,rot,steps,w,sc){sc=(sc||1)*2;steps=steps||12;w=w||10;const bY=meshTerrainH(x,z);const g=new THREE.Group();
 for(let i=0;i<steps;i++){const step=new THREE.Mesh(new THREE.BoxGeometry(w*sc,1.2*sc,2.5*sc),mt.stGoth);step.position.set(0,i*1.1*sc,i*2.2*sc);step.castShadow=true;step.receiveShadow=true;g.add(step)}
 // Balustrades
 [-1,1].forEach(s=>{for(let i=0;i<steps;i+=2){const post=new THREE.Mesh(new THREE.CylinderGeometry(.3*sc,.35*sc,4*sc,5),mt.st);post.position.set(s*(w/2+.5)*sc,i*1.1*sc+2*sc,i*2.2*sc);post.castShadow=true;g.add(post)}});
@@ -2189,81 +2248,81 @@ function canPlace(bx,bz,rad){for(const f of cityFootprints){if(Math.hypot(bx-f.x
 function markPlace(bx,bz,rad){cityFootprints.push({x:bx,z:bz,r:rad})}
 
 // ========== LUMBRIDGE (0,0) — minimal hand-placed, procCity handles bulk ==========
-gothicArch(0,10,0,1.2);markPlace(0,10,6);bonfire(0,5);
-cathedral(120,80,-.3,.8);markPlace(120,80,30);grandStairs(120,108,-.3,8,8,.8);
+gothicArch(0,10,0,1.2);markPlace(0,10,12);bonfire(0,5);
+cathedral(120,80,-.3,.8);markPlace(120,80,60);grandStairs(120,110,-.3,8,8,.8);
 torch(30,20);torch(55,35);torch(0,-40);
 
 // ========== VARROCK (550,50) ==========
-cathedral(555,50,0,1.2);markPlace(555,50,35);grandStairs(555,80,0,10,12,1);bonfire(555,50);
+cathedral(555,50,0,1.2);markPlace(555,50,70);grandStairs(555,82,0,10,12,1);bonfire(555,50);
 torch(490,90);torch(620,10);
 
 // ========== WILDERNESS (0,-650) ==========
-for(let i=0;i<5;i++){const rx=(Math.random()-.5)*300,rz=-550-Math.random()*200;if(canPlace(rx,rz,10)){ruin(rx,rz);markPlace(rx,rz,10)}}
+for(let i=0;i<5;i++){const rx=(Math.random()-.5)*300,rz=-550-Math.random()*200;if(canPlace(rx,rz,20)){ruin(rx,rz);markPlace(rx,rz,20)}}
 for(let i=0;i<3;i++){const lx=(Math.random()-.5)*200,lz=-600-Math.random()*150;const lv=new THREE.Mesh(new THREE.CircleGeometry(6+Math.random()*8,8),mt.lava);lv.rotation.x=-Math.PI/2;lv.position.set(lx,meshTerrainH(lx,lz)+.5,lz);scene.add(lv);torchPositions.push({x:lx,y:meshTerrainH(lx,lz)+4,z:lz,mesh:lv,ph:Math.random()*6.28,big:true,col:0xff4400})}
-tower(-45,-580,1.5);markPlace(-45,-580,14);tower(55,-580,1.5);markPlace(55,-580,14);
+tower(-45,-580,1.5);markPlace(-45,-580,28);tower(55,-580,1.5);markPlace(55,-580,28);
 
 // ========== AL KHARID (580,400) ==========
-tower(525,350,1.2);markPlace(525,350,14);tower(640,450,1.2);markPlace(640,450,14);bonfire(580,400);
+tower(525,350,1.2);markPlace(525,350,28);tower(640,450,1.2);markPlace(640,450,28);bonfire(580,400);
 
 // ========== FALADOR (-480,280) ==========
-cathedral(-480,280,Math.PI/2,1);markPlace(-480,280,30);grandStairs(-480,305,0,8,10,.9);bonfire(-480,260);
+cathedral(-480,280,Math.PI/2,1);markPlace(-480,280,60);grandStairs(-480,310,0,8,10,.9);bonfire(-480,260);
 
 // ========== BARBARIAN VILLAGE (280,-250) ==========
-hut(260,-240,.3,1.2);markPlace(260,-240,12);hut(300,-260,-.5,1);markPlace(300,-260,10);bonfire(280,-250);
+hut(260,-240,.3,1.2);markPlace(260,-240,24);hut(300,-260,-.5,1);markPlace(300,-260,20);bonfire(280,-250);
 
 // ========== DRAYNOR (-300,-150) ==========
-hut(-320,-160,1,.8);markPlace(-320,-160,10);hut(-280,-180,-.5,.9);markPlace(-280,-180,10);tower(-315,-100,1.2);markPlace(-315,-100,14);bonfire(-300,-150);
+hut(-320,-160,1,.8);markPlace(-320,-160,20);hut(-280,-180,-.5,.9);markPlace(-280,-180,20);tower(-315,-100,1.2);markPlace(-315,-100,28);bonfire(-300,-150);
 
 // ========== PORT SARIM (-160,480) ==========
-hut(-190,460,.5,1);markPlace(-190,460,10);hut(-150,470,.8,1);markPlace(-150,470,10);bridge(-160,420,0,40);
-const hull=new THREE.Mesh(new THREE.BoxGeometry(14,6,30),mt.wd);hull.position.set(-30,meshTerrainH(-30,510)+3,510);hull.castShadow=true;scene.add(hull);markPlace(-30,510,18);
+hut(-190,460,.5,1);markPlace(-190,460,20);hut(-150,470,.8,1);markPlace(-150,470,20);bridge(-160,420,0,40);
+const hull=new THREE.Mesh(new THREE.BoxGeometry(14,6,30),mt.wd);hull.position.set(-30,meshTerrainH(-30,510)+3,510);hull.castShadow=true;scene.add(hull);markPlace(-30,510,36);
 bonfire(-160,470);
 
 // ========== EDGEVILLE (150,-350) ==========
-hut(140,-340,.5,1);markPlace(140,-340,10);hut(170,-345,-.3,1);markPlace(170,-345,10);bonfire(155,-350);
+hut(140,-340,.5,1);markPlace(140,-340,20);hut(170,-345,-.3,1);markPlace(170,-345,20);bonfire(155,-350);
 
 // ========== CATHERBY (-500,-400) ==========
-hut(-520,-390,.3,.9);markPlace(-520,-390,10);hut(-505,-395,-.5,.9);markPlace(-505,-395,10);bonfire(-500,-400);
+hut(-520,-390,.3,.9);markPlace(-520,-390,20);hut(-505,-395,-.5,.9);markPlace(-505,-395,20);bonfire(-500,-400);
 
 // ========== ARDOUGNE (-1200,100) ==========
-cathedral(-1200,100,0,1);markPlace(-1200,100,30);bonfire(-1200,100);torch(-1250,100);torch(-1150,100);
+cathedral(-1200,100,0,1);markPlace(-1200,100,60);bonfire(-1200,100);torch(-1250,100);torch(-1150,100);
 
 // ========== CANIFIS (1300,-200) ==========
-hut(1270,-210,.3,.8);markPlace(1270,-210,10);hut(1330,-205,-.4,.8);markPlace(1330,-205,10);tower(1340,-180,1.2);markPlace(1340,-180,14);bonfire(1300,-200);
+hut(1270,-210,.3,.8);markPlace(1270,-210,20);hut(1330,-205,-.4,.8);markPlace(1330,-205,20);tower(1340,-180,1.2);markPlace(1340,-180,28);bonfire(1300,-200);
 
 // ========== MORYTANIA (1600,-400) ==========
-for(let i=0;i<3;i++){const rx=1550+Math.random()*100,rz=-450+Math.random()*80;if(canPlace(rx,rz,10)){ruin(rx,rz);markPlace(rx,rz,10)}}
-tower(1600,-400,1.5);markPlace(1600,-400,14);bonfire(1600,-400);
+for(let i=0;i<3;i++){const rx=1550+Math.random()*100,rz=-450+Math.random()*80;if(canPlace(rx,rz,20)){ruin(rx,rz);markPlace(rx,rz,20)}}
+tower(1600,-400,1.5);markPlace(1600,-400,28);bonfire(1600,-400);
 
 // ========== KARAMJA (-200,1800) ==========
-hut(-230,1790,.3,1);markPlace(-230,1790,10);hut(-170,1810,-.5,1);markPlace(-170,1810,10);bonfire(-200,1800);
+hut(-230,1790,.3,1);markPlace(-230,1790,20);hut(-170,1810,-.5,1);markPlace(-170,1810,20);bonfire(-200,1800);
 
 // ========== TROLLHEIM (-200,-3500) ==========
-for(let i=0;i<3;i++){const rx=-250+Math.random()*100,rz=-3530+Math.random()*60;if(canPlace(rx,rz,10)){ruin(rx,rz);markPlace(rx,rz,10)}}
-tower(-200,-3480,1.5);markPlace(-200,-3480,14);bonfire(-200,-3500);
+for(let i=0;i<3;i++){const rx=-250+Math.random()*100,rz=-3530+Math.random()*60;if(canPlace(rx,rz,20)){ruin(rx,rz);markPlace(rx,rz,20)}}
+tower(-200,-3480,1.5);markPlace(-200,-3480,28);bonfire(-200,-3500);
 
 // ========== GOD WARS (0,-4500) ==========
-for(let i=0;i<4;i++){const rx=-100+Math.random()*200,rz=-4550+Math.random()*100;if(canPlace(rx,rz,10)){ruin(rx,rz);markPlace(rx,rz,10)}}
-tower(-50,-4500,2.5);markPlace(-50,-4500,18);tower(50,-4500,2.5);markPlace(50,-4500,18);
+for(let i=0;i<4;i++){const rx=-100+Math.random()*200,rz=-4550+Math.random()*100;if(canPlace(rx,rz,20)){ruin(rx,rz);markPlace(rx,rz,20)}}
+tower(-50,-4500,2.5);markPlace(-50,-4500,36);tower(50,-4500,2.5);markPlace(50,-4500,36);
 
 // ========== DEEP WILDERNESS (0,-1800) ==========
-for(let i=0;i<5;i++){const rx=-200+Math.random()*400,rz=-1900+Math.random()*200;if(canPlace(rx,rz,10)){ruin(rx,rz);markPlace(rx,rz,10)}}
+for(let i=0;i<5;i++){const rx=-200+Math.random()*400,rz=-1900+Math.random()*200;if(canPlace(rx,rz,20)){ruin(rx,rz);markPlace(rx,rz,20)}}
 
 // ========== SEERS VILLAGE (-800,-100) ==========
-hut(-840,-110,.3,1);markPlace(-840,-110,10);hut(-770,-100,-.5,1);markPlace(-770,-100,10);tower(-820,-80,1.2);markPlace(-820,-80,14);bonfire(-800,-100);
+hut(-840,-110,.3,1);markPlace(-840,-110,20);hut(-770,-100,-.5,1);markPlace(-770,-100,20);tower(-820,-80,1.2);markPlace(-820,-80,28);bonfire(-800,-100);
 
 // ========== RELLEKKA (-400,-3800) ==========
-hut(-440,-3810,.3,1.2);markPlace(-440,-3810,12);hut(-370,-3800,-.5,1.2);markPlace(-370,-3800,12);bonfire(-400,-3800);
+hut(-440,-3810,.3,1.2);markPlace(-440,-3810,24);hut(-370,-3800,-.5,1.2);markPlace(-370,-3800,24);bonfire(-400,-3800);
 
 // ========== KELDAGRIM (-800,-3200) ==========
-tower(-855,-3230,2);markPlace(-855,-3230,18);tower(-740,-3230,2);markPlace(-740,-3230,18);bonfire(-800,-3200);cave(-820,-3250,.2);
+tower(-855,-3230,2);markPlace(-855,-3230,36);tower(-740,-3230,2);markPlace(-740,-3230,36);bonfire(-800,-3200);cave(-820,-3250,.2);
 
 // ========== PRIFDDINAS (-4000,-300) ==========
-cathedral(-4000,-300,0,1.5);markPlace(-4000,-300,35);grandStairs(-4000,-265,0,14,14,1.2);bonfire(-4000,-300);
+cathedral(-4000,-300,0,1.5);markPlace(-4000,-300,70);grandStairs(-4000,-262,0,14,14,1.2);bonfire(-4000,-300);
 
 // ========== TZHAAR CITY (1800,1200) ==========
 for(let i=0;i<3;i++){const lx=1760+Math.random()*80,lz=1160+Math.random()*80;const lv=new THREE.Mesh(new THREE.CircleGeometry(5,8),mt.lava);lv.rotation.x=-Math.PI/2;lv.position.set(lx,meshTerrainH(lx,lz)+.5,lz);scene.add(lv);torchPositions.push({x:lx,y:meshTerrainH(lx,lz)+3,z:lz,mesh:lv,ph:Math.random()*6.28,big:true,col:0xff3300})}
-tower(1800,1200,1.8);markPlace(1800,1200,16);cave(1810,1180,.2);bonfire(1800,1200);
+tower(1800,1200,1.8);markPlace(1800,1200,32);cave(1810,1180,.2);bonfire(1800,1200);
 
 // === BRIDGES over rivers ===
 bridge(220,0,Math.PI/2,32);bridge(220,100,Math.PI/2,32);bridge(220,-100,Math.PI/2,32);
@@ -2339,11 +2398,11 @@ const nBuildings=Math.floor(density*radius/4);
 const wallSegs=Math.floor(radius*2*Math.PI/30);
 for(let i=0;i<wallSegs;i++){const a=i/wallSegs*Math.PI*2;
 const wx=cx+Math.cos(a)*(radius+5),wz=cz+Math.sin(a)*(radius+5);
-wall(wx,wz,16,18,a);markPlace(wx,wz,10)}
+wall(wx,wz,16,18,a);markPlace(wx,wz,20)}
 // Corner towers
-for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const tx=cx+Math.cos(a)*(radius+8),tz=cz+Math.sin(a)*(radius+8);tower(tx,tz,1.3);markPlace(tx,tz,14)}
+for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const tx=cx+Math.cos(a)*(radius+8),tz=cz+Math.sin(a)*(radius+8);tower(tx,tz,1.3);markPlace(tx,tz,28)}
 // Gate arches
-for(let i=0;i<4;i++){const a=i/4*Math.PI*2;const gx=cx+Math.cos(a)*(radius+5),gz=cz+Math.sin(a)*(radius+5);gothicArch(gx,gz,a,1);markPlace(gx,gz,8)}
+for(let i=0;i<4;i++){const a=i/4*Math.PI*2;const gx=cx+Math.cos(a)*(radius+5),gz=cz+Math.sin(a)*(radius+5);gothicArch(gx,gz,a,1);markPlace(gx,gz,16)}
 // Streets
 const streetMat=new MS({color:0x6a6a60,roughness:.95});
 for(let i=0;i<4;i++){const a=i/4*Math.PI*2;const sLen=radius*1.8;
@@ -2355,7 +2414,7 @@ const a=Math.random()*Math.PI*2;const r=18+Math.random()*(radius-30);
 const bx=cx+Math.cos(a)*r,bz=cz+Math.sin(a)*r;
 if(isInLake(bx,bz))continue;
 const bType=bTypes[Math.floor(Math.random()*bTypes.length)];
-const sc=.7+Math.random()*.6;const footprint=bType==='manor'?18*sc:bType==='warehouse'?14*sc:10*sc;
+const sc=.7+Math.random()*.6;const footprint=bType==='manor'?36*sc:bType==='warehouse'?28*sc:20*sc;
 if(!canPlace(bx,bz,footprint))continue;
 markPlace(bx,bz,footprint);placed++;
 const bRot=a+Math.PI+Math.random()*.4-.2;
@@ -2381,7 +2440,7 @@ else if(bType==='manor'){hut(bx,bz,bRot,sc*1.5);
 for(let f=0;f<4;f++){const fa=bRot+f/4*Math.PI*2;const fx=bx+Math.cos(fa)*12*sc,fz=bz+Math.sin(fa)*12*sc;
 const fence=new THREE.Mesh(new THREE.BoxGeometry(8*sc,3,.2),mt.wd);fence.position.set(fx,meshTerrainH(fx,fz)+1.5,fz);fence.rotation.y=fa;scene.add(fence)}}}
 // Market square at center (reserve footprint)
-markPlace(cx,cz,22);
+markPlace(cx,cz,44);
 for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const sx=cx+Math.cos(a)*15,sz=cz+Math.sin(a)*15;
 const sseed=Math.abs(Math.sin(sx*19.3+sz*37.7)*43758.5453)%1;
 const sW=3+sseed*3,sH=2.5+sseed*2,sD=2.5+sseed*2;
@@ -2469,7 +2528,7 @@ torchPositions.push({x:cx+ttx*Math.cos(rot)-ttz*Math.sin(rot),y:bY+13*sc,z:cz+tt
 // Inner well
 const well=new THREE.Mesh(new THREE.CylinderGeometry(3*sc,3.5*sc,3*sc,10),mt.st);well.position.set(20*sc,1.5*sc,20*sc);g.add(well);
 g.position.set(cx,bY,cz);g.rotation.y=rot;scene.add(g);
-markPlace(cx,cz,wallR+20*sc);
+markPlace(cx,cz,(wallR+20*sc)*2);
 }
 
 console.log('INIT: procCity defined, generating cities');
@@ -2616,7 +2675,7 @@ beacon.position.y=topY+thrH+spireH+16*sc;g.add(beacon);
 torchPositions.push({x:cx,y:bY+topY+thrH+spireH+16*sc,z:cz,mesh:beacon,ph:0,big:true});
 // Place the whole structure
 g.position.set(cx,bY,cz);scene.add(g);
-markPlace(cx,cz,baseR+20*sc);
+markPlace(cx,cz,(baseR+20*sc)*2);
 log('Minas Tirith loaded','#ffd700');
 }
 // Spawn Minas Tirith
@@ -2841,6 +2900,30 @@ Array.from({length:2+Math.floor(Math.random()*3)},()=>({type:theme==='fire'?'dem
 dungeons.push(d);
 // Place cave entrance in world
 cave(entranceX,entranceZ,Math.random()*Math.PI*2);
+// Create visible dungeon entrance portal
+const portalGroup=new THREE.Group();
+// Stone arch frame
+const archGeo=new THREE.BoxGeometry(8,10,2);
+const archMat=new MS({color:0x3a3028,roughness:.9});
+const leftPillar=new THREE.Mesh(archGeo,archMat);leftPillar.position.set(-5,5,0);portalGroup.add(leftPillar);
+const rightPillar=new THREE.Mesh(archGeo,archMat);rightPillar.position.set(5,5,0);portalGroup.add(rightPillar);
+const topLint=new THREE.Mesh(new THREE.BoxGeometry(18,4,2),archMat);topLint.position.set(0,11,0);portalGroup.add(topLint);
+// Glowing portal center
+const portalGeo=new THREE.PlaneGeometry(8,8);
+const portalMat=new THREE.MeshBasicMaterial({color:d.theme==='fire'?0xff4400:d.theme==='undead'?0x4422aa:0x22aa44,side:THREE.DoubleSide,transparent:true,opacity:.7});
+const portalPlane=new THREE.Mesh(portalGeo,portalMat);portalPlane.position.set(0,5,0);portalGroup.add(portalPlane);
+// Particle ring effect
+const ringGeo=new THREE.TorusGeometry(4,.3,8,16);
+const ringMat=new THREE.MeshBasicMaterial({color:0xffd700,transparent:true,opacity:.8});
+const ring=new THREE.Mesh(ringGeo,ringMat);ring.position.set(0,5,0);ring.rotation.x=Math.PI/2;portalGroup.add(ring);
+// Point light glow
+const pLight=new THREE.PointLight(d.theme==='fire'?0xff4400:d.theme==='undead'?0x4422aa:0x22aa44,2,25);pLight.position.set(0,6,2);portalGroup.add(pLight);
+// Position portal at entrance
+portalGroup.position.set(entranceX,0,entranceZ);
+// Store reference for animation
+portalGroup.userData={portalPlane,ring,light:pLight,theme:d.theme};
+d.portalMesh=portalGroup;scene.add(portalGroup);
+dungeonObjs.push(portalGroup);
 return d}
 
 function enterDungeon(d){
@@ -2866,8 +2949,8 @@ fm.position.set(rm.x+sx*(rm.w/2-2),-d.depth*50+rm.h*.7,rm.z+sz*(rm.l/2-2));dunge
 torchPositions.push({x:rm.x+sx*(rm.w/2-2),y:-d.depth*50+rm.h*.7,z:rm.z+sz*(rm.l/2-2),mesh:fm,ph:Math.random()*6.28,big:false})});
 // Decor
 if(d.theme==='undead'){for(let i=0;i<5;i++){bonePile(rm.x+(Math.random()-.5)*rm.w*.6,rm.z+(Math.random()-.5)*rm.l*.6)}}
-// Spawn enemies in room
-rm.enemies.forEach(e=>{spawnE(e.type,rm.x+(Math.random()-.5)*rm.w*.5,rm.z+(Math.random()-.5)*rm.l*.5,e.lv)});
+// Spawn enemies in room (skip room 0 - safe spawn zone)
+if(idx>0){rm.enemies.forEach(e=>{spawnE(e.type,rm.x+(Math.random()-.5)*rm.w*.5,rm.z+(Math.random()-.5)*rm.l*.5,e.lv)});}
 // Boss room chest
 if(rm.isBoss){const chest=new THREE.Mesh(new THREE.BoxGeometry(3,2,2),new MS({color:0xc8a040,roughness:.4,metalness:.6}));
 chest.position.set(rm.x,-d.depth*50+1.5,rm.z);chest.castShadow=true;dungeonGroup.add(chest);
@@ -2882,13 +2965,76 @@ const cl=Math.hypot(b.x-a.x,b.z-a.z);
 const corr=new THREE.Mesh(new THREE.BoxGeometry(6,.5,cl),floorMat);corr.position.set(cx,-d.depth*50,cz);
 corr.rotation.y=Math.atan2(b.x-a.x,b.z-a.z);dungeonGroup.add(corr)}
 scene.add(dungeonGroup);
-player.x=d.rooms[0].x;player.z=d.rooms[0].z;
+player.x=d.rooms[0].x;player.z=d.rooms[0].z;player.y=-d.depth*50+2;
+// Hide portal while inside dungeon
+if(d.portalMesh)d.portalMesh.visible=false;
 log('Entered dungeon! Depth: '+d.depth+' — defeat the boss for special loot!','#f80')}
 
 function exitDungeon(){if(!inDungeon)return;
+// Show portal again
+if(inDungeon.portalMesh)inDungeon.portalMesh.visible=true;
 if(dungeonGroup){scene.remove(dungeonGroup);dungeonGroup=null}
-player.x=inDungeon.x;player.z=inDungeon.z+10;inDungeon=null;
+player.x=inDungeon.x;player.z=inDungeon.z+10;player.y=meshTerrainH(player.x,player.z)+2;inDungeon=null;
 log('Exited dungeon.','#0f0')}
+
+// === BUILDING INTERIOR SYSTEM ===
+function enterBuilding(b){
+if(insideBuilding)return;insideBuilding=b;
+// Store outside position for return
+b.outsideX=player.x;b.outsideZ=player.z;
+// Create building interior
+buildingGroup=new THREE.Group();
+const floorMat=new MS({color:0x5a4a3a,roughness:.95});
+const wallMat=new MS({color:b.type==='tavern'?0x3a2a1a:b.type==='shop'?0x4a4a5a:0x4a3a2a,roughness:.9});
+const ceilMat=new MS({color:0x2a2a2a,roughness:1});
+// Room dimensions based on type
+const w=b.type==='tavern'?24:b.type==='shop'?18:16;
+const l=b.type==='tavern'?20:b.type==='shop'?14:14;
+const h=12;
+// Floor
+const fl=new THREE.Mesh(new THREE.BoxGeometry(w,.5,l),floorMat);fl.position.set(0,1000,0);fl.receiveShadow=true;buildingGroup.add(fl);
+// Walls
+const wN=new THREE.Mesh(new THREE.BoxGeometry(w,h,1),wallMat);wN.position.set(0,1000+h/2,-l/2);wN.castShadow=true;buildingGroup.add(wN);
+const wS=new THREE.Mesh(new THREE.BoxGeometry(w,h,1),wallMat);wS.position.set(0,1000+h/2,l/2);wS.castShadow=true;buildingGroup.add(wS);
+const wE=new THREE.Mesh(new THREE.BoxGeometry(1,h,l),wallMat);wE.position.set(w/2,1000+h/2,0);wE.castShadow=true;buildingGroup.add(wE);
+const wW=new THREE.Mesh(new THREE.BoxGeometry(1,h,l),wallMat);wW.position.set(-w/2,1000+h/2,0);wW.castShadow=true;buildingGroup.add(wW);
+// Ceiling
+const ceil=new THREE.Mesh(new THREE.BoxGeometry(w,1,l),ceilMat);ceil.position.set(0,1000+h,0);buildingGroup.add(ceil);
+// Door opening (visual only - actual door is behind player)
+const doorFrame=new THREE.Mesh(new THREE.BoxGeometry(4,6,.2),new MS({color:0x3a2818}));doorFrame.position.set(0,1000+3,l/2-.1);buildingGroup.add(doorFrame);
+// Interior contents based on type
+if(b.type==='tavern'){
+// Bar counter
+const bar=new THREE.Mesh(new THREE.BoxGeometry(8,3,2),new MS({color:0x5a4a3a}));bar.position.set(0,1000+1.5,-l/4);buildingGroup.add(bar);
+// Tables
+for(let i=0;i<3;i++){const tbl=new THREE.Mesh(new THREE.CylinderGeometry(2,2,1.5,8),new MS({color:0x4a3a2a}));tbl.position.set(-5+i*5,1000+.75,l/4);buildingGroup.add(tbl);}
+// Fireplace
+const fire=new THREE.Mesh(new THREE.SphereGeometry(1.5,8,8),mt.fl);fire.position.set(w/3,1000+2,-l/3);buildingGroup.add(fire);}
+else if(b.type==='shop'){
+// Counters
+const cnt1=new THREE.Mesh(new THREE.BoxGeometry(3,2.5,8),new MS({color:0x6a5a4a}));cnt1.position.set(-w/4,1000+1.25,0);buildingGroup.add(cnt1);
+const cnt2=new THREE.Mesh(new THREE.BoxGeometry(3,2.5,8),new MS({color:0x6a5a4a}));cnt2.position.set(w/4,1000+1.25,0);buildingGroup.add(cnt2);
+// Shelves
+for(let i=0;i<4;i++){const shf=new THREE.Mesh(new THREE.BoxGeometry(.3,6,2),new MS({color:0x5a4a3a}));shf.position.set(-w/2+.5,1000+3,-l/3+i*l/4);buildingGroup.add(shf);}}
+else{
+// House furniture
+const bed=new THREE.Mesh(new THREE.BoxGeometry(4,2,6),new MS({color:0x3a4a5a}));bed.position.set(-w/3,1000+1,-l/3);buildingGroup.add(bed);
+const table=new THREE.Mesh(new THREE.CylinderGeometry(2,2,1.5,6),new MS({color:0x4a3a2a}));table.position.set(w/4,1000+.75,l/4);buildingGroup.add(table);
+// Fireplace
+const fp=new THREE.Mesh(new THREE.BoxGeometry(3,4,1),new MS({color:0x2a2a2a}));fp.position.set(0,1000+2,-l/2+.5);buildingGroup.add(fp);
+const fire=new THREE.Mesh(new THREE.SphereGeometry(1,6,6),mt.fl);fire.position.set(0,1000+1.5,-l/2+1);buildingGroup.add(fire);}
+// Lighting
+const inLight=new THREE.PointLight(0xffaa66,.8,30,1.5);inLight.position.set(0,1000+h-2,0);buildingGroup.add(inLight);
+scene.add(buildingGroup);
+// Position player inside
+player.x=0;player.y=1002;player.z=l/4;
+log('Entered '+b.name,'#0f0');}
+
+function exitBuilding(){if(!insideBuilding)return;
+if(buildingGroup){scene.remove(buildingGroup);buildingGroup=null}
+// Return to outside position
+player.x=insideBuilding.outsideX;player.z=insideBuilding.outsideZ+3;player.y=meshTerrainH(player.x,player.z)+2;
+log('Exited '+insideBuilding.name,'#0f0');insideBuilding=null;}
 
 // Generate dungeons at key locations
 genDungeon(50,-600,1,'undead','golem');genDungeon(-250,-180,1,'fire','demon');genDungeon(-520,-430,2,'cave','wyrm');
@@ -2919,7 +3065,8 @@ checkInteractions=function(){
 const px=player.x,pz=player.z;
 // Dungeon entry
 if(!inDungeon){for(const d of dungeons){if(Math.hypot(px-d.x,pz-d.z)<12){
-log('Press E to enter dungeon (Depth '+d.depth+')','#ff0');
+const portalNames={fire:'🔥 Fire',undead:'💀 Undead',cave:'🐸 Cave'};
+log('⚡ APPROACH THE PORTAL → Press E to enter '+portalNames[d.theme]+' Dungeon (Depth '+d.depth+')','#ff0');
 if(keys['KeyE']){enterDungeon(d);break}}}}
 else{// Check if at entrance room
 const rm0=inDungeon.rooms[0];
@@ -2936,7 +3083,10 @@ else{log('Added to inventory','#aaa')}
 exitDungeon()}}}}
 // Building entry
 for(const b of enterableBuildings){if(Math.hypot(px-b.x,pz-b.z)<b.r){
-log('Press E to enter '+b.name,'#ff0');break}}};
+if(!insideBuilding){log('Press E to enter '+b.name,'#ff0');
+if(keys['KeyE']){enterBuilding(b);break}}
+else if(insideBuilding&&insideBuilding.name===b.name){log('Press E to exit '+b.name,'#ff0');
+if(keys['KeyE']){exitBuilding();break}}}};};
 
 console.log('INIT: dungeons done, spawning enemies');
 // === SPAWN ENEMIES PER REGION ===
@@ -3314,8 +3464,17 @@ requestAnimationFrame(loop);time+=.016;pollGamepad();
 if(player.dead){player.deadTimer-=.016;if(player.deadTimer<=0){player.dead=false;player.hp=player.maxHp;player.sta=player.maxSta;player.x=0;player.z=5;player.y=meshTerrainH(0,5);document.getElementById('death-overlay').classList.remove('active');log('Respawned at bonfire','#cc4')}composer.render();return}
 
 const gSens=(gameOpts?gameOpts.sens:5)/5;camYaw+=gpAxes[2]*.35*gSens*(gameOpts?gameOpts.flipx:1);camPitch=Math.max(.05,Math.min(1.2,camPitch-gpAxes[3]*.25*gSens*(gameOpts?gameOpts.flipy:1)));
-// Auto-camera: lerp camYaw behind player when not panning
-if(!mouse.mid&&!lockOn){let targetYaw=player.ang+Math.PI;while(targetYaw>Math.PI)targetYaw-=Math.PI*2;while(targetYaw<-Math.PI)targetYaw+=Math.PI*2;let yd=targetYaw-camYaw;while(yd>Math.PI)yd-=Math.PI*2;while(yd<-Math.PI)yd+=Math.PI*2;camYaw+=yd*.03}
+// Camera orientation: face target when locked on, otherwise auto-follow behind player
+if(!mouse.mid){
+if(lockOn&&lockOn.mesh){
+// When locked on, camera faces the target (Dark Souls style)
+const tx=lockOn.mesh.position.x,tz=lockOn.mesh.position.z;
+const targetYaw=Math.atan2(tx-player.x,tz-player.z);
+let yd=targetYaw-camYaw;while(yd>Math.PI)yd-=Math.PI*2;while(yd<-Math.PI)yd+=Math.PI*2;
+camYaw+=yd*.08 // Smoothly turn toward target
+}else{
+// Auto-camera: lerp camYaw behind player when not locked on
+let targetYaw=player.ang+Math.PI;while(targetYaw>Math.PI)targetYaw-=Math.PI*2;while(targetYaw<-Math.PI)targetYaw+=Math.PI*2;let yd=targetYaw-camYaw;while(yd>Math.PI)yd-=Math.PI*2;while(yd<-Math.PI)yd+=Math.PI*2;camYaw+=yd*.03}}
 
 const fwd=new THREE.Vector3(-Math.sin(camYaw),0,-Math.cos(camYaw));
 const right=new THREE.Vector3(fwd.z,0,-fwd.x);
@@ -3371,7 +3530,7 @@ if(cullFrame%20===0&&shadowCull)shadowCull();
 if(!window._sunRef)window._sunRef=scene.children.find(c=>c.isDirectionalLight&&c.castShadow);
 if(window._sunRef){window._sunRef.position.set(player.x+200,350,player.z-100);window._sunRef.target.position.set(player.x,player.y,player.z);window._sunRef.target.updateMatrixWorld()}}
 
-if(keys['q'])player.sta=Math.min(player.sta+5,player.maxSta);
+if(keys['q']||keys['ControlLeft']||keys['ControlRight']||gpButtons.l3)player.sta=Math.min(player.sta+5,player.maxSta);
 else player.sta=Math.min(player.sta+1,player.maxSta);
 // Heal with A/Cross or key 3
 if((keys['3']||gpButtons.a)&&!player._healCD&&player.hp<player.maxHp){player.hp=Math.min(player.hp+40,player.maxHp);player._healCD=60;log('Healed with Estus Flask','#4c4');hitFX(player.x,player.y+6,player.z,0x44cc44)}
@@ -3472,12 +3631,12 @@ const rt=e.type,rx=e.x,rz=e.z,rlv=getReg(rx,rz).lv;setTimeout(()=>{if(scene)spaw
 
 if((mouse.down||gpButtons.rt||gpButtons.x||keys['1'])&&player.atkCD<=0&&player.sta>19){player.atkCD=14;player.sta-=19;
 const gStats=totalGear();const pDmg=Math.max(12,10+gStats.atk+gStats.str);
-if(lockOn&&lockOn.hp>0&&Math.hypot(lockOn.mesh.position.x-player.x,lockOn.mesh.position.z-player.z)<22){
+if(lockOn&&lockOn.hp>0&&Math.hypot(lockOn.mesh.position.x-player.x,lockOn.mesh.position.z-player.z)<6){
 lockOn.hp-=pDmg;lockOn.poi-=16;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+6,lockOn.mesh.position.z);
 log('Hit '+lockOn.type+' for '+pDmg,'#ff8');
 if(lockOn.poi<=0){lockOn.hp-=Math.round(pDmg*.5);lockOn.poi=30;log('POISE BREAK!','#ff4')}}
 else{for(let i=enemies.length-1;i>=0;i--){let e=enemies[i],edx=e.mesh.position.x-player.x,edz=e.mesh.position.z-player.z;
-if(Math.hypot(edx,edz)<16){const eAng=Math.atan2(edx,edz);let ad=eAng-player.ang;while(ad>Math.PI)ad-=Math.PI*2;while(ad<-Math.PI)ad+=Math.PI*2;
+if(Math.hypot(edx,edz)<6){const eAng=Math.atan2(edx,edz);let ad=eAng-player.ang;while(ad>Math.PI)ad-=Math.PI*2;while(ad<-Math.PI)ad+=Math.PI*2;
 if(Math.abs(ad)<1.2&&calcHit(player,e)){e.hp-=pDmg;hitFX(e.mesh.position.x,e.mesh.position.y+6,e.mesh.position.z);log('Hit '+e.type+' for '+pDmg,'#ff8')}}}}}
 player.atkCD=Math.max(0,player.atkCD-1);if(player._parryCD)player._parryCD--;if(player._estusCD)player._estusCD--;
 
@@ -3589,6 +3748,7 @@ document.getElementById('stT').textContent=~~player.sta+'/'+player.maxSta;docume
 if(player.hp<=0&&!player.dead){player.dead=true;player.deadTimer=3;document.getElementById('death-overlay').classList.add('active');log('YOU DIED','#f00')}
 
 updateTargetFrame();
+animateDungeonPortals();
 if(ws&&ws.readyState===1&&++sendCt%3===0){ws.send(JSON.stringify({t:'p',id:myId,x:player.x,y:player.y,z:player.z,a:player.ang}))}
 
 composer.render()}
@@ -3629,9 +3789,11 @@ closeBtn.textContent='Close (T)';closeBtn.onclick=()=>{showTeleport=false;tp.sty
 document.body.appendChild(tp)}
 else{tp.style.display=showTeleport?'block':'none'}}
 if(k==='p'){const ab=document.getElementById('ability-browser');ab.classList.toggle('active')}
+if(k==='s'){const sb=document.getElementById('spell-book');sb.classList.toggle('active')}
 if(k==='m'){const wm=document.getElementById('world-map');if(wm.classList.contains('active')){wm.classList.remove('active')}else{wm.classList.add('active');drawWorldMap()}}
 if(k==='escape'){
 const wm=document.getElementById('world-map');if(wm.classList.contains('active')){wm.classList.remove('active');return}
+const sbr=document.getElementById('spell-book');if(sbr&&sbr.classList.contains('active')){sbr.classList.remove('active');return}
 const abr=document.getElementById('ability-browser');if(abr.classList.contains('active')){abr.classList.remove('active');return}
 const tp=document.getElementById('teleport-menu');if(tp&&showTeleport){showTeleport=false;tp.style.display='none';return}
 const em=document.getElementById('esc-menu');em.classList.toggle('active');
@@ -3688,7 +3850,7 @@ makeToggle('ui-rpos',['Right','Left'],(i)=>{const rp=document.getElementById('os
 makeToggle('ui-abpos',['Bottom Center','Bottom Left','Bottom Right'],(i)=>{const ab=document.getElementById('action-bar');if(ab){ab.style.left=i===0?'50%':i===1?'8px':'auto';ab.style.right=i===2?'8px':'auto';ab.style.transform=i===0?'translateX(-50%)':'none'}});
 makeToggle('ui-font',['Normal','Large','Small'],(i)=>{document.documentElement.style.fontSize=i===0?'':''+[16,19,13][i]+'px'});
 // Keybind rebinder
-const kbDefs=[['move_fwd','Move Forward','w'],['move_back','Move Back','s'],['move_left','Strafe Left','a'],['move_right','Strafe Right','d'],['jump','Jump','shift'],['roll','Roll / Dodge',' '],['attack','Attack','1'],['parry','Parry / Block','2'],['heal','Heal (Estus)','3'],['gather','Gather','g'],['lockon','Lock-On Toggle','f'],['interact','Interact','e'],['lockoncycle','Lock-On Cycle','tab'],['inventory','Inventory','i'],['skills','Skills','k'],['map','World Map','m'],['teleport','Teleport','t'],['abilities','Ability Browser','p'],['autoloot','Auto-Loot','l'],['sprint','Sprint','q'],['prayer','Prayer','5'],['save','Quick Save','f5']];
+const kbDefs=[['move_fwd','Move Forward','w'],['move_back','Move Back','s'],['move_left','Strafe Left','a'],['move_right','Strafe Right','d'],['jump','Jump','shift'],['roll','Roll / Dodge',' '],['attack','Attack','1'],['parry','Parry / Block','2'],['heal','Heal (Estus)','3'],['gather','Gather','g'],['lockon','Lock-On Toggle','f'],['interact','Interact','e'],['lockoncycle','Lock-On Cycle','tab'],['inventory','Inventory','i'],['skills','Skills','k'],['map','World Map','m'],['teleport','Teleport','t'],['abilities','Ability Browser','p'],['autoloot','Auto-Loot','l'],['sprint','Sprint','q'],['prayer','Prayer','5'],['dungeon','Dungeon / Gauntlet','u'],['save','Quick Save','f5']];
 const kbMap={};kbDefs.forEach(([id,desc,def])=>{kbMap[id]={desc,key:def}});
 const kbGrid=document.getElementById('kb-grid');
 function buildKbGrid(){kbGrid.innerHTML='';kbDefs.forEach(([id,desc])=>{const entry=document.createElement('div');entry.className='ctrl-entry';const d=document.createElement('span');d.className='ctrl-desc';d.textContent=desc;const k=document.createElement('span');k.className='esc-keybind';k.textContent=kbMap[id].key.toUpperCase();k.dataset.id=id;
@@ -3825,6 +3987,620 @@ equipped.Weapon={name:'Staff of Air',atk:12,def:3,str:0};equipped.Ring=none;
 gearSlots.forEach(s=>equipped[s]=none);
 }
 setTimeout(()=>{startGame(false)},500)}));
+
+// ============================================================
+// === CORRUPTED GAUNTLET — Complete Dungeon System ============
+// ============================================================
+const GAU_X=5000,GAU_Z=5000; // World anchor (off-map, invisible)
+let gau=null; // active gauntlet state
+
+// --- Gauntlet HUD elements (created once) ---
+let gauHud=null;
+function _mkGauHud(){
+if(gauHud)return;
+gauHud=document.createElement('div');
+gauHud.id='gau-hud';
+gauHud.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:8px;z-index:8000;display:none;font-family:"Times New Roman",serif;pointer-events:none;text-align:center;min-width:360px';
+gauHud.innerHTML=
+'<div id="gau-phase" style="font-size:13px;color:#e040fb;letter-spacing:2px;text-transform:uppercase;text-shadow:0 0 12px #e040fb88;margin-bottom:2px"></div>'+
+'<div id="gau-timer" style="font-size:22px;color:#ffd700;font-weight:700;text-shadow:0 2px 8px #000;margin-bottom:2px"></div>'+
+'<div id="gau-hint-wrap" style="background:rgba(14,10,6,.88);border:1px solid #5a4a32;border-radius:5px;padding:4px 12px;margin:0 auto;max-width:440px;pointer-events:auto">'+
+'<div id="gau-hint" style="font-size:11px;color:#c8a96e;line-height:1.5"></div>'+
+'</div>'+
+'<div id="gau-atk-tracker" style="margin-top:4px;font-size:10px;color:#aaa;display:flex;justify-content:center;gap:4px"></div>'+
+'<div id="gau-style-ind" style="margin-top:3px;font-size:11px;color:#8af;letter-spacing:1px">⚔ Melee &nbsp;|&nbsp; Press <b style=\'color:#ffd700\'>R</b> to switch style</div>'+
+'<div id="gau-res" style="margin-top:3px;font-size:10px;color:#88c;letter-spacing:1px"></div>';
+document.body.appendChild(gauHud);}
+
+// --- Step hints per phase ---
+const GAU_HINTS={
+intro:[
+'Welcome to the Corrupted Gauntlet! You have 9 minutes to prepare and defeat the Hunllef.',
+'START: Explore the 7x7 dungeon grid. Kill weak monsters for Corrupted Shards & a Weapon Frame.',
+'Tip: Make a clockwise loop around the starting room to hit all adjacent resource nodes.'
+],
+gather:[
+'GATHER PHASE: Kill Corrupted creatures — collect Shards, Ore, Bark, and Linum.',
+'Visit the Singing Bowl in the start room to craft Tier-2 weapons and armour.',
+'Find Fishing Spots for Raw Paddlefish (food). Cook them at a fire before the boss!',
+'Hunt the 3 Demi-Bosses: Corrupted Bear (Spike), Dark Beast (Bowstring), Dragon (Orb).',
+'Use the Teleport Crystal to return to start room when ready.',
+'Craft Tier-3 weapons (Perfected Bow + Staff), Armour (120 shards), 2 Egniol Potions.'
+],
+boss:[
+'BOSS: The Corrupted Hunllef — Lv 674. Switch prayer every 4 attacks!',
+'It STARTS with Ranged (green orb). Use Protect from Missiles first.',
+'After 4 attacks it switches to Magic (purple orb). Switch to Protect from Magic.',
+'Every 6 attacks YOU deal, Hunllef switches its protection prayer — change attack style!',
+'TORNADOES appear — RUN from purple spinning orbs. They deal ~15 dmg/tick on contact.',
+'FLOOR TILES turn orange — avoid them! Move constantly around the arena.',
+'Below 300 HP: more tornadoes, faster tile changes. Stay mobile!',
+'TRAMPLE: Never stand directly underneath the Hunllef — it deals 50+ damage.',
+'Drink Egniol Potion if HP drops below 40. Keep prayer points above 0!'
+],
+complete:[
+'VICTORY! The Hunllef is slain. Claim your reward from the Reward Chest!',
+'Enhanced Crystal seeds have a rare chance to drop. Keep running for the best loot!'
+]};
+
+function _gauHint(msg,col){
+const el=document.getElementById('gau-hint');if(!el)return;
+if(!dungeonHintsOn){el.textContent='';return}
+el.style.color=col||'#c8a96e';el.textContent=msg;}
+function _gauPhase(txt){const el=document.getElementById('gau-phase');if(el)el.textContent=txt;}
+function _gauRes(){
+if(!gau)return;
+const el=document.getElementById('gau-res');if(!el)return;
+el.textContent='Shards:'+gau.shards+' Ore:'+gau.ore+' Bark:'+gau.bark+' Linum:'+gau.linum+' Fish:'+gau.fish+' Frame:'+(gau.frames>0?'✓':'✗')+' Vials:'+gau.vials;}
+function _gauAtkTracker(){
+if(!gau||!gauntletAtkOn)return;
+const el=document.getElementById('gau-atk-tracker');if(!el)return;
+if(gau.phase!=='boss'){el.innerHTML='';return}
+const h=gau.hunllef;
+let html='<span style="color:#aaa;margin-right:4px">Hunllef atks:</span>';
+for(let i=0;i<4;i++){const done=i<h.atkCount;html+='<span style="color:'+(done?'#f44':'#444')+';font-size:14px">●</span>'}
+html+='<span style="color:#aaa;margin:0 6px">|</span>';
+html+='<span style="color:#aaa;margin-right:4px">Your style-switch:</span>';
+for(let i=0;i<6;i++){const done=i<h.playerAtkCount;html+='<span style="color:'+(done?'#4cf':'#444')+';font-size:14px">●</span>'}
+html+='<span style="color:#ffd700;margin-left:8px">Prayer: '+(h.mode==='ranged'?'🏹 Missiles':'🔮 Magic')+'</span>';
+el.innerHTML=html;}
+
+// Build the Gauntlet 3D scene
+function _buildGauntletArena(){
+const g=new THREE.Group();g.name='gauntlet_arena';
+const corrupted=new MS({color:0x3a0a5a,roughness:.8,metalness:.1});
+const corruptedLt=new MS({color:0x5a1a7a,roughness:.7,metalness:.15});
+const crystalMat=new MS({color:0x9a40cc,emissive:0x5a10aa,emissiveIntensity:.4,roughness:.3,metalness:.3,transparent:true,opacity:.9});
+const floorMat=new MS({color:0x1a0a2a,roughness:.95});
+// Arena size: 7x7 rooms of 14x14 each = ~100x100 units total
+const CELL=16,COLS=7,ROWS=7;
+const offX=GAU_X-COLS*CELL/2,offZ=GAU_Z-ROWS*CELL/2;
+// Floor
+const floor=new THREE.Mesh(new THREE.BoxGeometry(COLS*CELL,1,ROWS*CELL),floorMat);
+floor.position.set(GAU_X,-.5,GAU_Z);floor.receiveShadow=true;g.add(floor);
+// Outer walls
+const wallH=20;const wallMat=corrupted;
+[[GAU_X,GAU_Z-ROWS*CELL/2,COLS*CELL,wallH,2],[GAU_X,GAU_Z+ROWS*CELL/2,COLS*CELL,wallH,2],
+[GAU_X-COLS*CELL/2,GAU_Z,2,wallH,ROWS*CELL],[GAU_X+COLS*CELL/2,GAU_Z,2,wallH,ROWS*CELL]].forEach(([x,z,w,h,d])=>{
+const wm=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),wallMat);wm.position.set(x,h/2,z);wm.castShadow=true;g.add(wm)});
+// Interior room dividers (7x7 grid walls with openings)
+for(let row=0;row<ROWS;row++){for(let col=0;col<COLS;col++){
+const cx=offX+col*CELL+CELL/2,cz=offZ+row*CELL+CELL/2;
+// E wall with gap (doorway) — skip some for open feel
+if(col<COLS-1&&Math.random()>.35){const wm=new THREE.Mesh(new THREE.BoxGeometry(.8,wallH,4),wallMat);wm.position.set(cx+CELL/2,wallH/2,cz);g.add(wm)}
+if(row<ROWS-1&&Math.random()>.35){const wm=new THREE.Mesh(new THREE.BoxGeometry(4,wallH,.8),wallMat);wm.position.set(cx,wallH/2,cz+CELL/2);g.add(wm)}
+// Crystal decor on walls
+if(Math.random()<.18){const cr=new THREE.Mesh(new THREE.ConeGeometry(.3+Math.random()*.5,1.5+Math.random(),5),crystalMat);cr.position.set(cx+(Math.random()-.5)*CELL*.7,1+Math.random()*3,cz+(Math.random()-.5)*CELL*.7);cr.rotation.set(Math.random()*.3,Math.random()*Math.PI,Math.random()*.3);cr.castShadow=true;g.add(cr)}}}
+// Boss chamber — center (3,3) — mark with purple glow floor
+const bcx=offX+3*CELL+CELL/2,bcz=offZ+3*CELL+CELL/2;
+const bossFl=new THREE.Mesh(new THREE.BoxGeometry(CELL-1,0.2,CELL-1),new MS({color:0x5a0a8a,emissive:0x3a0070,emissiveIntensity:.6}));
+bossFl.position.set(bcx,.15,bcz);g.add(bossFl);
+// Starting room — top-left corner with Singing Bowl
+const startX=offX+0*CELL+CELL/2,startZ=offZ+0*CELL+CELL/2;
+// Singing Bowl
+const bowl=new THREE.Mesh(new THREE.TorusGeometry(1.8,.4,8,16),new MS({color:0xcc88ff,emissive:0x8844cc,emissiveIntensity:.8}));
+bowl.position.set(startX+3,1,startZ+3);bowl.rotation.x=Math.PI/2;g.add(bowl);
+const bowlBase=new THREE.Mesh(new THREE.CylinderGeometry(.5,.7,1.2,8),new MS({color:0x8844aa,roughness:.4}));
+bowlBase.position.set(startX+3,.6,startZ+3);g.add(bowlBase);
+// Ambient corrupt lighting
+const aLight=new THREE.PointLight(0x8822cc,.6,120);aLight.position.set(GAU_X,8,GAU_Z);g.add(aLight);
+const bLight=new THREE.PointLight(0xcc2288,.4,80);bLight.position.set(startX,6,startZ);g.add(bLight);
+// Store key positions in group userdata
+g.userData={startX,startZ,bcx,bcz,CELL,COLS,ROWS,offX,offZ,bowlPos:{x:startX+3,z:startZ+3}};
+return g;}
+
+// Resource node meshes scattered in grid
+function _buildGauntletResources(arenaGroup){
+const {CELL,COLS,ROWS,offX,offZ,startX,startZ,bcx,bcz}=arenaGroup.userData;
+const nodes=[];
+const ore=new MS({color:0x4a2a6a,emissive:0x2a1040,emissiveIntensity:.3,roughness:.6});
+const tree=new MS({color:0x2a4a1a,roughness:.9});
+const fish=new MS({color:0x1a3a5a,emissive:0x0a1a3a,emissiveIntensity:.2});
+for(let row=0;row<ROWS;row++){for(let col=0;col<COLS;col++){
+const cx=offX+col*CELL+CELL/2,cz=offZ+row*CELL+CELL/2;
+const isBoss=(col===3&&row===3),isStart=(col===0&&row===0);
+if(isBoss||isStart)continue;
+const r=Math.random();
+let mesh,type;
+if(r<.25){// Ore rock
+mesh=new THREE.Mesh(new THREE.DodecahedronGeometry(1.2,0),ore);
+mesh.position.set(cx+(Math.random()-.5)*6,.8,cz+(Math.random()-.5)*6);
+type='ore';
+}else if(r<.48){// Tree/bark
+mesh=new THREE.Mesh(new THREE.CylinderGeometry(.4,.55,3.5,7),new MS({color:0x3a2a1a,roughness:.9}));
+mesh.position.set(cx+(Math.random()-.5)*6,1.75,cz+(Math.random()-.5)*6);
+const leaves=new THREE.Mesh(new THREE.ConeGeometry(1.8,2.5,7),new MS({color:0x1a3a2a,roughness:.85}));
+leaves.position.set(0,3,0);mesh.add(leaves);
+type='bark';
+}else if(r<.65){// Fishing spot
+mesh=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.4,.2,12),fish);
+mesh.position.set(cx+(Math.random()-.5)*4,.15,cz+(Math.random()-.5)*4);
+type='fishing';
+}else if(r<.78){// Linum plant
+mesh=new THREE.Mesh(new THREE.SphereGeometry(.7,5,5),new MS({color:0x4a5a2a,roughness:.9}));
+mesh.position.set(cx+(Math.random()-.5)*7,.7,cz+(Math.random()-.5)*7);
+type='linum';
+}else continue;
+mesh.castShadow=true;arenaGroup.add(mesh);
+nodes.push({mesh,type,depleted:false,col,row});}
+}return nodes;}
+
+// Mini-boss types
+const GAU_DEMIBOSS=[
+{type:'bear',name:'Corrupted Bear',hp:180,col:0x5a3a8a,reward:{item:'Corrupted Spike',type:'spike'},weapon:'melee'},
+{type:'darkbeast',name:'Corrupted Dark Beast',hp:220,col:0x4a1a6a,reward:{item:'Crystalline Bowstring',type:'bow'},weapon:'ranged'},
+{type:'dragon',name:'Corrupted Dragon',hp:260,col:0x3a0a5a,reward:{item:'Crystal Orb',type:'magic'},weapon:'magic'}];
+
+// Main entry point
+function enterCorruptedGauntlet(){
+if(gau&&gau.active){log('Already in the Gauntlet!','#f44');return}
+_mkGauHud();
+// Build arena
+const arena=_buildGauntletArena();
+scene.add(arena);
+const nodes=_buildGauntletResources(arena);
+const {startX,startZ,bcx,bcz,bowlPos}=arena.userData;
+// Teleport player in
+player.x=startX;player.z=startZ;player.y=2;
+// Init state
+gau={
+active:true,arena,nodes,
+phase:'gather', // gather | boss | complete
+shards:0,ore:0,bark:0,linum:0,fish:0,frames:0,vials:0,cookedFish:0,
+weaponTier:0, // 0=none, 1=attuned(t2), 2=perfected(t3)
+armourPieces:0,
+demiBossesKilled:[],
+demiBossEnemies:[],
+weakEnemies:[],
+hunllef:null,
+hunllefMesh:null,
+tornados:[],
+floorTiles:[],
+floorTileTimers:[],
+playerAtkStyleIdx:0, // 0=melee, 1=ranged, 2=magic
+timeLeft:9*60, // 9 minutes
+timerInterval:null,
+hintIdx:0,
+complete:false};
+// Spawn weak monsters around arena
+_gauSpawnWeakMonsters();
+// Spawn demi-bosses on perimeter
+_gauSpawnDemiBosses();
+// Start timer
+gau.timerInterval=setInterval(()=>{
+if(!gau||!gau.active)return;
+gau.timeLeft--;
+const m=Math.floor(gau.timeLeft/60),s=gau.timeLeft%60;
+const timerEl=document.getElementById('gau-timer');
+if(timerEl)timerEl.textContent=m+':'+(s<10?'0':'')+s;
+if(gau.timeLeft<=0){_gauFail('Time ran out! The Gauntlet resets...')}
+else if(gau.timeLeft===120&&dungeonHintsOn)_gauHint('⚠ 2 minutes left! Enter the boss room now!','#f80')
+else if(gau.timeLeft===300&&dungeonHintsOn)_gauHint('5 minutes left — finish crafting and head to the boss room.','#ffd700')},1000);
+// Show HUD
+gauHud.style.display='block';
+_gauPhase('⚔ CORRUPTED GAUNTLET — GATHER PHASE');
+_gauHint(GAU_HINTS.gather[0],'#c8a96e');
+_gauRes();
+log('Entered the Corrupted Gauntlet! You have 9 minutes. Gather resources and defeat the Hunllef!','#e040fb');
+_gauCycleHints();}
+
+function _gauCycleHints(){
+if(!gau||!dungeonHintsOn)return;
+let idx=0;const hints=gau.phase==='boss'?GAU_HINTS.boss:GAU_HINTS.gather;
+const cycle=()=>{if(!gau||!dungeonHintsOn)return;if(gau.phase==='complete')return;
+_gauHint(hints[idx%hints.length]);idx++;setTimeout(cycle,8000)};
+setTimeout(cycle,3000);}
+
+function _gauSpawnWeakMonsters(){
+if(!gau)return;
+const {CELL,COLS,ROWS,offX,offZ}=gau.arena.userData;
+for(let i=0;i<8;i++){
+const col=2+Math.floor(Math.random()*(COLS-2)),row=Math.floor(Math.random()*ROWS);
+// SAFE ZONE: Don't spawn near player start (0,0), bowl (3,3), or edges
+if((col<2&&row<2)||(col===3&&row===3)||col<1||col>=COLS-1)continue;
+const cx=offX+col*CELL+CELL/2+(Math.random()-.5)*8;
+const cz=offZ+row*CELL+CELL/2+(Math.random()-.5)*8;
+// Lower level enemies (1-3 instead of 8-13)
+const e=spawnE('bat',cx,cz,1+Math.floor(Math.random()*3));
+if(e){e._gauWeak=true;e._gauDrops=true;e.aggro=20;gau.weakEnemies.push(e)}}}
+
+function _gauSpawnDemiBosses(){
+if(!gau)return;
+const {CELL,COLS,ROWS,offX,offZ}=gau.arena.userData;
+// Move demi-bosses away from safe zone at (0,0)
+const positions=[[COLS-2,0],[COLS-1,ROWS-2],[COLS-2,ROWS-2]];
+GAU_DEMIBOSS.forEach((db,i)=>{
+const [col,row]=positions[i];
+const cx=offX+col*CELL+CELL/2,cz=offZ+row*CELL+CELL/2;
+// Lower demi-boss levels (10-15 instead of 40-50)
+const e=spawnE('golem',cx,cz,10+i*3);
+if(e){e._gauDemi=db;e._gauDemiKilled=false;e.aggro=30;gau.demiBossEnemies.push(e)}});}
+
+// Called from main game loop enemy death handler
+function onGauEnemyDeath(e){
+if(!gau||!gau.active)return;
+if(e._gauWeak){// Drop shards + chance weapon frame
+const shards=30+Math.floor(Math.random()*40);gau.shards+=shards;
+if(Math.random()<.35||gau.frames===0){gau.frames++;log('Corrupted Weapon Frame received!','#e040fb')}
+log('+'+shards+' Corrupted Shards','#cc88ff');_gauRes();}
+if(e._gauDemi&&!e._gauDemiKilled){
+e._gauDemiKilled=true;const db=e._gauDemi;
+gau.demiBossesKilled.push(db.type);
+gau.shards+=80;
+// Award weapon upgrade
+const upgMap={spike:'weaponSpike',bow:'weaponBow',magic:'weaponOrb'};
+gau[upgMap[db.reward.type]]=true;
+log('DEMI-BOSS SLAIN: '+db.name+' — dropped '+db.reward.item+'!','#e040fb');
+if(bossWarnOn)_gauHint('Demi-boss drop: '+db.reward.item+'! Return to Singing Bowl to upgrade.','#cc88ff');
+gau.shards+=80;_gauRes();
+if(gau.demiBossesKilled.length>=3){_gauHint('All 3 Demi-Bosses slain! Craft Tier-3 weapons & return to start.','#ffd700')}}
+_gauCheckCraftReady();}
+
+function _gauCheckCraftReady(){
+if(!gau)return;
+const readyT2=gau.frames>=1&&gau.shards>=100;
+const readyT3=gau.demiBossesKilled.length>=2&&gau.shards>=220;
+if(readyT3&&gau.weaponTier<2&&dungeonHintsOn)_gauHint('Return to Singing Bowl — craft Tier-3 weapon (Perfected Corrupted Bow)!','#ffd700');
+else if(readyT2&&gau.weaponTier<1&&dungeonHintsOn)_gauHint('Return to Singing Bowl — craft Tier-2 Corrupted Staff!','#c8a96e');}
+
+// Near-singing-bowl interaction (E key check)
+function gauCheckInteract(){
+if(!gau||!gau.active||gau.phase!=='gather')return;
+const bp=gau.arena.userData.bowlPos;
+if(Math.hypot(player.x-bp.x,player.z-bp.z)>8)return;
+_gauCraft();}
+
+function _gauCraft(){
+if(!gau)return;
+if(gau.frames<1){log('Need a Weapon Frame to craft!','#f44');return}
+if(gau.shards<100){log('Need 100+ Corrupted Shards to craft Tier-2 weapon.','#f44');return}
+if(gau.weaponTier===0){
+gau.shards-=100;gau.weaponTier=1;gau.vials=2;
+log('Crafted: Corrupted Staff (Attuned) Tier-2 + 2 Vials of Water!','#e040fb');
+_gauHint('Tier-2 weapon crafted! Now gather fish, ore, bark, linum and kill demi-bosses for Tier-3.','#c8a96e');
+_gauRes();return}
+if(gau.weaponTier===1&&gau.demiBossesKilled.length>=2&&gau.shards>=120){
+gau.shards-=120;gau.weaponTier=2;gau.armourPieces=3;gau.cookedFish=Math.max(gau.fish,6);
+log('Crafted: Perfected Corrupted Bow (Tier-3) + Full Armour Set!','#e040fb');
+log('Also crafted: 2 Egniol Potions (from shards).','#cc88ff');
+_gauHint('READY! Enter the boss chamber (center of arena). Switch prayers every 4 attacks!','#ffd700');
+_gauRes();return}
+log('Not enough resources yet to upgrade further.','#887');}
+
+// Enter boss room trigger
+function _gauEnterBossRoom(){
+if(!gau||gau.phase!=='gather')return;
+if(gau.weaponTier<1){
+_gauHint('⚠ You are NOT ready — craft weapons first at the Singing Bowl!','#f44');
+log('Warning: entering boss room without Tier-2+ weapon — this will be very hard!','#f80');}
+gau.phase='boss';
+_gauPhase('☠ CORRUPTED HUNLLEF — BOSS FIGHT');
+_gauSpawnHunllef();
+log('You enter the boss chamber... The Corrupted Hunllef awakens!','#e040fb');
+if(dungeonHintsOn){_gauHint(GAU_HINTS.boss[0],'#f44');_gauCycleHints();}}
+
+function _gauSpawnHunllef(){
+if(!gau)return;
+const {bcx,bcz}=gau.arena.userData;
+// Build Hunllef mesh — corrupted crystal spider/wolf hybrid
+const hg=new THREE.Group();
+const bodyMat=new MS({color:0x5a0a8a,emissive:0x3a0070,emissiveIntensity:.6,roughness:.5,metalness:.2});
+const crystMat=new MS({color:0xcc44ff,emissive:0xaa22ee,emissiveIntensity:1,transparent:true,opacity:.85});
+// Body
+const body=new THREE.Mesh(new THREE.SphereGeometry(3.5,12,10),bodyMat);body.scale.set(1.1,.8,1.3);hg.add(body);
+// Head
+const head=new THREE.Mesh(new THREE.SphereGeometry(2,10,8),bodyMat);head.position.set(0,2.5,3.5);hg.add(head);
+// Crystal horns
+[-1,1].forEach(s=>{const horn=new THREE.Mesh(new THREE.ConeGeometry(.4,3.5,5),crystMat);horn.position.set(s*1.2,4.5,3.2);horn.rotation.set(.3,0,s*.3);hg.add(horn)});
+// 6 legs
+for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const leg=new THREE.Mesh(new THREE.CylinderGeometry(.2,.15,4,5),bodyMat);leg.position.set(Math.cos(a)*3.5,0,Math.sin(a)*3.5);leg.rotation.set(Math.cos(a)*.7,0,Math.sin(a)*.7);hg.add(leg)}
+// Glowing eyes
+[-1,1].forEach(s=>{const eye=new THREE.Mesh(new THREE.SphereGeometry(.35,6,6),new MS({color:0xffaa00,emissive:0xff6600,emissiveIntensity:3}));eye.position.set(s*.8,3.2,5);hg.add(eye)});
+// Crystal spine cluster
+for(let i=0;i<8;i++){const sp=new THREE.Mesh(new THREE.ConeGeometry(.25,.5+Math.random()*1.5,4),crystMat);sp.position.set((Math.random()-.5)*5,1.5+Math.random()*2,(Math.random()-.5)*4);sp.rotation.set(Math.random()-.5,0,Math.random()-.5);hg.add(sp)}
+hg.scale.setScalar(.7);
+hg.position.set(bcx,1.5,bcz);hg.castShadow=true;
+scene.add(hg);
+gau.hunllefMesh=hg;
+// Combat state
+gau.hunllef={
+hp:600,maxHp:600,
+mode:'ranged', // ranged | magic
+atkCount:0,playerAtkCount:0,
+protPrayer:'melee', // what it protects against
+phase:1, // 1,2,3 based on HP
+lastAtkTick:0,atkInterval:90,
+x:bcx,z:bcz,
+tornados:[],tileTimers:[],
+dead:false};
+// Target it
+if(typeof lockOn!=='undefined')lockOn=null; // clear lock-on, player targets manually
+_gauSpawnFloorTiles();}
+
+function _gauSpawnFloorTiles(){
+if(!gau||!gau.hunllef)return;
+const {bcx,bcz,CELL}=gau.arena.userData;
+const tileSize=2.2;const gridN=6;
+gau.floorTiles=[];
+for(let row=0;row<gridN;row++){for(let col=0;col<gridN;col++){
+const tx=bcx+(col-gridN/2+.5)*tileSize,tz=bcz+(row-gridN/2+.5)*tileSize;
+const tile=new THREE.Mesh(new THREE.BoxGeometry(tileSize-.15,.08,tileSize-.15),new MS({color:0x1a0a2a,transparent:true,opacity:.8}));
+tile.position.set(tx,.06,tz);scene.add(tile);
+gau.floorTiles.push({mesh:tile,tx,tz,state:'safe',timer:0,danger:false})}}
+}
+
+// Called from main game update loop tick
+function updateGauntlet(dt){
+if(!gau||!gau.active)return;
+// Check near boss room entrance
+const {bcx,bcz}=gau.arena.userData;
+if(gau.phase==='gather'&&Math.hypot(player.x-bcx,player.z-bcz)<12){_gauEnterBossRoom()}
+// Singing bowl check
+gauCheckInteract();
+if(gau.phase==='boss'){_updateHunllef(dt)}_gauAtkTracker();}
+
+function _updateHunllef(dt){
+if(!gau||!gau.hunllef||gau.hunllef.dead)return;
+const h=gau.hunllef;const hm=gau.hunllefMesh;
+if(!hm)return;
+// Floating bob
+hm.position.y=1.5+Math.sin(Date.now()*.001)*0.4;
+hm.rotation.y+=.008;
+// Attack timer
+h.lastAtkTick=(h.lastAtkTick||0)+1;
+const interval=h.phase>=3?55:h.phase>=2?72:h.atkInterval;
+if(h.lastAtkTick>=interval){h.lastAtkTick=0;_hunllefAttack();}
+// Tornado movement
+gau.tornados.forEach((t,i)=>{
+if(!t.mesh)return;
+const dx=player.x-t.x,dz=player.z-t.z,dist=Math.hypot(dx,dz);
+if(dist>0.5){t.x+=dx/dist*0.55;t.z+=dz/dist*0.55}
+t.mesh.position.set(t.x,1.2+Math.sin(Date.now()*.003+i)*0.3,t.z);
+t.mesh.rotation.y+=0.12;
+if(dist<3){// Hit player
+const dmg=bossWarnOn?12:18;player.hp=Math.max(0,player.hp-dmg);
+log('Tornado hits you! -'+dmg+' HP','#f44');
+if(bossWarnOn)_gauHint('TORNADO — keep running!','#f44');}});
+// Floor tile pulsing
+const speed=h.phase>=3?18:h.phase>=2?30:50;
+gau.floorTiles.forEach(t=>{
+t.timer=(t.timer||0)+1;
+if(t.timer>speed+Math.random()*20){t.timer=0;
+if(t.state==='safe'){t.state='warn';t.mesh.material.color.set(0x2244aa);t.mesh.material.emissive&&t.mesh.material.emissive.set(0x1133aa)}
+else if(t.state==='warn'){t.state='hot';t.mesh.material.color.set(0xff5500)}
+else{t.state='safe';t.mesh.material.color.set(0x1a0a2a)}}
+// Damage player on hot tile
+if(t.state==='hot'){const dx=player.x-t.tx,dz=player.z-t.tz;
+if(Math.abs(dx)<1.2&&Math.abs(dz)<1.2){player.hp=Math.max(0,player.hp-8);}}});
+// Phase transitions
+const hpPct=h.hp/h.maxHp;
+const newPhase=hpPct<.33?3:hpPct<.66?2:1;
+if(newPhase>h.phase){h.phase=newPhase;
+_gauSpawnTornados(newPhase);
+if(bossWarnOn)_gauHint('Hunllef Phase '+newPhase+'! More tornadoes, faster attacks!','#f44');
+log('Hunllef enters Phase '+newPhase+'!','#e040fb')}
+// Trample check — player directly under boss
+if(Math.hypot(player.x-h.x,player.z-h.z)<2.5){
+player.hp=Math.max(0,player.hp-25);
+if(bossWarnOn)_gauHint('MOVE! You are being trampled! (-25 HP)','#f44');}
+// Death check
+if(player.hp<=0){_gauFail('You were slain by the Corrupted Hunllef...')}
+if(h.hp<=0){_gauVictory()}}
+
+function _hunllefAttack(){
+if(!gau||!gau.hunllef)return;
+const h=gau.hunllef;
+// Tornadoes count as one attack in cycle
+if(h.atkCount%4===3&&h.phase>=2){// Tornado attack
+_gauSpawnTornados(1);h.atkCount++;return}
+// Determine attack type
+const dmg=h.mode==='ranged'?18:22;const pen=h.phase>=3?.7:h.phase>=2?.85:1;
+// Check player prayer
+let mitigated=false;
+if(h.mode==='ranged'&&typeof player._prayRanged!=='undefined'&&player._prayRanged)mitigated=true;
+if(h.mode==='magic'&&typeof player._prayMagic!=='undefined'&&player._prayMagic)mitigated=true;
+const finalDmg=mitigated?Math.floor(dmg*.1):Math.floor(dmg*pen);
+player.hp=Math.max(0,player.hp-finalDmg);
+if(finalDmg>0)log('Hunllef '+(h.mode==='ranged'?'🏹':'🔮')+' hit: -'+finalDmg+' HP'+(mitigated?' (prayer)':''),'#f44');
+h.atkCount++;
+// Switch attack mode every 4 attacks
+if(h.atkCount%4===0){h.mode=h.mode==='ranged'?'magic':'ranged';
+if(bossWarnOn)_gauHint('Hunllef switches to '+(h.mode==='ranged'?'RANGED 🏹':'MAGIC 🔮')+'! Switch prayer!','#f80');
+log('Hunllef attack style: '+(h.mode==='ranged'?'Ranged':'Magic'),'#cc44ff');}
+// Drain prayer occasionally
+if(h.mode==='magic'&&Math.random()<.12){skills.Prayer.xp=Math.max(0,skills.Prayer.xp-20);
+log('Prayer drained! -20 Prayer pts','#cc44ff');}}
+
+function _gauSpawnTornados(count){
+if(!gau)return;
+const {bcx,bcz,CELL}=gau.arena.userData;
+for(let i=0;i<count;i++){
+const a=Math.random()*Math.PI*2,r=5+Math.random()*8;
+const tx=bcx+Math.cos(a)*r,tz=bcz+Math.sin(a)*r;
+const tmesh=new THREE.Mesh(new THREE.ConeGeometry(.8,3,6),new MS({color:0xaa44ff,emissive:0x8822ee,emissiveIntensity:1.5,transparent:true,opacity:.75,wireframe:true}));
+tmesh.position.set(tx,1.2,tz);scene.add(tmesh);
+gau.tornados.push({mesh:tmesh,x:tx,z:tz});}}
+
+// Player attacks the Hunllef (called when player presses attack near boss)
+function gauPlayerAttack(){
+if(!gau||gau.phase!=='boss'||!gau.hunllef||gau.hunllef.dead)return false;
+const h=gau.hunllef;
+const dist=Math.hypot(player.x-h.x,player.z-h.z);
+// Use playerCombatStyle globally for style — melee needs range 22, ranged/magic up to 80
+const styleNames=['melee','ranged','magic'];
+const style=styleNames[playerCombatStyle%3];
+gau.playerAtkStyleIdx=playerCombatStyle;
+const maxRange=style==='melee'?22:80;
+if(dist>maxRange)return false;
+// Check if blocked by Hunllef protection prayer
+if(style===h.protPrayer){log('Hunllef blocks '+style+' with protection prayer! 0 damage.','#f80');
+if(dungeonHintsOn)_gauHint('Switch attack style — Hunllef protects from '+style+'!','#f80');}
+else{
+const gs=totalGear();const base=gau.weaponTier===2?45:gau.weaponTier===1?25:12;
+const dmg=Math.floor((base+gs.atk/3)*(0.7+Math.random()*.6));
+h.hp=Math.max(0,h.hp-dmg);
+log('You hit Hunllef ('+style+'): -'+dmg+' HP — Boss: '+h.hp+'/'+h.maxHp,'#0f0');
+// Update boss health bar effect
+if(gau.hunllefMesh)gau.hunllefMesh.children[0]&&(gau.hunllefMesh.children[0].scale.y=Math.max(0.05,h.hp/h.maxHp));}
+h.playerAtkCount++;
+// Every 6 player attacks, Hunllef switches protection prayer
+if(h.playerAtkCount%6===0){
+const newProt=styleNames[Math.floor(Math.random()*3)];h.protPrayer=newProt;
+log('Hunllef switches protection to: '+newProt,'#cc44ff');
+if(bossWarnOn)_gauHint('Hunllef now protects from '+newProt+'! Switch your attack style.','#f80');}
+_gauAtkTracker();
+if(h.hp<=0){_gauVictory()}
+return true;}
+
+function _gauVictory(){
+if(!gau||gau.complete)return;
+gau.complete=true;gau.phase='complete';
+clearInterval(gau.timerInterval);
+_gauPhase('🏆 VICTORY! HUNLLEF DEFEATED!');
+_gauHint(GAU_HINTS.complete[0],'#ffd700');
+// Remove boss + effects
+if(gau.hunllefMesh){scene.remove(gau.hunllefMesh);gau.hunllefMesh=null}
+gau.tornados.forEach(t=>{if(t.mesh)scene.remove(t.mesh)});gau.tornados=[];
+gau.floorTiles.forEach(t=>{if(t.mesh)scene.remove(t.mesh)});gau.floorTiles=[];
+// Reward chest
+const {bcx,bcz}=gau.arena.userData;
+const chest=new THREE.Mesh(new THREE.BoxGeometry(3,2.5,3),new MS({color:0xcc88ff,emissive:0x8844aa,emissiveIntensity:.8}));
+chest.position.set(bcx,1.25,bcz);scene.add(chest);
+log('╔══════════════════════════════════╗','#ffd700');
+log('║  CORRUPTED GAUNTLET COMPLETE!    ║','#ffd700');
+log('╚══════════════════════════════════╝','#ffd700');
+// Determine loot
+const lootTable=[
+{item:'Ystalcray Armorway Eedsay',chance:.04,label:'Crystal Armour Seed'},
+{item:'Ystalcray Eaponway Eedsay',chance:.04,label:'Crystal Weapon Seed'},
+{item:'Enhancedway Ystalcray Eedsay',chance:.005,label:'ENHANCED Crystal Seed ★'},
+{item:'Etaidpay Ystalcray Elmhay',chance:.12,label:'Corrupted Crystal Helm'},
+{item:'Etaidpay Ystalcray Odybay',chance:.12,label:'Corrupted Crystal Body'},
+{item:'Etaidpay Ystalcray Egslay',chance:.12,label:'Corrupted Crystal Legs'},
+{item:'Oinscay x500',chance:.6,label:'500 Gold Coins'}];
+lootTable.forEach(l=>{if(Math.random()<l.chance){
+log('LOOT: '+l.label,'#e040fb');
+inventory.push({name:l.item,uid:null});updateInvUI();}});
+// Skill XP rewards
+skills.Slayer.xp+=2000;skills.Attack.xp+=1500;skills.Strength.xp+=1500;skills.Defence.xp+=1500;updateSkillUI();
+log('Slayer +2000 XP, Combat +1500 XP each','#cc88ff');
+setTimeout(()=>{_gauExit()},8000);}
+
+function _gauFail(msg){
+if(!gau)return;clearInterval(gau.timerInterval);
+gau.phase='complete';gau.complete=true;
+_gauPhase('💀 DEFEATED');
+_gauHint(msg,'#f44');
+log(msg,'#f44');
+setTimeout(()=>{_gauExit()},4000);}
+
+function _gauExit(){
+if(!gau)return;
+clearInterval(gau.timerInterval);
+// Cleanup 3D
+if(gau.arena)scene.remove(gau.arena);
+gau.tornados.forEach(t=>{if(t.mesh)scene.remove(t.mesh)});
+gau.floorTiles.forEach(t=>{if(t.mesh)scene.remove(t.mesh)});
+if(gau.hunllefMesh)scene.remove(gau.hunllefMesh);
+// Return player to world
+player.x=0;player.z=0;player.y=2;
+gau={active:false};gauHud.style.display='none';
+log('You leave the Corrupted Gauntlet.','#cc88ff');}
+
+// Hook into main game update loop — called each frame
+const _origGameLoop=typeof loop==='function'?loop:null;
+// Patch attack key (1) to check gauntlet boss targeting
+const _gauKeyHandler=function(e){
+if(!gau||!gau.active||gau.phase!=='boss')return;
+const k=e.key?e.key.toLowerCase():e.code;
+if(k==='1'||k==='digit1'){gauPlayerAttack()}};
+document.addEventListener('keydown',_gauKeyHandler,true);
+
+// Expose updateGauntlet to main loop (called at top of frame)
+// The main loop already calls named per-tick functions; hook via requestAnimationFrame proxy
+const _gauLoopHook=(function(){
+const orig=window.requestAnimationFrame;
+let lastT=0;
+window.requestAnimationFrame=function(cb){
+return orig.call(window,function(t){
+const dt=(t-lastT)/16;lastT=t;
+try{updateGauntlet(dt)}catch(ex){}
+cb(t);})};})();
+// Dungeon key — open dungeoning menu (shows gauntlet entry prompt)
+// Uses configurable key from kbMap (default: 'u')
+function openDungeonMenu(){
+if(typeof gameStarted==='undefined'||!gameStarted)return;
+const existing=document.getElementById('dungeon-menu');
+if(existing){existing.remove();return}
+const dm=document.createElement('div');
+dm.id='dungeon-menu';
+dm.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(10,5,20,.96);border:2px solid #8822cc;border-radius:8px;padding:16px 20px;z-index:8001;min-width:320px;font-family:"Times New Roman",serif;color:#cc88ff;box-shadow:0 0 30px #8822cc88';
+// Get the current dungeon key from keybinds
+const dungeonKey=(typeof kbMap!=='undefined'&&kbMap.dungeon)?kbMap.dungeon.key.toUpperCase():'U';
+dm.innerHTML='<div style="font-size:18px;color:#e040fb;font-weight:700;text-align:center;letter-spacing:2px;margin-bottom:10px">⚔ DUNGEONING</div>'+
+'<div style="font-size:11px;color:#aa88cc;margin-bottom:10px;text-align:center">Solo Challenges — Prepare, Gather, Conquer</div>'+
+'<div style="border:1px solid #5a2a8a;border-radius:5px;padding:10px;margin-bottom:8px;cursor:pointer;background:rgba(90,20,140,.2);transition:background .15s" '+
+'onmouseenter="this.style.background=\'rgba(120,40,180,.35)\'" onmouseleave="this.style.background=\'rgba(90,20,140,.2)\'" '+
+'onclick="teleportToDungeonEntrance()">'+
+'<div style="color:#e040fb;font-weight:700;font-size:14px">🏰 Teleport to Dungeon Entrance</div>'+
+'<div style="color:#9a6aaa;font-size:10px;margin-top:3px">Instant travel to the nearest dungeon entrance.</div>'+
+'</div>'+
+'<div style="border:1px solid #5a2a8a;border-radius:5px;padding:10px;margin-bottom:8px;cursor:pointer;background:rgba(90,20,140,.2);transition:background .15s" '+
+'onmouseenter="this.style.background=\'rgba(120,40,180,.35)\'" onmouseleave="this.style.background=\'rgba(90,20,140,.2)\'" '+
+'onclick="document.getElementById(\'dungeon-menu\').remove();enterCorruptedGauntlet()">'+
+'<div style="color:#e040fb;font-weight:700;font-size:14px">☠ Enter Corrupted Gauntlet</div>'+
+'<div style="color:#9a6aaa;font-size:10px;margin-top:3px">Solo 9-minute minigame — Gather resources, craft weapons, defeat the Corrupted Hunllef.</div>'+
+'<div style="color:#887;font-size:9px;margin-top:2px">Recommended: Combat 80+ • Rewards: Crystal Seeds, Armour</div>'+
+'</div>'+
+'<div style="text-align:center;margin-top:6px"><span style="cursor:pointer;color:#887;font-size:10px;border:1px solid #442244;padding:3px 10px;border-radius:3px" onclick="document.getElementById(\'dungeon-menu\').remove()">Close ('+dungeonKey+')</span></div>';
+document.body.appendChild(dm);}
+document.addEventListener('keydown',function(e){
+const dungeonKey=(typeof kbMap!=='undefined'&&kbMap.dungeon)?kbMap.dungeon.key:'u';
+if(e.key&&e.key.toLowerCase()===dungeonKey&&typeof gameStarted!=='undefined'&&gameStarted){
+e.preventDefault();
+openDungeonMenu();}});
+// Teleport to nearest dungeon entrance
+function teleportToDungeonEntrance(){
+// Close menu first
+const dm=document.getElementById('dungeon-menu');
+if(dm)dm.remove();
+// Find nearest dungeon
+let nearest=null;let minDist=Infinity;
+if(typeof dungeons!=='undefined'){
+for(const d of dungeons){
+const dist=Math.hypot(player.x-d.x,player.z-d.z);
+if(dist<minDist){minDist=dist;nearest=d;}}}
+if(nearest){
+player.x=nearest.x;player.z=nearest.z+15;player.y=2;
+log('Teleported to dungeon entrance at ('+~~nearest.x+', '+~~nearest.z+')','#e040fb');
+if(typeof cam!=='undefined'){cam.x=player.x;cam.z=player.z+30;}}
+else{// No dungeon found - teleport to a default location
+player.x=500;player.z=500;player.y=2;
+log('No dungeon found. Teleported to wilderness hub.','#f80');}
+if(typeof saveGame==='function')saveGame();}
+// Expose dungeon functions to global scope for HTML onclick handlers
+window.teleportToDungeonEntrance=teleportToDungeonEntrance;
+window.openDungeonMenu=openDungeonMenu;
 </script>
 </body>
 </html>"""
