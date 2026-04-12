@@ -1057,7 +1057,9 @@ let inDungeon=null;let dungeonGroup=null;const dungeons=[];const dungeonObjs=[];
 // Culling globals
 let cullFrame=0;let distanceCull=null,shadowCull=null,checkInteractions=null;
 // Terrain mesh reference for accurate height + door system
-let groundMesh=null;const doors=[];
+let groundMesh=null;const doors=[];const windmills=[];
+// GPU instanced building elements (populated during init)
+let _buildingInstancers=null;
 // Teleport system — destinations for each city
 const teleports=[
 {name:'Umbridgelay',x:0,z:0,unlocked:true},
@@ -1832,6 +1834,8 @@ scene.add(playerGroup);
 
 function init(){
 console.log('INIT START');
+// Initialize GPU instancers for building elements
+initBuildingInstancers();
 scene=new THREE.Scene();scene.background=new THREE.Color(0xaaccee);scene.fog=new THREE.FogExp2(0xaaccee,.00008);
 cam=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.5,30000);
 renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance',stencil:false,depth:true});
@@ -2081,6 +2085,386 @@ const pole=new THREE.Mesh(new THREE.CylinderGeometry(.3*s,.3*s,bodyH,nSides),new
 const fm=new THREE.Mesh(new THREE.SphereGeometry(1.2,6,6),mt.fl);fm.position.y=bodyH*.8;g.add(fm);
 g.position.set(x,h,z);scene.add(g);
 torchPositions.push({x,y:h+bodyH*.8,z,mesh:fm,ph:Math.random()*6.28,big:false})}
+
+// === NEW DETAILED BUILDINGS WITH INTERIORS ===
+
+// Inn/Tavern - Two story with rooms, main hall, fireplace
+function inn(x,z,rot,sc){
+sc=(sc||1)*2;const h=meshTerrainH(x,z);const g=new THREE.Group();
+const seed=Math.abs(Math.sin(x*83.3+z*197.7)*43758.5453)%1;
+const wW=(18+seed*6)*sc,wD=(14+seed*5)*sc,wH=(12+seed*4)*sc;
+const wallCol=new THREE.Color().setHSL(.12+seed*.06,.25+seed*.15,.4+seed*.15);
+const wMat=new MS({color:wallCol,roughness:.85});
+// Main structure
+const body=new THREE.Mesh(new THREE.BoxGeometry(wW,wH,wD),wMat);body.position.y=wH/2;body.castShadow=true;g.add(body);
+// Upper floor overhang
+const upper=new THREE.Mesh(new THREE.BoxGeometry(wW+2*sc,4*sc,wD+2*sc),wMat);upper.position.y=wH+2*sc;upper.castShadow=true;g.add(upper);
+// Roof
+const roof=new THREE.Mesh(new THREE.ConeGeometry(Math.max(wW,wD)*.7,6*sc,4),mt.rf);roof.position.y=wH+5*sc;roof.rotation.y=rot||0;g.add(roof);
+// Working door
+const dW=3.5*sc,dH=6*sc;
+const dPivot=new THREE.Group();dPivot.position.set(-dW/2,0,wD/2);
+const dPanel=new THREE.Mesh(new THREE.BoxGeometry(dW,dH,.3*sc),new MS({color:0x4a3a2a,roughness:.9}));dPanel.position.set(dW/2,dH/2,0);dPanel.castShadow=true;dPivot.add(dPanel);
+// Iron hinges
+const hinge=new THREE.Mesh(new THREE.CylinderGeometry(.2*sc,.2*sc,.4*sc,6),mt.iron);hinge.position.set(0,dH*.25,.2*sc);dPivot.add(hinge);
+const hinge2=hinge.clone();hinge2.position.set(0,dH*.75,.2*sc);dPivot.add(hinge2);
+g.add(dPivot);
+doors.push({pivot:dPivot,x:x,z:z+wD/2,openAng:-Math.PI/2,cur:0});
+// Interior - ground floor
+const flG=new THREE.Mesh(new THREE.BoxGeometry(wW*.8,.3*sc,wD*.8),new MS({color:0x5a4a3a,roughness:.9}));flG.position.y=0.2*sc;g.add(flG);
+// Upper floor
+const flU=new THREE.Mesh(new THREE.BoxGeometry(wW*.75,.3*sc,wD*.75),new MS({color:0x5a4a3a,roughness:.9}));flU.position.y=wH*.6;g.add(flU);
+// Staircase
+const stairW=2*sc,stairD=6*sc;
+for(let si=0;si<8;si++){
+const step=new THREE.Mesh(new THREE.BoxGeometry(stairW,.3*sc,1*sc),new MS({color:0x4a3a2a,roughness:.85}));
+step.position.set(wW*.25,si*(wH*.6/8),-wD*.25+si*(stairD/8));g.add(step);}
+// Chimney
+const chim=new THREE.Mesh(new THREE.BoxGeometry(2*sc,wH+8*sc,2*sc),new MS({color:0x3a3a3a,roughness:.9}));
+chim.position.set(-wW*.3,wH/2+4*sc,-wD*.3);g.add(chim);
+// Chimney top smoke
+const smoke=new THREE.Mesh(new THREE.SphereGeometry(1.5*sc,6,6),new MS({color:0x666666,transparent:true,opacity:.4}));
+smoke.position.set(-wW*.3,wH+8*sc,-wD*.3);g.add(smoke);
+// Window boxes with flower boxes
+[-1,1].forEach(sx=>{
+const win=new THREE.Mesh(new THREE.BoxGeometry(2*sc,3*sc,.3*sc),new MS({color:0x2a2a3a,emissive:0x1a1a2a,emissiveIntensity:.5}));
+win.position.set(sx*(wW/2+.15),wH*.3,0);g.add(win);
+const flowerBox=new THREE.Mesh(new THREE.BoxGeometry(2.5*sc,.5*sc,.8*sc),new MS({color:0x3a5a2a,roughness:.9}));
+flowerBox.position.set(sx*(wW/2+.2),wH*.3-1.5*sc,.5*sc);g.add(flowerBox);});
+g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g);
+addCircleSolid(x,z,Math.max(wW,wD)/2+2,h,h+wH+10*sc);
+markPlace(x,z,Math.max(wW,wD)/2+4);
+makeEnterable(x,z,'inn','Tavern & Inn',Math.max(wW,wD)/2+3);}
+
+// Blacksmith/Forge - Workshop with forge, anvil, loft
+function forge(x,z,rot,sc){
+sc=(sc||1)*2;const h=meshTerrainH(x,z);const g=new THREE.Group();
+const seed=Math.abs(Math.sin(x*63.7+z*283.3)*43758.5453)%1;
+const wW=(16+seed*5)*sc,wD=(12+seed*4)*sc,wH=(10+seed*3)*sc;
+const wallCol=new THREE.Color().setHSL(.08+seed*.04,.2+seed*.1,.35+seed*.1);
+const wMat=new MS({color:wallCol,roughness:.9});
+// Main building
+const body=new THREE.Mesh(new THREE.BoxGeometry(wW,wH,wD),wMat);body.position.y=wH/2;body.castShadow=true;g.add(body);
+// High roof for smoke
+const roof=new THREE.Mesh(new THREE.CylinderGeometry(wW*.4,wW*.6,8*sc,4),mt.rfDark);roof.position.y=wH+4*sc;g.add(roof);
+// Large working door (wide for carts)
+const dW=5*sc,dH=5.5*sc;
+const dPivot=new THREE.Group();dPivot.position.set(-dW/2,0,wD/2);
+const dPanel=new THREE.Mesh(new THREE.BoxGeometry(dW,dH,.4*sc),new MS({color:0x3a2a1a,roughness:.9}));
+const dBand=new THREE.Mesh(new THREE.BoxGeometry(dW,.3*sc,.5*sc),mt.iron);dBand.position.set(dW/2,dH*.3,0);dPanel.add(dBand);
+dPanel.position.set(dW/2,dH/2,0);dPanel.castShadow=true;dPivot.add(dPanel);
+g.add(dPivot);
+doors.push({pivot:dPivot,x:x,z:z+wD/2,openAng:-Math.PI/2,cur:0});
+// Interior floor
+const fl=new THREE.Mesh(new THREE.BoxGeometry(wW*.85,.3*sc,wD*.85),new MS({color:0x4a3a2a,roughness:.85}));fl.position.y=0.2*sc;g.add(fl);
+// Forge (glowing)
+const forge=new THREE.Mesh(new THREE.BoxGeometry(3*sc,4*sc,3*sc),new MS({color:0x2a1a0a,roughness:1}));
+forge.position.set(-wW*.25,2*sc,-wD*.25);g.add(forge);
+const forgeGlow=new THREE.Mesh(new THREE.SphereGeometry(1.2*sc,8,8),new MS({color:0xff4400,emissive:0xff2200,emissiveIntensity:2}));
+forgeGlow.position.set(-wW*.25,3*sc,-wD*.25);g.add(forgeGlow);
+// Anvil
+const anvil=new THREE.Mesh(new THREE.BoxGeometry(1.5*sc,1.5*sc,1*sc),mt.iron);anvil.position.set(0,0.8*sc,0);g.add(anvil);
+const anvilTop=new THREE.Mesh(new THREE.CylinderGeometry(.6*sc,.4*sc,.5*sc,8),mt.iron);anvilTop.position.set(0,1.6*sc,0);g.add(anvilTop);
+// Storage loft
+const loft=new THREE.Mesh(new THREE.BoxGeometry(wW*.7,.3*sc,wD*.4),new MS({color:0x4a3a2a,roughness:.9}));
+loft.position.set(0,wH*.7,wD*.15);g.add(loft);
+// Ladder to loft
+const ladSide=new THREE.Mesh(new THREE.BoxGeometry(.3*sc,wH*.7,.1*sc),mt.wd);ladSide.position.set(wW*.2,wH*.35,-wD*.2);g.add(ladSide);
+const ladSide2=ladSide.clone();ladSide2.position.x=wW*.25;g.add(ladSide2);
+for(let li=0;li<6;li++){
+const rung=new THREE.Mesh(new THREE.BoxGeometry(wW*.06,.1*sc,.12*sc),mt.wd);
+rung.position.set(wW*.225,li*(wH*.7/6),-wD*.2);g.add(rung);}
+// Chimney with smoke
+const chim=new THREE.Mesh(new THREE.CylinderGeometry(1.5*sc,2*sc,wH+10*sc,6),new MS({color:0x3a3a3a}));
+chim.position.set(-wW*.3,wH/2+5*sc,-wD*.3);g.add(chim);
+// Smoke puff
+const smoke=new THREE.Mesh(new THREE.SphereGeometry(2*sc,6,6),new MS({color:0x444444,transparent:true,opacity:.3}));
+smoke.position.set(-wW*.3,wH+10*sc,-wD*.3);g.add(smoke);
+g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g);
+addCircleSolid(x,z,Math.max(wW,wD)/2+2,h,h+wH+12*sc);
+markPlace(x,z,Math.max(wW,wD)/2+4);
+makeEnterable(x,z,'forge','Blacksmith Forge',Math.max(wW,wD)/2+3);}
+
+// Windmill - Rotating blades, internal ladder to top
+function windmill(x,z,rot,sc){
+sc=(sc||1)*2;const h=meshTerrainH(x,z);const g=new THREE.Group();
+const seed=Math.abs(Math.sin(x*91.7+z*173.3)*43758.5453)%1;
+const tR=(6+seed*2)*sc,tH=(28+seed*8)*sc;
+const wallCol=new THREE.Color().setHSL(.15+seed*.05,.2+seed*.1,.5+seed*.15);
+const tMat=new MS({color:wallCol,roughness:.85});
+// Tower body (tapered cylinder)
+const body=new THREE.Mesh(new THREE.CylinderGeometry(tR*.8,tR,tH,8),tMat);body.position.y=tH/2;body.castShadow=true;g.add(body);
+// Domed cap
+const cap=new THREE.Mesh(new THREE.SphereGeometry(tR*.9,8,8,0,Math.PI*2,0,Math.PI/2),mt.rf);cap.position.y=tH;g.add(cap);
+// Entry door
+const dW=2.5*sc,dH=5*sc;
+const dPivot=new THREE.Group();dPivot.position.set(-dW/2,0,tR*.9);
+const dPanel=new THREE.Mesh(new THREE.BoxGeometry(dW,dH,.3*sc),new MS({color:0x4a3a2a,roughness:.9}));
+dPanel.position.set(dW/2,dH/2,0);dPanel.castShadow=true;dPivot.add(dPanel);
+g.add(dPivot);
+doors.push({pivot:dPivot,x:x,z:z+tR*.9,openAng:-Math.PI/2,cur:0});
+// Interior floors (3 levels)
+for(let fi=1;fi<=3;fi++){
+const flY=fi*(tH/4);
+const fl=new THREE.Mesh(new THREE.CircleGeometry(tR*.6,8),new MS({color:0x5a4a3a,roughness:.9}));
+fl.rotation.x=-Math.PI/2;fl.position.y=flY;g.add(fl);
+// Center hole for ladder
+const hole=new THREE.Mesh(new THREE.CircleGeometry(tR*.2,8),new MS({color:0x2a1a0a,roughness:1}));
+hole.rotation.x=-Math.PI/2;hole.position.y=flY+.02;g.add(hole);}
+// Central ladder
+const ladPole=new THREE.Mesh(new THREE.CylinderGeometry(.15*sc,.15*sc,tH,6),mt.wd);ladPole.position.y=tH/2;g.add(ladPole);
+for(let li=0;li<15;li++){
+const rung=new THREE.Mesh(new THREE.BoxGeometry(1*sc,.1*sc,.15*sc),mt.wd);
+rung.position.y=li*(tH/15);g.add(rung);}
+// Rotating blades group
+const bladeGroup=new THREE.Group();bladeGroup.position.set(0,tH+tR*.3,0);
+// Hub
+const hub=new THREE.Mesh(new THREE.CylinderGeometry(1*sc,1*sc,2*sc,8),mt.wd);hub.rotation.x=Math.PI/2;bladeGroup.add(hub);
+// 4 blades
+for(let bi=0;bi<4;bi++){
+const a=bi*Math.PI/2;
+const bladeArm=new THREE.Mesh(new THREE.BoxGeometry(1*sc,.5*sc,12*sc),mt.wd);
+bladeArm.position.set(Math.sin(a)*6*sc,Math.cos(a)*6*sc,0);bladeArm.rotation.z=-a;bladeGroup.add(bladeArm);
+const bladeSail=new THREE.Mesh(new THREE.BoxGeometry(2.5*sc,.1*sc,9*sc),new MS({color:0xddddcc,roughness:.9}));
+bladeSail.position.set(Math.sin(a)*6*sc,Math.cos(a)*10*sc,1*sc);bladeSail.rotation.z=-a;bladeGroup.add(bladeSail);}
+g.add(bladeGroup);
+// Store reference for animation
+windmills.push({mesh:bladeGroup,x:x,z:z});
+// Millstone at bottom (grinding)
+const mill=new THREE.Mesh(new THREE.CylinderGeometry(2*sc,.3*sc,2*sc,8),mt.st);mill.position.set(0,2*sc,0);g.add(mill);
+g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g);
+addCircleSolid(x,z,tR*1.2,h,h+tH+5*sc);
+markPlace(x,z,tR*1.5);
+makeEnterable(x,z,'windmill','Windmill',tR+3);}
+
+// Watchtower - Military tower with battlements, multiple floors
+function watchtower(x,z,rot,sc){
+sc=(sc||1)*2;const h=meshTerrainH(x,z);const g=new THREE.Group();
+const seed=Math.abs(Math.sin(x*71.3+z*241.7)*43758.5453)%1;
+const tW=(8+seed*3)*sc,tH=(35+seed*12)*sc;
+const wallCol=new THREE.Color().setHSL(.1+seed*.04,.15+seed*.1,.4+seed*.1);
+const wMat=new MS({color:wallCol,roughness:.8});
+// Main tower (square)
+const body=new THREE.Mesh(new THREE.BoxGeometry(tW,tH,tW),wMat);body.position.y=tH/2;body.castShadow=true;g.add(body);
+// Crenellated top
+const crenW=tW+1*sc;
+for(let ci=0;ci<8;ci++){
+const cx=(ci<4?1:-1)*((ci%2===0?crenW/2:crenW/2-1.5*sc));
+const cz=(ci<4?-1:1)*((ci%2===1?crenW/2:crenW/2-1.5*sc));
+const cren=new THREE.Mesh(new THREE.BoxGeometry(1.5*sc,2*sc,1.5*sc),wMat);
+cren.position.set(cx,tH+1*sc,cz);g.add(cren);}
+// Roof platform
+const roofPlat=new THREE.Mesh(new THREE.BoxGeometry(tW,.5*sc,tW),new MS({color:0x4a4a4a}));
+roofPlat.position.y=tH;g.add(roofPlat);
+// Working door at base
+const dW=2.5*sc,dH=5*sc;
+const dPivot=new THREE.Group();dPivot.position.set(-dW/2,0,tW/2);
+const dPanel=new THREE.Mesh(new THREE.BoxGeometry(dW,dH,.3*sc),new MS({color:0x3a2a1a,roughness:.9}));
+dPanel.position.set(dW/2,dH/2,0);dPanel.castShadow=true;dPivot.add(dPanel);
+// Iron reinforcement
+const ironB=new THREE.Mesh(new THREE.BoxGeometry(dW,.2*sc,.35*sc),mt.iron);ironB.position.set(dW/2,dH*.3,0);dPivot.add(ironB);
+const ironB2=ironB.clone();ironB2.position.y=dH*.7;dPivot.add(ironB2);
+g.add(dPivot);
+doors.push({pivot:dPivot,x:x,z:z+tW/2,openAng:-Math.PI/2,cur:0});
+// Interior floors (4 levels)
+for(let fl=1;fl<=4;fl++){
+const flY=fl*(tH/5);
+const floor=new THREE.Mesh(new THREE.BoxGeometry(tW*.8,.2*sc,tW*.8),new MS({color:0x4a4a4a,roughness:.9}));
+floor.position.y=flY;g.add(floor);
+// Center hole for ladder
+const hole=new THREE.Mesh(new THREE.BoxGeometry(tW*.25,.25*sc,tW*.25),new MS({color:0x1a1a1a}));
+hole.position.y=flY;g.add(hole);}
+// Central ladder shaft
+const ladPole=new THREE.Mesh(new THREE.CylinderGeometry(.2*sc,.2*sc,tH,6),mt.iron);ladPole.position.y=tH/2;g.add(ladPole);
+for(let li=0;li<20;li++){
+const rung=new THREE.Mesh(new THREE.BoxGeometry(1.2*sc,.1*sc,.15*sc),mt.iron);
+rung.position.y=li*(tH/20);g.add(rung);}
+// Arrow slits
+for(let si=0;si<3;si++){
+const slitH=tH*.25+si*tH*.25;
+[-1,1].forEach(sx=>{
+const slit=new THREE.Mesh(new THREE.BoxGeometry(.3*sc,2*sc,.2*sc),new MS({color:0x0a0a0a}));
+slit.position.set(sx*(tW/2+.1),slitH,0);g.add(slit);});}
+// Torch sconces
+[-1,1].forEach(sx=>{
+const sconce=new THREE.Mesh(new THREE.CylinderGeometry(.3*sc,.4*sc,.8*sc,6),mt.iron);
+sconce.position.set(sx*(tW/2+.2),tH*.5,tW/2+.2);g.add(sconce);
+const flame=new THREE.Mesh(new THREE.SphereGeometry(.4*sc,6,6),mt.fl);flame.position.set(sx*(tW/2+.2),tH*.5+.6*sc,tW/2+.2);g.add(flame);
+torchPositions.push({x:x+sx*(tW/2+.2)*Math.cos(rot||0),y:h+tH*.5+.6*sc,z:z+sx*(tW/2+.2)*Math.sin(rot||0),mesh:flame,ph:Math.random()*6.28,big:false});});
+g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g);
+addCircleSolid(x,z,tW*.7,h,h+tH+3*sc);
+markPlace(x,z,tW);
+makeEnterable(x,z,'watchtower','Watchtower',tW);}
+
+// Mansion - Large multi-story house with grand staircase
+function mansion(x,z,rot,sc){
+sc=(sc||1)*2;const h=meshTerrainH(x,z);const g=new THREE.Group();
+const seed=Math.abs(Math.sin(x*113.7+z*257.3)*43758.5453)%1;
+const wW=(24+seed*8)*sc,wD=(18+seed*6)*sc,wH=(16+seed*6)*sc;
+const wallCol=new THREE.Color().setHSL(.15+seed*.06,.22+seed*.12,.45+seed*.12);
+const wMat=new MS({color:wallCol,roughness:.8});
+// Main body
+const body=new THREE.Mesh(new THREE.BoxGeometry(wW,wH,wD),wMat);body.position.y=wH/2;body.castShadow=true;g.add(body);
+// Fancy roof (hipped)
+const roof=new THREE.Mesh(new THREE.CylinderGeometry(wW*.5,wD*.6,6*sc,4),mt.rf);roof.position.y=wH+3*sc;roof.rotation.y=(rot||0)+.785;g.add(roof);
+// Portico with columns
+const portW=wW*.6,portD=4*sc;
+const portCeil=new THREE.Mesh(new THREE.BoxGeometry(portW,.5*sc,portD),wMat);
+portCeil.position.set(0,wH*.7,wD/2+portD/2);g.add(portCeil);
+// Columns
+[-1,0,1].forEach(c=>{
+const col=new THREE.Mesh(new THREE.CylinderGeometry(.6*sc,.6*sc,wH*.7,8),new MS({color:0xdddddd,roughness:.7}));
+col.position.set(c*portW*.4,wH*.35,wD/2+portD/2);g.add(col);});
+// Grand double doors
+const dW=4*sc,dH=7*sc;
+const dPivot=new THREE.Group();dPivot.position.set(-dW/2,0,wD/2+portD);
+const dPanel=new THREE.Mesh(new THREE.BoxGeometry(dW,dH,.3*sc),new MS({color:0x4a3a2a,roughness:.85}));
+// Door panels split
+const leftPanel=new THREE.Mesh(new THREE.BoxGeometry(dW/2-.1*sc,dH,.25*sc),new MS({color:0x4a3a2a,roughness:.85}));
+leftPanel.position.set(dW/4,dH/2,0);leftPanel.castShadow=true;dPivot.add(leftPanel);
+const rightPanel=leftPanel.clone();rightPanel.position.x=3*dW/4;dPivot.add(rightPanel);
+// Gold handles
+const handle=new THREE.Mesh(new THREE.SphereGeometry(.25*sc,6,6),mt.gold);handle.position.set(dW*.35,dH*.5,.2*sc);dPivot.add(handle);
+const handle2=handle.clone();handle2.position.x=dW*.65;dPivot.add(handle2);
+g.add(dPivot);
+doors.push({pivot:dPivot,x:x,z:z+wD/2+portD,openAng:-Math.PI/2,cur:0});
+// Interior - ground floor (marble)
+const flG=new THREE.Mesh(new THREE.BoxGeometry(wW*.85,.2*sc,wD*.85),new MS({color:0x8a8a8a,roughness:.6}));flG.position.y=0.15*sc;g.add(flG);
+// Second floor
+const fl2=new THREE.Mesh(new THREE.BoxGeometry(wW*.8,.2*sc,wD*.8),new MS({color:0x7a6a5a,roughness:.85}));fl2.position.y=wH*.5;g.add(fl2);
+// Third floor/attic
+const fl3=new THREE.Mesh(new THREE.BoxGeometry(wW*.7,.2*sc,wD*.6),new MS({color:0x6a5a4a,roughness:.9}));fl3.position.y=wH*.8;g.add(fl3);
+// Grand staircase
+for(let si=0;si<12;si++){
+const stepW=3*sc;
+const step=new THREE.Mesh(new THREE.BoxGeometry(stepW,.3*sc,1*sc),new MS({color:0x5a4a3a,roughness:.85}));
+step.position.set(0,si*(wH*.5/12),-wD*.2+si*(wD*.3/12));g.add(step);
+// Stair railing
+const rail=new THREE.Mesh(new THREE.CylinderGeometry(.1*sc,.1*sc,wH*.5,6),mt.gold);
+rail.position.set(stepW/2,si*(wH*.5/12)+wH*.25,0);g.add(rail);}
+// Windows with shutters
+[-1,1].forEach(sx=>{
+for(let wi=0;wi<2;wi++){
+const wy=wH*.25+wi*wH*.35;
+const winFrame=new THREE.Mesh(new THREE.BoxGeometry(.3*sc,3*sc,2*sc),mt.wd);winFrame.position.set(sx*(wW/2+.15),wy,wD*.2);g.add(winFrame);
+const winGlass=new THREE.Mesh(new THREE.BoxGeometry(.15*sc,2.5*sc,1.5*sc),new MS({color:0x2a3a4a,emissive:0x1a2a3a,emissiveIntensity:.4}));
+winGlass.position.set(sx*(wW/2+.2),wy,wD*.2);g.add(winGlass);}});
+// Balcony on front
+const balc=new THREE.Mesh(new THREE.BoxGeometry(wW*.5,.3*sc,2*sc),new MS({color:0x5a4a3a}));
+balc.position.set(0,wH*.5,wD/2+1*sc);g.add(balc);
+// Chimneys
+[-wW*.3,wW*.3].forEach(cx=>{
+const chim=new THREE.Mesh(new THREE.BoxGeometry(1.5*sc,wH+6*sc,1.5*sc),new MS({color:0x4a4a4a}));
+chim.position.set(cx,wH/2+3*sc,-wD*.3);g.add(chim);});
+g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g);
+addCircleSolid(x,z,Math.max(wW,wD)/2+3,h,h+wH+8*sc);
+markPlace(x,z,Math.max(wW,wD)/2+5);
+makeEnterable(x,z,'mansion','Mansion Estate',Math.max(wW,wD)/2+4);}
+
+// Chapel - Small church with nave, altar, bell tower
+function chapel(x,z,rot,sc){
+sc=(sc||1)*2;const h=meshTerrainH(x,z);const g=new THREE.Group();
+const seed=Math.abs(Math.sin(x*101.3+z*223.7)*43758.5453)%1;
+const nW=(10+seed*3)*sc,nL=(18+seed*5)*sc,nH=(10+seed*3)*sc;
+const wallCol=new THREE.Color().setHSL(.12+seed*.05,.2+seed*.1,.42+seed*.1);
+const wMat=new MS({color:wallCol,roughness:.85});
+// Nave (main hall)
+const nave=new THREE.Mesh(new THREE.BoxGeometry(nW,nH,nL),wMat);nave.position.y=nH/2;nave.castShadow=true;g.add(nave);
+// Steep roof
+const roof=new THREE.Mesh(new THREE.CylinderGeometry(nW*.7,nL*.5,5*sc,3),mt.rf);roof.position.y=nH+2.5*sc;roof.rotation.x=-Math.PI/2;roof.rotation.z=(rot||0);g.add(roof);
+// Bell tower at front
+const tW=4*sc,tH=12*sc;
+const tower=new THREE.Mesh(new THREE.BoxGeometry(tW,tH,tW),wMat);tower.position.set(0,tH/2,nL/2+tW/2);tower.castShadow=true;g.add(tower);
+// Tower roof (spire)
+const spire=new THREE.Mesh(new THREE.ConeGeometry(tW*.8,8*sc,4),mt.st);spire.position.set(0,tH+4*sc,nL/2+tW/2);g.add(spire);
+// Bell visible in tower
+const bell=new THREE.Mesh(new THREE.ConeGeometry(.8*sc,1.2*sc,8),mt.gold);bell.position.set(0,tH*.7,nL/2+tW/2);g.add(bell);
+// Working church doors
+const dW=3*sc,dH=6*sc;
+const dPivot=new THREE.Group();dPivot.position.set(-dW/2,0,nL/2);
+const dPanel=new THREE.Mesh(new THREE.BoxGeometry(dW,dH,.3*sc),new MS({color:0x4a3a2a,roughness:.9}));
+dPanel.position.set(dW/2,dH/2,0);dPanel.castShadow=true;dPivot.add(dPanel);
+// Iron hinges
+const hinge=new THREE.Mesh(new THREE.CylinderGeometry(.15*sc,.15*sc,.4*sc,6),mt.iron);hinge.rotation.z=Math.PI/2;hinge.position.set(0,dH*.25,.2*sc);dPivot.add(hinge);
+const hinge2=hinge.clone();hinge2.position.set(0,dH*.75,.2*sc);dPivot.add(hinge2);
+g.add(dPivot);
+doors.push({pivot:dPivot,x:x,z:z+nL/2,openAng:-Math.PI/2,cur:0});
+// Interior floor
+const fl=new THREE.Mesh(new THREE.BoxGeometry(nW*.9,.2*sc,nL*.9),new MS({color:0x5a4a3a,roughness:.9}));fl.position.y=0.15*sc;g.add(fl);
+// Altar at far end
+const altar=new THREE.Mesh(new THREE.BoxGeometry(2*sc,2*sc,1*sc),mt.st);altar.position.set(0,1*sc,-nL*.35);g.add(altar);
+const altarCloth=new THREE.Mesh(new THREE.BoxGeometry(2.2*sc,.1*sc,1.2*sc),new MS({color:0x8a2020}));
+altarCloth.position.set(0,2*sc,-nL*.35);g.add(altarCloth);
+// Pews ( benches)
+for(let pi=0;pi<4;pi++){
+const pew=new THREE.Mesh(new THREE.BoxGeometry(nW*.6,.8*sc,1*sc),mt.wd);
+pew.position.set(0,.4*sc,-nL*.1+pi*2.5*sc);g.add(pew);
+const pewBack=new THREE.Mesh(new THREE.BoxGeometry(nW*.6,1.5*sc,.2*sc),mt.wd);
+pewBack.position.set(0,1*sc,-nL*.1+pi*2.5*sc-.4*sc);g.add(pewBack);}
+// Stained glass windows
+[-1,1].forEach(sx=>{
+const win=new THREE.Mesh(new THREE.BoxGeometry(.2*sc,3*sc,2*sc),new MS({color:0x6a2a8a,emissive:0x4a1a6a,emissiveIntensity:.6}));
+win.position.set(sx*(nW/2+.1),nH*.5,0);g.add(win);});
+// Cross on spire top
+const crossV=new THREE.Mesh(new THREE.BoxGeometry(.2*sc,2*sc,.2*sc),mt.gold);crossV.position.set(0,tH+8*sc,nL/2+tW/2);g.add(crossV);
+const crossH=new THREE.Mesh(new THREE.BoxGeometry(1.5*sc,.2*sc,.2*sc),mt.gold);crossH.position.set(0,tH+8.5*sc,nL/2+tW/2);g.add(crossH);
+g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g);
+addCircleSolid(x,z,Math.max(nW,nL)/2+2,h,h+nH+15*sc);
+markPlace(x,z,Math.max(nW,nL)/2+3);
+makeEnterable(x,z,'chapel','Village Chapel',Math.max(nW,nL)/2+2);}
+
+// Barn/Stable - Long building with stalls, hay loft
+function barn(x,z,rot,sc){
+sc=(sc||1)*2;const h=meshTerrainH(x,z);const g=new THREE.Group();
+const seed=Math.abs(Math.sin(x*87.7+z*191.3)*43758.5453)%1;
+const bW=(10+seed*3)*sc,bL=(24+seed*8)*sc,bH=(10+seed*3)*sc;
+const wallCol=new THREE.Color().setHSL(.13+seed*.05,.35+seed*.15,.42+seed*.1);
+const wMat=new MS({color:wallCol,roughness:.9});
+// Main barn body
+const body=new THREE.Mesh(new THREE.BoxGeometry(bW,bH,bL),wMat);body.position.y=bH/2;body.castShadow=true;g.add(body);
+// Gable roof
+const roof=new THREE.Mesh(new THREE.CylinderGeometry(bW*.7,bL*.6,5*sc,3),mt.rf);roof.position.y=bH+2.5*sc;roof.rotation.x=-Math.PI/2;roof.rotation.z=(rot||0);g.add(roof);
+// Large barn doors (double sliding style - visual only, use regular door for entry)
+const dW=4*sc,dH=6*sc;
+const dPivot=new THREE.Group();dPivot.position.set(-dW/2,0,bL/2);
+const dPanel=new THREE.Mesh(new THREE.BoxGeometry(dW,dH,.3*sc),new MS({color:0x5a4a3a,roughness:.9}));
+// X brace pattern
+const brace1=new THREE.Mesh(new THREE.BoxGeometry(dW*.8,.3*sc,.32*sc),mt.wd);brace1.position.set(dW/2,dH/2,0);brace1.rotation.z=.785;dPivot.add(brace1);
+const brace2=brace1.clone();brace2.rotation.z=-.785;dPivot.add(brace2);
+dPanel.position.set(dW/2,dH/2,0);dPanel.castShadow=true;dPivot.add(dPanel);
+g.add(dPivot);
+doors.push({pivot:dPivot,x:x,z:z+bL/2,openAng:-Math.PI/2,cur:0});
+// Interior floor (dirt)
+const fl=new THREE.Mesh(new THREE.BoxGeometry(bW*.9,.1*sc,bL*.9),new MS({color:0x4a3a2a,roughness:1}));fl.position.y=0.1*sc;g.add(fl);
+// Hay loft
+const loft=new THREE.Mesh(new THREE.BoxGeometry(bW*.85,.3*sc,bL*.7),new MS({color:0x8a7a4a,roughness:.95}));
+loft.position.y=bH*.65;g.add(loft);
+// Ladder to loft
+const ladSide=new THREE.Mesh(new THREE.BoxGeometry(.3*sc,bH*.65,.1*sc),mt.wd);
+ladSide.position.set(bW*.3,bH*.325,-bL*.3);g.add(ladSide);
+const ladSide2=ladSide.clone();ladSide2.position.x=bW*.35;g.add(ladSide2);
+for(let li=0;li<8;li++){
+const rung=new THREE.Mesh(new THREE.BoxGeometry(bW*.06,.1*sc,.12*sc),mt.wd);
+rung.position.set(bW*.325,li*(bH*.65/8),-bL*.3);g.add(rung);}
+// Stalls/dividers
+for(let si=0;si<3;si++){
+const stall=new THREE.Mesh(new THREE.BoxGeometry(bW*.8,4*sc,.3*sc),mt.wd);
+stall.position.set(0,2*sc,-bL*.25+si*bL*.25);g.add(stall);
+// Hay bales
+const bale=new THREE.Mesh(new THREE.BoxGeometry(1.5*sc,1*sc,2*sc),new MS({color:0x9a8a3a}));
+bale.position.set(bW*.2,0.5*sc,-bL*.25+si*bL*.25+bL*.1);g.add(bale);}
+// Windows (high up)
+const win=new THREE.Mesh(new THREE.BoxGeometry(1.5*sc,1.5*sc,.2*sc),new MS({color:0x2a3a4a,emissive:0x1a2a3a,emissiveIntensity:.3}));
+win.position.set(0,bH*.7,bL/2+.1);g.add(win);
+// Exterior hay pile
+const hayPile=new THREE.Mesh(new THREE.ConeGeometry(3*sc,4*sc,8),new MS({color:0x8a7a3a}));
+hayPile.position.set(bW*.8,2*sc,-bL*.4);g.add(hayPile);
+g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g);
+addCircleSolid(x,z,Math.max(bW,bL)/2+2,h,h+bH+5*sc);
+markPlace(x,z,Math.max(bW,bL)/2+3);
+makeEnterable(x,z,'barn','Barn & Stables',Math.max(bW,bL)/2+2);}
+
+
 function pine(x,z){const h=meshTerrainH(x,z);const g=new THREE.Group();
 // Roots (exposed)
 for(let i=0;i<4;i++){const a=i/4*Math.PI*2;const root=new THREE.Mesh(new THREE.CylinderGeometry(.15,.4,3,4),mt.bk);root.position.set(Math.cos(a)*1.5,.5,Math.sin(a)*1.5);root.rotation.z=Math.cos(a)*.5;root.rotation.x=Math.sin(a)*.5;root.castShadow=true;g.add(root)}
@@ -2238,8 +2622,32 @@ const roof=new THREE.Mesh(new THREE.BoxGeometry(22*sc,3*sc,42*sc),mt.rfSlate);ro
 const roofPeak=new THREE.Mesh(new THREE.BoxGeometry(4*sc,8*sc,42*sc),mt.rfSlate);roofPeak.position.y=30*sc;roofPeak.castShadow=true;g.add(roofPeak);
 // Front face with pointed entrance
 const front=new THREE.Mesh(new THREE.BoxGeometry(22*sc,30*sc,2*sc),mt.st);front.position.set(0,15*sc,21*sc);front.castShadow=true;g.add(front);
-// Entrance void
-const door=new THREE.Mesh(new THREE.BoxGeometry(6*sc,12*sc,3*sc),new MS({color:0x050505,roughness:1}));door.position.set(0,6*sc,21*sc);g.add(door);
+// Working cathedral door
+const catDoorW=5*sc,catDoorH=10*sc;
+const catDoorPivot=new THREE.Group();catDoorPivot.position.set(-catDoorW/2,0,21*sc);
+const catDoorPanel=new THREE.Mesh(new THREE.BoxGeometry(catDoorW,catDoorH,.3*sc),new MS({color:0x4a3a2a,roughness:.85}));catDoorPanel.position.set(catDoorW/2,catDoorH/2,0);catDoorPanel.castShadow=true;catDoorPivot.add(catDoorPanel);
+// Iron bands on door
+for(let bi=0;bi<3;bi++){const band=new THREE.Mesh(new THREE.BoxGeometry(catDoorW,.2*sc,.35*sc),mt.iron);band.position.set(catDoorW/2,(bi+1)*catDoorH*.25,0);catDoorPivot.add(band)}
+// Door handle
+const dH=new THREE.Mesh(new THREE.SphereGeometry(.25*sc,5,5),mt.gold);dH.position.set(catDoorW*.7,catDoorH*.5,.2*sc);catDoorPivot.add(dH);
+g.add(catDoorPivot);
+doors.push({pivot:catDoorPivot,x:x,z:z+21*sc,openAng:-Math.PI/2,cur:0});
+// Interior floors and stairs to bell towers
+const catInnerW=14*sc,catInnerD=32*sc;
+for(let cl=1;cl<3;cl++){
+const cflY=cl*10*sc;
+const cFloor=new THREE.Mesh(new THREE.BoxGeometry(catInnerW,1*sc,catInnerD),new MS({color:0x3a2a1a,roughness:.9}));
+cFloor.position.set(0,cflY,0);g.add(cFloor);
+// Hole for stairs
+const cHole=new THREE.Mesh(new THREE.BoxGeometry(catInnerW*.3,1.2*sc,catInnerD*.3),new MS({color:0x1a0a0a,roughness:1}));
+cHole.position.set(0,cflY,0);g.add(cHole)}
+// Stairs to bell towers
+[-1,1].forEach(s=>{
+const bStairR=5*sc;const bNSteps=20;
+for(let bs=0;bs<bNSteps;bs++){
+const bang=bs*0.3+s*Math.PI;const bsy=bs*1.5*sc;
+const bstep=new THREE.Mesh(new THREE.BoxGeometry(1.5*sc,.3*sc,.8*sc),new MS({color:0x4a3a2a,roughness:.85}));
+bstep.position.set(s*14*sc+Math.cos(bang)*bStairR,bsy,19*sc+Math.sin(bang)*bStairR);bstep.rotation.y=bang;g.add(bstep)}});
 // Pointed gable
 const gable=new THREE.Mesh(new THREE.ConeGeometry(12*sc,14*sc,4),mt.stGoth);gable.position.set(0,37*sc,21*sc);gable.rotation.y=Math.PI/4;gable.castShadow=true;g.add(gable);
 // Rose window (circle of small arches)
@@ -2412,10 +2820,116 @@ gr.makeRotationY(Math.random()*Math.PI);gm.makeTranslation(gx,gh+1.5,gz);gm.mult
 gr.makeRotationY(Math.random()*Math.PI+Math.PI/2);gm.makeTranslation(gx,gh+1.5,gz);gm.multiply(gr);grassInst.setMatrixAt(gi++,gm)}
 grassInst.count=gi;grassInst.instanceMatrix.needsUpdate=true;scene.add(grassInst)}
 
+// === GPU INSTANCED BUILDING ELEMENTS (reduces draw calls from thousands to ~10) ===
+// These are populated during building generation instead of individual meshes
+// _buildingInstancers is initialized in initBuildingInstancers()
+
+// Initialize instanced meshes (created once, reused via matrix updates)
+function initBuildingInstancers(){
+_buildingInstancers={
+// Chimneys (boxes)
+chimneys:null,chimCount:0,CHIM_MAX:500,
+// Windows with shutters
+windows:null,winCount:0,WIN_MAX:800,
+// Simple furniture (tables, stools)
+furniture:null,furnCount:0,FURN_MAX:600,
+// Flower boxes
+flowerBoxes:null,boxCount:0,BOX_MAX:400,
+// Roof details (small boxes)
+roofDeets:null,roofCount:0,ROOF_MAX:600,
+// Hay bales for barns
+hayBales:null,hayCount:0,HAY_MAX:300,
+// Ladder rungs (shared across buildings)
+ladderRungs:null,rungCount:0,RUNG_MAX:1000,
+// Torches on buildings
+wallTorches:null,torchCount:0,WALLTORCH_MAX:400,
+// Reset all counters for frame population
+reset(){this.chimCount=0;this.winCount=0;this.furnCount=0;this.boxCount=0;this.roofCount=0;this.hayCount=0;this.rungCount=0;this.torchCount=0;},
+// Finalize and add to scene
+finalize(){
+[this.chimneys,this.windows,this.furniture,this.flowerBoxes,this.roofDeets,this.hayBales,this.ladderRungs,this.wallTorches].forEach(inst=>{
+if(inst&&inst.userData){inst.count=inst.userData.count||0;inst.instanceMatrix.needsUpdate=true;inst.frustumCulled=true;scene.add(inst);}});}
+};
+const b=_buildingInstancers;
+// Chimneys - 2x2x8 boxes
+const chimGeo=new THREE.BoxGeometry(2,8,2);
+b.chimneys=new THREE.InstancedMesh(chimGeo,new MS({color:0x4a4a4a,roughness:.9}),b.CHIM_MAX);
+b.chimneys.userData.count=0;
+// Windows - 2x3x0.2 boxes with emissive
+const winGeo=new THREE.BoxGeometry(2,3,.2);
+b.windows=new THREE.InstancedMesh(winGeo,new MS({color:0x2a2a3a,emissive:0x1a1a2a,emissiveIntensity:.5}),b.WIN_MAX);
+b.windows.userData.count=0;
+// Furniture - simple cylinders for tables
+const furnGeo=new THREE.CylinderGeometry(2,2,.2,8);
+b.furniture=new THREE.InstancedMesh(furnGeo,new MS({color:0x4a3a2a,roughness:.9}),b.FURN_MAX);
+b.furniture.userData.count=0;
+// Flower boxes
+const boxGeo=new THREE.BoxGeometry(2.5,.5,.8);
+b.flowerBoxes=new THREE.InstancedMesh(boxGeo,new MS({color:0x3a5a2a,roughness:.9}),b.BOX_MAX);
+b.flowerBoxes.userData.count=0;
+// Roof details
+const roofGeo=new THREE.BoxGeometry(1,1.5,1);
+b.roofDeets=new THREE.InstancedMesh(roofGeo,new MS({color:0x3a3020}),b.ROOF_MAX);
+b.roofDeets.userData.count=0;
+// Hay bales
+const hayGeo=new THREE.BoxGeometry(1.5,1,2);
+b.hayBales=new THREE.InstancedMesh(hayGeo,new MS({color:0x9a8a3a}),b.HAY_MAX);
+b.hayBales.userData.count=0;
+// Ladder rungs
+const rungGeo=new THREE.BoxGeometry(1,.1,.15);
+b.ladderRungs=new THREE.InstancedMesh(rungGeo,mt.wd,b.RUNG_MAX);
+b.ladderRungs.userData.count=0;
+// Wall torches
+const torchGeo=new THREE.CylinderGeometry(.3,.4,.8,6);
+b.wallTorches=new THREE.InstancedMesh(torchGeo,mt.iron,b.WALLTORCH_MAX);
+b.wallTorches.userData.count=0;}
+
+// Helper to add instanced element
+function addInstanced(type,matrix){
+if(!_buildingInstancers)return;
+const b=_buildingInstancers;
+let inst,countProp,max;
+if(type==='chimney'){inst=b.chimneys;countProp='chimCount';max=b.CHIM_MAX}
+else if(type==='window'){inst=b.windows;countProp='winCount';max=b.WIN_MAX}
+else if(type==='furniture'){inst=b.furniture;countProp='furnCount';max=b.FURN_MAX}
+else if(type==='flowerBox'){inst=b.flowerBoxes;countProp='boxCount';max=b.BOX_MAX}
+else if(type==='roof'){inst=b.roofDeets;countProp='roofCount';max=b.ROOF_MAX}
+else if(type==='hay'){inst=b.hayBales;countProp='hayCount';max=b.HAY_MAX}
+else if(type==='rung'){inst=b.ladderRungs;countProp='rungCount';max=b.RUNG_MAX}
+else if(type==='wallTorch'){inst=b.wallTorches;countProp='torchCount';max=b.WALLTORCH_MAX}
+else return;
+if(b[countProp]<max){inst.setMatrixAt(b[countProp]++,matrix);inst.userData.count=b[countProp];}}
+
+// === RURAL BUILDING SCATTER (Windmills, Barns, Watchtowers) ===
+console.log('INIT: scattering rural buildings across countryside');
+(function scatterRural(){
+const ruralTypes=['windmill','barn','watchtower'];
+const nRural=80; // Number of rural buildings to scatter
+for(let i=0;i<nRural*3;i++){
+const rx=(Math.random()-.5)*40000,rz=(Math.random()-.5)*35000;
+// Skip lakes and city areas
+if(isInLake(rx,rz))continue;
+const rh=meshTerrainH(rx,rz);if(rh>90||rh<2)continue; // Avoid mountains and water
+// Avoid city footprints
+let tooClose=false;
+for(const f of cityFootprints){if(Math.hypot(rx-f.x,rz-f.z)<f.r+80){tooClose=true;break}}
+if(tooClose)continue;
+const rType=ruralTypes[Math.floor(Math.random()*ruralTypes.length)];
+const rSc=.8+Math.random()*.6;
+const rFoot=rType==='windmill'?20*rSc:rType==='barn'?22*rSc:16*rSc;
+if(!canPlace(rx,rz,rFoot))continue;
+markPlace(rx,rz,rFoot);
+const rRot=Math.random()*Math.PI*2;
+// Place the building
+if(rType==='windmill'){windmill(rx,rz,rRot,rSc)}
+else if(rType==='barn'){barn(rx,rz,rRot,rSc)}
+else if(rType==='watchtower'){watchtower(rx,rz,rRot,rSc)}}
+})();
+
 console.log('INIT: scatter done, starting procCity');
 // === PROCEDURAL CITY GENERATION ===
 function procCity(cx,cz,radius,density,style){
-const bTypes=['house','shop','tavern','workshop','warehouse','manor'];
+const bTypes=['house','shop','tavern','workshop','warehouse','manor','inn','forge','mansion','chapel'];
 const nBuildings=Math.floor(density*radius/4);
 // City walls — mark footprints along perimeter
 const wallSegs=Math.floor(radius*2*Math.PI/30);
@@ -2437,7 +2951,12 @@ const a=Math.random()*Math.PI*2;const r=18+Math.random()*(radius-30);
 const bx=cx+Math.cos(a)*r,bz=cz+Math.sin(a)*r;
 if(isInLake(bx,bz))continue;
 const bType=bTypes[Math.floor(Math.random()*bTypes.length)];
-const sc=.7+Math.random()*.6;const footprint=bType==='manor'?36*sc:bType==='warehouse'?28*sc:20*sc;
+const sc=.7+Math.random()*.6;
+let footprint=20*sc;
+if(bType==='manor'||bType==='mansion')footprint=36*sc;
+else if(bType==='warehouse')footprint=28*sc;
+else if(bType==='inn'||bType==='forge')footprint=24*sc;
+else if(bType==='chapel')footprint=22*sc;
 if(!canPlace(bx,bz,footprint))continue;
 markPlace(bx,bz,footprint);placed++;
 const bRot=a+Math.PI+Math.random()*.4-.2;
@@ -2461,7 +2980,11 @@ wdoor.position.set(bx+Math.cos(bRot)*whD/2,h+2.5*sc,bz+Math.sin(bRot)*whD/2);wdo
 addCircleSolid(bx,bz,Math.max(whW,whD)/2+1,h,h+whH+1)}
 else if(bType==='manor'){hut(bx,bz,bRot,sc*1.5);
 for(let f=0;f<4;f++){const fa=bRot+f/4*Math.PI*2;const fx=bx+Math.cos(fa)*12*sc,fz=bz+Math.sin(fa)*12*sc;
-const fence=new THREE.Mesh(new THREE.BoxGeometry(8*sc,3,.2),mt.wd);fence.position.set(fx,meshTerrainH(fx,fz)+1.5,fz);fence.rotation.y=fa;scene.add(fence)}}}
+const fence=new THREE.Mesh(new THREE.BoxGeometry(8*sc,3,.2),mt.wd);fence.position.set(fx,meshTerrainH(fx,fz)+1.5,fz);fence.rotation.y=fa;scene.add(fence)}}
+else if(bType==='inn'){inn(bx,bz,bRot,sc);torch(bx+Math.cos(bRot)*10,bz+Math.sin(bRot)*10);torch(bx+Math.cos(bRot+Math.PI)*10,bz+Math.sin(bRot+Math.PI)*10)}
+else if(bType==='forge'){forge(bx,bz,bRot,sc)}
+else if(bType==='mansion'){mansion(bx,bz,bRot,sc)}
+else if(bType==='chapel'){chapel(bx,bz,bRot,sc)}}
 // Market square at center (reserve footprint)
 markPlace(cx,cz,44);
 for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const sx=cx+Math.cos(a)*15,sz=cz+Math.sin(a)*15;
@@ -2559,7 +3082,7 @@ g.add(portcullis);
 // Door entry for interaction
 const cDoorW=5*sc,cDoorH=8*sc;
 const cDoorPivot=new THREE.Group();cDoorPivot.position.set(-cDoorW/2,0,wallR);
-const cDoorPanel=new THREE.Mesh(new THREE.BoxGeometry(cDoorW,cDoorH,.3*s),new MS({color:0x3a2818,roughness:.85}));cDoorPanel.position.set(cDoorW/2,cDoorH/2,0);cDoorPanel.castShadow=true;cDoorPivot.add(cDoorPanel);
+const cDoorPanel=new THREE.Mesh(new THREE.BoxGeometry(cDoorW,cDoorH,.3*sc),new MS({color:0x3a2818,roughness:.85}));cDoorPanel.position.set(cDoorW/2,cDoorH/2,0);cDoorPanel.castShadow=true;cDoorPivot.add(cDoorPanel);
 g.add(cDoorPivot);
 doors.push({pivot:cDoorPivot,x:cx,z:cz+wallR,openAng:-Math.PI/2,cur:0});
 // Gatehouse towers
@@ -2574,7 +3097,7 @@ const hallRoof=new THREE.Mesh(new THREE.BoxGeometry(hallW+4*sc,3*sc,hallD+4*sc),
 // Hall door
 const hDoorW=6*sc,hDoorH=8*sc;
 const hDoorPivot=new THREE.Group();hDoorPivot.position.set(-hDoorW/2,0,-.5);
-const hDoorPanel=new THREE.Mesh(new THREE.BoxGeometry(hDoorW,hDoorH,.3*s),new MS({color:0x3a2818,roughness:.85}));hDoorPanel.position.set(hDoorW/2,hDoorH/2,0);hDoorPanel.castShadow=true;hDoorPivot.add(hDoorPanel);
+const hDoorPanel=new THREE.Mesh(new THREE.BoxGeometry(hDoorW,hDoorH,.3*sc),new MS({color:0x3a2818,roughness:.85}));hDoorPanel.position.set(hDoorW/2,hDoorH/2,0);hDoorPanel.castShadow=true;hDoorPivot.add(hDoorPanel);
 hall.add(hDoorPivot);
 doors.push({pivot:hDoorPivot,x:cx,z:cz-0.5,openAng:-Math.PI/2,cur:0});
 // Hall interior floors
@@ -2606,15 +3129,15 @@ procCity(-1200,100,70,1,'medieval');    // Ardougne
 
 // === MASSIVE CASTLES ===
 castle(900,-800,1.2,0);       // Eastern Fortress
-makeEnterable(900,-800,'castle','Eastern Fortress');
+makeEnterable(900,-800,'castle','Eastern Fortress',170);
 castle(-2000,-500,1.5,.5);    // Western Stronghold
-makeEnterable(-2000,-500,'castle','Western Stronghold');
+makeEnterable(-2000,-500,'castle','Western Stronghold',210);
 castle(0,-1800,1.8,Math.PI/6);// Wilderness Castle (huge)
-makeEnterable(0,-1800,'castle','Wilderness Castle');
+makeEnterable(0,-1800,'castle','Wilderness Castle',250);
 castle(-800,600,1,-.3);       // Southern Keep
-makeEnterable(-800,600,'castle','Southern Keep');
+makeEnterable(-800,600,'castle','Southern Keep',150);
 castle(1500,400,1.3,.8);      // Desert Citadel
-makeEnterable(1500,400,'castle','Desert Citadel');
+makeEnterable(1500,400,'castle','Desert Citadel',190);
 
 // === MINAS TIRITH CLIFFSIDE CASTLE ===
 function minasTirith(cx,cz,sc){
@@ -3056,12 +3579,18 @@ b.outsideX=player.x;b.outsideZ=player.z;
 // Create building interior
 buildingGroup=new THREE.Group();
 const floorMat=new MS({color:0x5a4a3a,roughness:.95});
-const wallMat=new MS({color:b.type==='tavern'?0x3a2a1a:b.type==='shop'?0x4a4a5a:0x4a3a2a,roughness:.9});
+const wallMat=new MS({color:b.type==='tavern'||b.type==='inn'?0x3a2a1a:b.type==='shop'||b.type==='forge'?0x4a4a5a:b.type==='mansion'?0x6a5a4a:b.type==='chapel'?0x5a4a6a:0x4a3a2a,roughness:.9});
 const ceilMat=new MS({color:0x2a2a2a,roughness:1});
 // Room dimensions based on type
-const w=b.type==='tavern'?24:b.type==='shop'?18:16;
-const l=b.type==='tavern'?20:b.type==='shop'?14:14;
-const h=12;
+let w=16,l=14,h=12;
+if(b.type==='tavern'||b.type==='inn'){w=24;l=20;h=14}
+else if(b.type==='shop'){w=18;l=14;h=12}
+else if(b.type==='forge'){w=20;l=16;h=14}
+else if(b.type==='mansion'){w=28;l=22;h=18}
+else if(b.type==='chapel'){w=16;l=24;h=20}
+else if(b.type==='tower'||b.type==='watchtower'){w=10;l=10;h=30}
+else if(b.type==='windmill'){w=8;l=8;h=25}
+else if(b.type==='barn'){w=16;l=28;h=14}
 // Floor
 const fl=new THREE.Mesh(new THREE.BoxGeometry(w,.5,l),floorMat);fl.position.set(0,1000,0);fl.receiveShadow=true;buildingGroup.add(fl);
 // Walls
@@ -3074,28 +3603,110 @@ const ceil=new THREE.Mesh(new THREE.BoxGeometry(w,1,l),ceilMat);ceil.position.se
 // Door opening (visual only - actual door is behind player)
 const doorFrame=new THREE.Mesh(new THREE.BoxGeometry(4,6,.2),new MS({color:0x3a2818}));doorFrame.position.set(0,1000+3,l/2-.1);buildingGroup.add(doorFrame);
 // Interior contents based on type
-if(b.type==='tavern'){
+if(b.type==='tavern'||b.type==='inn'){
 // Bar counter
-const bar=new THREE.Mesh(new THREE.BoxGeometry(8,3,2),new MS({color:0x5a4a3a}));bar.position.set(0,1000+1.5,-l/4);buildingGroup.add(bar);
-// Tables
-for(let i=0;i<3;i++){const tbl=new THREE.Mesh(new THREE.CylinderGeometry(2,2,1.5,8),new MS({color:0x4a3a2a}));tbl.position.set(-5+i*5,1000+.75,l/4);buildingGroup.add(tbl);}
+const bar=new THREE.Mesh(new THREE.BoxGeometry(10,3.5,2.5),new MS({color:0x5a4a3a}));bar.position.set(0,1000+1.75,-l/4);buildingGroup.add(bar);
+// Tables with chairs
+for(let i=0;i<4;i++){
+const tbl=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.2,1.5,8),new MS({color:0x4a3a2a}));tbl.position.set(-6+i*4,1000+.75,l/5+i);buildingGroup.add(tbl);
+// Chairs
+for(let c=0;c<3;c++){const ang=c*2.09;
+const chair=new THREE.Mesh(new THREE.BoxGeometry(1,1.5,.1),mt.wd);chair.position.set(-6+i*4+Math.cos(ang)*2.5,1000+.75,l/5+i+Math.sin(ang)*2.5);chair.rotation.y=ang+Math.PI/2;buildingGroup.add(chair);}}
 // Fireplace
-const fire=new THREE.Mesh(new THREE.SphereGeometry(1.5,8,8),mt.fl);fire.position.set(w/3,1000+2,-l/3);buildingGroup.add(fire);}
+const fire=new THREE.Mesh(new THREE.SphereGeometry(1.8,8,8),mt.fl);fire.position.set(w/3.5,1000+2.5,-l/3.5);buildingGroup.add(fire);
+// Second floor (rooms)
+const fl2=new THREE.Mesh(new THREE.BoxGeometry(w*.9,.3,l*.7),new MS({color:0x5a4a3a}));fl2.position.set(0,1000+h*.6,0);buildingGroup.add(fl2);
+// Stairs
+for(let si=0;si<8;si++){const step=new THREE.Mesh(new THREE.BoxGeometry(2,.2,1),new MS({color:0x4a3a2a}));step.position.set(-w*.3,1000+si*(h*.6/8),-l*.2+si*(l*.3/8));buildingGroup.add(step);}}
 else if(b.type==='shop'){
 // Counters
 const cnt1=new THREE.Mesh(new THREE.BoxGeometry(3,2.5,8),new MS({color:0x6a5a4a}));cnt1.position.set(-w/4,1000+1.25,0);buildingGroup.add(cnt1);
 const cnt2=new THREE.Mesh(new THREE.BoxGeometry(3,2.5,8),new MS({color:0x6a5a4a}));cnt2.position.set(w/4,1000+1.25,0);buildingGroup.add(cnt2);
 // Shelves
 for(let i=0;i<4;i++){const shf=new THREE.Mesh(new THREE.BoxGeometry(.3,6,2),new MS({color:0x5a4a3a}));shf.position.set(-w/2+.5,1000+3,-l/3+i*l/4);buildingGroup.add(shf);}}
+else if(b.type==='forge'){
+// Anvil
+const anvil=new THREE.Mesh(new THREE.BoxGeometry(2,2,1.5),mt.iron);anvil.position.set(0,1000+1,l/4);buildingGroup.add(anvil);
+// Forge (glowing)
+const forge=new THREE.Mesh(new THREE.BoxGeometry(4,5,4),new MS({color:0x1a0a0a}));forge.position.set(-w/4,1000+2.5,-l/4);buildingGroup.add(forge);
+const glow=new THREE.Mesh(new THREE.SphereGeometry(1.5,8,8),new MS({color:0xff4400,emissive:0xff2200,emissiveIntensity:2}));glow.position.set(-w/4,1000+4,-l/4);buildingGroup.add(glow);
+// Workbenches
+for(let i=0;i<3;i++){const bench=new THREE.Mesh(new THREE.BoxGeometry(3,2,8),mt.wd);bench.position.set(w/3,1000+1,-l/4+i*4);buildingGroup.add(bench);}
+// Tools rack
+const rack=new THREE.Mesh(new THREE.BoxGeometry(1,6,10),mt.iron);rack.position.set(w/2-.5,1000+3,0);buildingGroup.add(rack);
+// Chimney light
+const chimLight=new THREE.PointLight(0xff6600,.5,15);chimLight.position.set(-w/4,1000+6,-l/4);buildingGroup.add(chimLight);}
+else if(b.type==='mansion'){
+// Grand hall floor (marble pattern)
+const flG=new THREE.Mesh(new THREE.BoxGeometry(w*.95,.3,l*.95),new MS({color:0x7a7a7a,roughness:.6}));flG.position.set(0,1000.2,0);buildingGroup.add(flG);
+// Second and third floors
+const fl2=new THREE.Mesh(new THREE.BoxGeometry(w*.9,.2,l*.8),new MS({color:0x6a5a4a}));fl2.position.set(0,1000+h*.35,0);buildingGroup.add(fl2);
+const fl3=new THREE.Mesh(new THREE.BoxGeometry(w*.85,.2,l*.6),new MS({color:0x6a5a4a}));fl3.position.set(0,1000+h*.7,0);buildingGroup.add(fl3);
+// Grand staircase
+for(let si=0;si<12;si++){const step=new THREE.Mesh(new THREE.BoxGeometry(4,.25,1),new MS({color:0x5a4a3a}));step.position.set(0,1000+si*(h*.35/12),-l*.25+si*(l*.4/12));buildingGroup.add(step);}
+// Furniture
+const diningTable=new THREE.Mesh(new THREE.CylinderGeometry(3,3,1.5,8),new MS({color:0x4a3a2a}));diningTable.position.set(0,1000+.75,l*.3);buildingGroup.add(diningTable);
+// Chairs around table
+for(let c=0;c<6;c++){const ang=c*1.05;const chair=new THREE.Mesh(new THREE.BoxGeometry(1.2,2,.2),mt.wd);chair.position.set(Math.cos(ang)*4,1000+1,l*.3+Math.sin(ang)*4);chair.rotation.y=-ang;buildingGroup.add(chair);}
+// Fireplace (grand)
+const fp=new THREE.Mesh(new THREE.BoxGeometry(5,6,2),mt.st);fp.position.set(0,1000+3,-l/2+1);buildingGroup.add(fp);
+const fire=new THREE.Mesh(new THREE.SphereGeometry(2,8,8),mt.fl);fire.position.set(0,1000+2,-l/2+2);buildingGroup.add(fire);}
+else if(b.type==='chapel'){
+// Nave floor
+const navFl=new THREE.Mesh(new THREE.BoxGeometry(w*.9,.3,l*.95),new MS({color:0x5a4a4a,roughness:.9}));navFl.position.set(0,1000.2,0);buildingGroup.add(navFl);
+// Altar at far end
+const altar=new THREE.Mesh(new THREE.BoxGeometry(4,3,2),mt.st);altar.position.set(0,1000+1.5,-l*.4);buildingGroup.add(altar);
+const cloth=new THREE.Mesh(new THREE.BoxGeometry(4.2,.1,2.2),new MS({color:0x8a2020}));cloth.position.set(0,1000+3,-l*.4);buildingGroup.add(cloth);
+// Pews
+for(let pi=0;pi<5;pi++){
+const pew=new THREE.Mesh(new THREE.BoxGeometry(w*.6,.8,1.2),mt.wd);pew.position.set(0,1000+.4,-l*.15+pi*3);buildingGroup.add(pew);
+const pewBack=new THREE.Mesh(new THREE.BoxGeometry(w*.6,1.5,.1),mt.wd);pewBack.position.set(0,1000+1,-l*.15+pi*3-.6);buildingGroup.add(pewBack);}
+// Bell rope
+const rope=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,h*.7,6),new MS({color:0x8a6a3a}));rope.position.set(0,1000+h*.65,0);buildingGroup.add(rope);
+// Stained glass windows (colored light)
+const winLight=new THREE.PointLight(0x6a2a8a,.4,20);winLight.position.set(0,1000+h*.5,0);buildingGroup.add(winLight);}
+else if(b.type==='tower'||b.type==='watchtower'){
+// Multiple floors connected by ladder
+for(let fl=1;fl<=4;fl++){
+const flY=fl*(h/5);
+const floor=new THREE.Mesh(new THREE.BoxGeometry(w*.8,.2,l*.8),new MS({color:0x4a4a4a}));floor.position.set(0,1000+flY,0);buildingGroup.add(floor);
+// Center hole for ladder
+const hole=new THREE.Mesh(new THREE.BoxGeometry(w*.25,.25,l*.25),new MS({color:0x1a1a1a}));hole.position.set(0,1000+flY,0);buildingGroup.add(hole);}
+// Central ladder
+const ladPole=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,h,6),mt.iron);ladPole.position.set(0,1000+h/2,0);buildingGroup.add(ladPole);
+for(let li=0;li<20;li++){const rung=new THREE.Mesh(new THREE.BoxGeometry(1.2,.1,.15),mt.iron);rung.position.set(0,1000+li*(h/20),0);buildingGroup.add(rung);}
+// Archery slots on upper levels
+for(let si=0;si<3;si++){const slit=new THREE.Mesh(new THREE.BoxGeometry(.2,1.5,.1),new MS({color:0x0a0a0a}));slit.position.set(w/2+.05,1000+h*.6+si*h*.15,0);buildingGroup.add(slit);}}
+else if(b.type==='windmill'){
+// Millstone at bottom
+const mill=new THREE.Mesh(new THREE.CylinderGeometry(2.5,.3,2,8),mt.st);mill.position.set(0,1000+1,0);buildingGroup.add(mill);
+// Grain sacks
+for(let gi=0;gi<6;gi++){const sack=new THREE.Mesh(new THREE.SphereGeometry(1,8,8),new MS({color:0x9a8a4a}));
+sack.position.set((gi%2===0?-1:1)*2.5,1000+.8,-2+gi*1.2);buildingGroup.add(sack);}
+// Ladder to upper levels
+const lad=new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,h*.8,6),mt.wd);lad.position.set(0,1000+h*.4,0);buildingGroup.add(lad);
+// Grinding mechanism glow
+const mechLight=new THREE.PointLight(0xffaa44,.3,10);mechLight.position.set(0,1000+2,0);buildingGroup.add(mechLight);}
+else if(b.type==='barn'){
+// Dirt floor
+const flD=new THREE.Mesh(new THREE.BoxGeometry(w,.2,l),new MS({color:0x4a3a2a,roughness:1}));flD.position.set(0,1000.1,0);buildingGroup.add(flD);
+// Hay loft
+const loft=new THREE.Mesh(new THREE.BoxGeometry(w*.9,.3,l*.7),new MS({color:0x8a7a4a}));loft.position.set(0,1000+h*.65,0);buildingGroup.add(loft);
+// Ladder to loft
+const lad=new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,h*.65,6),mt.wd);lad.position.set(w*.3,1000+h*.325,-l*.3);buildingGroup.add(lad);
+// Stalls/dividers
+for(let si=0;si<4;si++){const stall=new THREE.Mesh(new THREE.BoxGeometry(w*.8,3,.2),mt.wd);stall.position.set(0,1000+1.5,-l*.3+si*l*.2);buildingGroup.add(stall);}
+// Hay bales
+for(let bi=0;bi<8;bi++){const bale=new THREE.Mesh(new THREE.BoxGeometry(1.5,1,2),new MS({color:0x9a8a3a}));bale.position.set(w*.25+(bi%2)*.5,1000+.5,-l*.25+Math.floor(bi/2)*3);buildingGroup.add(bale);}}
 else{
-// House furniture
+// Default house furniture
 const bed=new THREE.Mesh(new THREE.BoxGeometry(4,2,6),new MS({color:0x3a4a5a}));bed.position.set(-w/3,1000+1,-l/3);buildingGroup.add(bed);
 const table=new THREE.Mesh(new THREE.CylinderGeometry(2,2,1.5,6),new MS({color:0x4a3a2a}));table.position.set(w/4,1000+.75,l/4);buildingGroup.add(table);
 // Fireplace
 const fp=new THREE.Mesh(new THREE.BoxGeometry(3,4,1),new MS({color:0x2a2a2a}));fp.position.set(0,1000+2,-l/2+.5);buildingGroup.add(fp);
 const fire=new THREE.Mesh(new THREE.SphereGeometry(1,6,6),mt.fl);fire.position.set(0,1000+1.5,-l/2+1);buildingGroup.add(fire);}
 // Lighting
-const inLight=new THREE.PointLight(0xffaa66,.8,30,1.5);inLight.position.set(0,1000+h-2,0);buildingGroup.add(inLight);
+const inLight=new THREE.PointLight(0xffaa66,.8,Math.max(w,l)*.8,1.5);inLight.position.set(0,1000+h-2,0);buildingGroup.add(inLight);
 scene.add(buildingGroup);
 // Position player inside
 player.x=0;player.y=1002;player.z=l/4;
@@ -3190,6 +3801,8 @@ const bloomPass=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.
 const dsGrade=new ShaderPass(DSColorGradeShader);composer.addPass(dsGrade);
 window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight)});
 initTargetRing();scene.add(targetRing);
+// Finalize GPU instanced building elements
+if(typeof _buildingInstancers!=='undefined')_buildingInstancers.finalize();
 buildColliders();
 log('World loaded: '+torchPositions.length+' lights, '+enemies.length+' enemies, '+solidBoxes.length+' colliders','#0f0');
 console.log('INIT COMPLETE: scene children='+scene.children.length+', enemies='+enemies.length);
@@ -3593,6 +4206,9 @@ const tgt=dd<18?d.openAng:0;
 d.cur+=(tgt-d.cur)*.08;
 if(Math.abs(d.cur)<.01)d.cur=0;
 d.pivot.rotation.y=d.cur}
+
+// Animate windmill blades
+windmills.forEach(w=>{if(w.mesh)w.mesh.rotation.z+=.015});
 
 // GPU perf: distance cull every 4 frames, shadow cull every 20, sun follows player
 cullFrame++;
@@ -4148,33 +4764,41 @@ const floorMat=new MS({color:0x1a0a2a,roughness:.95});
 // Arena size: 7x7 rooms of 14x14 each = ~100x100 units total
 const CELL=16,COLS=7,ROWS=7;
 const offX=GAU_X-COLS*CELL/2,offZ=GAU_Z-ROWS*CELL/2;
-// Floor
-const floor=new THREE.Mesh(new THREE.BoxGeometry(COLS*CELL,1,ROWS*CELL),floorMat);
-floor.position.set(GAU_X,-.5,GAU_Z);floor.receiveShadow=true;g.add(floor);
-// Outer walls
-const wallH=20;const wallMat=corrupted;
-[[GAU_X,GAU_Z-ROWS*CELL/2,COLS*CELL,wallH,2],[GAU_X,GAU_Z+ROWS*CELL/2,COLS*CELL,wallH,2],
-[GAU_X-COLS*CELL/2,GAU_Z,2,wallH,ROWS*CELL],[GAU_X+COLS*CELL/2,GAU_Z,2,wallH,ROWS*CELL]].forEach(([x,z,w,h,d])=>{
-const wm=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),wallMat);wm.position.set(x,h/2,z);wm.castShadow=true;g.add(wm)});
-// Interior room dividers (7x7 grid walls with openings)
+// Floor - raised platform so it's clearly above ground
+const platformH=2;
+const floor=new THREE.Mesh(new THREE.BoxGeometry(COLS*CELL,platformH,ROWS*CELL),floorMat);
+floor.position.set(GAU_X,platformH/2,GAU_Z);floor.receiveShadow=true;g.add(floor);
+// Low outer barriers (waist height) - not walls - so player can see sky
+const barrierH=3;const barrierMat=corrupted;
+[[GAU_X,GAU_Z-ROWS*CELL/2,COLS*CELL,barrierH,1],[GAU_X,GAU_Z+ROWS*CELL/2,COLS*CELL,barrierH,1],
+[GAU_X-COLS*CELL/2,GAU_Z,1,barrierH,ROWS*CELL],[GAU_X+COLS*CELL/2,GAU_Z,1,barrierH,ROWS*CELL]].forEach(([x,z,w,h,d])=>{
+const bm=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),barrierMat);bm.position.set(x,platformH+h/2,z);bm.castShadow=true;g.add(bm)});
+// Low room dividers - corrupted crystal barriers (waist height, not full walls)
 for(let row=0;row<ROWS;row++){for(let col=0;col<COLS;col++){
 const cx=offX+col*CELL+CELL/2,cz=offZ+row*CELL+CELL/2;
-// E wall with gap (doorway) — skip some for open feel
-if(col<COLS-1&&Math.random()>.35){const wm=new THREE.Mesh(new THREE.BoxGeometry(.8,wallH,4),wallMat);wm.position.set(cx+CELL/2,wallH/2,cz);g.add(wm)}
-if(row<ROWS-1&&Math.random()>.35){const wm=new THREE.Mesh(new THREE.BoxGeometry(4,wallH,.8),wallMat);wm.position.set(cx,wallH/2,cz+CELL/2);g.add(wm)}
-// Crystal decor on walls
-if(Math.random()<.18){const cr=new THREE.Mesh(new THREE.ConeGeometry(.3+Math.random()*.5,1.5+Math.random(),5),crystalMat);cr.position.set(cx+(Math.random()-.5)*CELL*.7,1+Math.random()*3,cz+(Math.random()-.5)*CELL*.7);cr.rotation.set(Math.random()*.3,Math.random()*Math.PI,Math.random()*.3);cr.castShadow=true;g.add(cr)}}}
-// Boss chamber — center (3,3) — mark with purple glow floor
+// Low E barrier
+if(col<COLS-1&&Math.random()>.4){const bm=new THREE.Mesh(new THREE.BoxGeometry(.5,2,3),barrierMat);bm.position.set(cx+CELL/2,platformH+1,cz);g.add(bm)}
+// Low N barrier
+if(row<ROWS-1&&Math.random()>.4){const bm=new THREE.Mesh(new THREE.BoxGeometry(3,2,.5),barrierMat);bm.position.set(cx,platformH+1,cz+CELL/2);g.add(bm)}
+// Crystal decor
+if(Math.random()<.18){const cr=new THREE.Mesh(new THREE.ConeGeometry(.3+Math.random()*.5,1.5+Math.random(),5),crystalMat);cr.position.set(cx+(Math.random()-.5)*CELL*.7,platformH+1+Math.random()*2,cz+(Math.random()-.5)*CELL*.7);cr.rotation.set(Math.random()*.3,Math.random()*Math.PI,Math.random()*.3);cr.castShadow=true;g.add(cr)}}}
+// Corner pillars (tall but thin - like corrupted obelisks)
+[[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([sx,sz])=>{
+const px=GAU_X+sx*COLS*CELL/2,pz=GAU_Z+sz*ROWS*CELL/2;
+const pillar=new THREE.Mesh(new THREE.CylinderGeometry(1.5,2,12,6),new MS({color:0x3a0a5a,emissive:0x1a0050,emissiveIntensity:.3}));
+pillar.position.set(px,platformH+6,pz);g.add(pillar);});
+// Boss chamber — center (3,3) — mark with purple glow floor on platform
 const bcx=offX+3*CELL+CELL/2,bcz=offZ+3*CELL+CELL/2;
 const bossFl=new THREE.Mesh(new THREE.BoxGeometry(CELL-1,0.2,CELL-1),new MS({color:0x5a0a8a,emissive:0x3a0070,emissiveIntensity:.6}));
-bossFl.position.set(bcx,.15,bcz);g.add(bossFl);
+bossFl.position.set(bcx,platformH+.1,bcz);g.add(bossFl);
 // Starting room — top-left corner with Singing Bowl
 const startX=offX+0*CELL+CELL/2,startZ=offZ+0*CELL+CELL/2;
-// Singing Bowl
+// Singing Bowl on platform
+const bowlY=platformH+1;
 const bowl=new THREE.Mesh(new THREE.TorusGeometry(1.8,.4,8,16),new MS({color:0xcc88ff,emissive:0x8844cc,emissiveIntensity:.8}));
-bowl.position.set(startX+3,1,startZ+3);bowl.rotation.x=Math.PI/2;g.add(bowl);
+bowl.position.set(startX+3,bowlY,startZ+3);bowl.rotation.x=Math.PI/2;g.add(bowl);
 const bowlBase=new THREE.Mesh(new THREE.CylinderGeometry(.5,.7,1.2,8),new MS({color:0x8844aa,roughness:.4}));
-bowlBase.position.set(startX+3,.6,startZ+3);g.add(bowlBase);
+bowlBase.position.set(startX+3,bowlY-.4,startZ+3);g.add(bowlBase);
 // Ambient corrupt lighting
 const aLight=new THREE.PointLight(0x8822cc,.6,120);aLight.position.set(GAU_X,8,GAU_Z);g.add(aLight);
 const bLight=new THREE.PointLight(0xcc2288,.4,80);bLight.position.set(startX,6,startZ);g.add(bLight);
@@ -4182,10 +4806,11 @@ const bLight=new THREE.PointLight(0xcc2288,.4,80);bLight.position.set(startX,6,s
 g.userData={startX,startZ,bcx,bcz,CELL,COLS,ROWS,offX,offZ,bowlPos:{x:startX+3,z:startZ+3}};
 return g;}
 
-// Resource node meshes scattered in grid
+// Resource node meshes scattered in grid - placed on platform
 function _buildGauntletResources(arenaGroup){
 const {CELL,COLS,ROWS,offX,offZ,startX,startZ,bcx,bcz}=arenaGroup.userData;
 const nodes=[];
+const platformH=2; // Same as arena platform
 const ore=new MS({color:0x4a2a6a,emissive:0x2a1040,emissiveIntensity:.3,roughness:.6});
 const tree=new MS({color:0x2a4a1a,roughness:.9});
 const fish=new MS({color:0x1a3a5a,emissive:0x0a1a3a,emissiveIntensity:.2});
@@ -4195,23 +4820,23 @@ const isBoss=(col===3&&row===3),isStart=(col===0&&row===0);
 if(isBoss||isStart)continue;
 const r=Math.random();
 let mesh,type;
-if(r<.25){// Ore rock
+if(r<.25){// Ore rock - sits on platform
 mesh=new THREE.Mesh(new THREE.DodecahedronGeometry(1.2,0),ore);
-mesh.position.set(cx+(Math.random()-.5)*6,.8,cz+(Math.random()-.5)*6);
+mesh.position.set(cx+(Math.random()-.5)*6,platformH+1,cz+(Math.random()-.5)*6);
 type='ore';
-}else if(r<.48){// Tree/bark
+}else if(r<.48){// Tree/bark - on platform
 mesh=new THREE.Mesh(new THREE.CylinderGeometry(.4,.55,3.5,7),new MS({color:0x3a2a1a,roughness:.9}));
-mesh.position.set(cx+(Math.random()-.5)*6,1.75,cz+(Math.random()-.5)*6);
+mesh.position.set(cx+(Math.random()-.5)*6,platformH+1.75,cz+(Math.random()-.5)*6);
 const leaves=new THREE.Mesh(new THREE.ConeGeometry(1.8,2.5,7),new MS({color:0x1a3a2a,roughness:.85}));
 leaves.position.set(0,3,0);mesh.add(leaves);
 type='bark';
-}else if(r<.65){// Fishing spot
+}else if(r<.65){// Fishing spot - on platform
 mesh=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.4,.2,12),fish);
-mesh.position.set(cx+(Math.random()-.5)*4,.15,cz+(Math.random()-.5)*4);
+mesh.position.set(cx+(Math.random()-.5)*4,platformH+.1,cz+(Math.random()-.5)*4);
 type='fishing';
-}else if(r<.78){// Linum plant
+}else if(r<.78){// Linum plant - on platform
 mesh=new THREE.Mesh(new THREE.SphereGeometry(.7,5,5),new MS({color:0x4a5a2a,roughness:.9}));
-mesh.position.set(cx+(Math.random()-.5)*7,.7,cz+(Math.random()-.5)*7);
+mesh.position.set(cx+(Math.random()-.5)*7,platformH+.7,cz+(Math.random()-.5)*7);
 type='linum';
 }else continue;
 mesh.castShadow=true;arenaGroup.add(mesh);
@@ -4233,8 +4858,8 @@ const arena=_buildGauntletArena();
 scene.add(arena);
 const nodes=_buildGauntletResources(arena);
 const {startX,startZ,bcx,bcz,bowlPos}=arena.userData;
-// Teleport player in at surface level
-player.x=startX;player.z=startZ;player.y=meshTerrainH(startX,startZ)+2;
+// Teleport player in at platform level (platform is at height 2)
+player.x=startX;player.z=startZ;player.y=2+2; // platformH + player offset
 // Init state
 gau={
 active:true,arena,nodes,
@@ -4295,7 +4920,8 @@ const col=2+Math.floor(Math.random()*(COLS-2)),row=Math.floor(Math.random()*ROWS
 if((col<2&&row<2)||(col===3&&row===3)||col<1||col>=COLS-1)continue;
 const cx=offX+col*CELL+CELL/2+(Math.random()-.5)*8;
 const cz=offZ+row*CELL+CELL/2+(Math.random()-.5)*8;
-const cy=meshTerrainH(cx,cz)+1;
+// Spawn on platform at height 3 (platform is at 2)
+const cy=3;
 // Scale enemy level: player level ±2 (min 1)
 const enemyLv=Math.max(1,playerLv-2+Math.floor(Math.random()*5));
 const e=spawnE('bat',cx,cz,enemyLv);
@@ -4311,7 +4937,8 @@ const playerLv=player.level||1;
 GAU_DEMIBOSS.forEach((db,i)=>{
 const [col,row]=positions[i];
 const cx=offX+col*CELL+CELL/2,cz=offZ+row*CELL+CELL/2;
-const cy=meshTerrainH(cx,cz)+1;
+// Spawn on platform at height 3 (platform is at 2)
+const cy=3;
 // Scale enemy level: player level + 5-10
 const enemyLv=Math.max(5,playerLv+5+i*3);
 const e=spawnE('golem',cx,cz,enemyLv);
@@ -4400,7 +5027,7 @@ for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const leg=new THREE.Mesh(new THREE.Cy
 // Crystal spine cluster
 for(let i=0;i<8;i++){const sp=new THREE.Mesh(new THREE.ConeGeometry(.25,.5+Math.random()*1.5,4),crystMat);sp.position.set((Math.random()-.5)*5,1.5+Math.random()*2,(Math.random()-.5)*4);sp.rotation.set(Math.random()-.5,0,Math.random()-.5);hg.add(sp)}
 hg.scale.setScalar(.7);
-hg.position.set(bcx,1.5,bcz);hg.castShadow=true;
+hg.position.set(bcx,3.5,bcz);hg.castShadow=true; // On platform (platform at 2, boss at 3.5)
 scene.add(hg);
 gau.hunllefMesh=hg;
 // Combat state
@@ -4426,16 +5053,20 @@ gau.floorTiles=[];
 for(let row=0;row<gridN;row++){for(let col=0;col<gridN;col++){
 const tx=bcx+(col-gridN/2+.5)*tileSize,tz=bcz+(row-gridN/2+.5)*tileSize;
 const tile=new THREE.Mesh(new THREE.BoxGeometry(tileSize-.15,.08,tileSize-.15),new MS({color:0x1a0a2a,transparent:true,opacity:.8}));
-tile.position.set(tx,.06,tz);scene.add(tile);
+tile.position.set(tx,2.06,tz);scene.add(tile); // On platform
 gau.floorTiles.push({mesh:tile,tx,tz,state:'safe',timer:0,danger:false})}}
 }
 
 // Called from main game update loop tick
 function updateGauntlet(dt){
 if(!gau||!gau.active)return;
-// Check near boss room entrance
-const {bcx,bcz}=gau.arena.userData;
-if(gau.phase==='gather'&&Math.hypot(player.x-bcx,player.z-bcz)<12){_gauEnterBossRoom()}
+// Check if player actually entered the center boss room (col 3, row 3)
+const {bcx,bcz,CELL}=gau.arena.userData;
+const roomHalf=CELL/2;
+// Must be inside the center room boundaries, not just nearby
+if(gau.phase==='gather'&&
+Math.abs(player.x-bcx)<roomHalf&&Math.abs(player.z-bcz)<roomHalf){
+_gauEnterBossRoom()}
 // Singing bowl check
 gauCheckInteract();
 if(gau.phase==='boss'){_updateHunllef(dt)}_gauAtkTracker();}
@@ -4444,8 +5075,8 @@ function _updateHunllef(dt){
 if(!gau||!gau.hunllef||gau.hunllef.dead)return;
 const h=gau.hunllef;const hm=gau.hunllefMesh;
 if(!hm)return;
-// Floating bob
-hm.position.y=1.5+Math.sin(Date.now()*.001)*0.4;
+// Floating bob on platform (platform at 2, boss base at 3.5)
+hm.position.y=3.5+Math.sin(Date.now()*.001)*0.4;
 hm.rotation.y+=.008;
 // Attack timer
 h.lastAtkTick=(h.lastAtkTick||0)+1;
@@ -4456,7 +5087,7 @@ gau.tornados.forEach((t,i)=>{
 if(!t.mesh)return;
 const dx=player.x-t.x,dz=player.z-t.z,dist=Math.hypot(dx,dz);
 if(dist>0.5){t.x+=dx/dist*0.55;t.z+=dz/dist*0.55}
-t.mesh.position.set(t.x,1.2+Math.sin(Date.now()*.003+i)*0.3,t.z);
+t.mesh.position.set(t.x,3.5+Math.sin(Date.now()*.003+i)*0.3,t.z); // On platform
 t.mesh.rotation.y+=0.12;
 if(dist<3){// Hit player
 const dmg=bossWarnOn?12:18;player.hp=Math.max(0,player.hp-dmg);
@@ -4519,7 +5150,7 @@ for(let i=0;i<count;i++){
 const a=Math.random()*Math.PI*2,r=5+Math.random()*8;
 const tx=bcx+Math.cos(a)*r,tz=bcz+Math.sin(a)*r;
 const tmesh=new THREE.Mesh(new THREE.ConeGeometry(.8,3,6),new MS({color:0xaa44ff,emissive:0x8822ee,emissiveIntensity:1.5,transparent:true,opacity:.75,wireframe:true}));
-tmesh.position.set(tx,1.2,tz);scene.add(tmesh);
+tmesh.position.set(tx,3.5,tz);scene.add(tmesh); // On platform
 gau.tornados.push({mesh:tmesh,x:tx,z:tz});}}
 
 // Player attacks the Hunllef (called when player presses attack near boss)
