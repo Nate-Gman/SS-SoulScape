@@ -306,7 +306,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="spell-slot" title="High Alchemy">&#129689;<span class="sp-name">High Alch</span></div>
 <div class="spell-slot" title="Fire Blast">&#9762;<span class="sp-name">Fire Blast</span></div>
 </div></div>
-<div class="tab-page" id="tp-settings"><div style="padding:8px;font-size:10px;color:#aa9"><b style="color:#cc9944">Controls</b><br><br><b style="color:#cc9944">Mouse:</b><br>LClick - Attack / Target<br>RClick - Block / Parry<br>MClick+Drag - Camera<br>Scroll - Zoom<br><br><b style="color:#cc9944">Keys:</b><br>WASD - Move<br>Space - Roll<br>Tab - Cycle Lock-on<br>1 - Attack<br>2 - Parry<br>3 - Heal (Estus)<br>4 - Bury Bones<br>Q - Prayer Tab<br>F - Gather/Skill<br>M - World Map<br>Esc - Deselect / Close Map<br>I - Inventory<br>K - Skills<br>F5 - Save<br><br><b style="color:#cc9944">Gamepad:</b><br>LStick - Move<br>RStick - Camera<br>RT/X - Attack<br>LT/B - Block<br>A - Roll<br>RB - Lock-on<br>LB - Stamina<br>Start - Inventory<br>Back - Skills</div></div>
+<div class="tab-page" id="tp-settings"><div style="padding:8px;font-size:10px;color:#aa9"><b style="color:#cc9944">Controls</b><br><br><b style="color:#cc9944">Mouse:</b><br>LClick - Attack / Target<br>RClick - Block / Parry<br>MClick+Drag - Camera<br>Scroll - Zoom<br><br><b style="color:#cc9944">Keys:</b><br>WASD - Move<br>Space - Roll<br>Tab - Cycle Lock-on<br>1 - Attack<br>2 - Parry<br>3 - Heal (Estus)<br>4 - Bury Bones<br>Q - Prayer Tab<br>F - Gather/Skill<br>M - World Map<br>Esc - Deselect / Close Map<br>I - Inventory<br>K - Skills<br>F5 - Save<br><br><b style="color:#cc9944">Gamepad (Dark Souls):</b><br>LStick - Move<br>RStick - Camera<br>RT - Light Attack<br>RB - Parry / Heavy<br>LT - Block / Guard<br>B/○ - Roll<br>A/✕ - Heal (Estus)<br>X/□ - Use Item<br>Y/△ - Two-Hand<br>LS Click - Lock-on<br>Start - Inventory<br>Back - Skills</div></div>
 </div>
 </div>
 <!-- CHAT BOX -->
@@ -618,12 +618,24 @@ let ox=px,oz=pz;
 const pr=PLAYER_R;
 for(let pass=0;pass<2;pass++){for(const b of solidBoxes){
 const minX=b.min.x-pr,maxX=b.max.x+pr,minZ=b.min.z-pr,maxZ=b.max.z+pr;
-if(ox>minX&&ox<maxX&&oz>minZ&&oz<maxZ&&py<b.max.y&&py>b.min.y-6){
+// Skip if entity is on top of or above this solid (standing on it)
+if(py>=b.max.y-1)continue;
+if(ox>minX&&ox<maxX&&oz>minZ&&oz<maxZ&&py>b.min.y-6){
 const ovL=ox-minX,ovR=maxX-ox,ovB=oz-minZ,ovF=maxZ-oz;
 const m=Math.min(ovL,ovR,ovB,ovF);
 if(m===ovL)ox=minX;else if(m===ovR)ox=maxX;
 else if(m===ovB)oz=minZ;else oz=maxZ}}}
 return{x:ox,z:oz}}
+// Surface height: terrain or top of any walkable solid below the entity
+function surfaceH(px,pz,py){
+const th=meshTerrainH(px,pz);
+let best=th;
+const pr=PLAYER_R;
+for(const b of solidBoxes){
+if(px>b.min.x-pr&&px<b.max.x+pr&&pz>b.min.z-pr&&pz<b.max.z+pr){
+// If player is near or above the top of this box, they can stand on it
+if(b.max.y>best&&(py===undefined||py>=b.max.y-3)){best=b.max.y}}}
+return best}
 // Accurate terrain mesh height via bilinear interpolation on the actual geometry
 function meshTerrainH(wx,wz){
 if(!groundMesh)return terrainH(wx,wz);
@@ -1097,7 +1109,7 @@ gGeo.setAttribute('color',new THREE.BufferAttribute(vc,3));
 gGeo.computeVertexNormals();
 const ground=new THREE.Mesh(gGeo,new MS({vertexColors:true,roughness:.88}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);groundMesh=ground;
 // === LAKES ===
-lakes.forEach(l=>{const lGeo=new THREE.CircleGeometry(l.r,24);const lMesh=new THREE.Mesh(lGeo,mt.lakeMat);lMesh.rotation.x=-Math.PI/2;lMesh.position.set(l.x,terrainH(l.x,l.z)+1,l.z);scene.add(lMesh)});
+lakes.forEach(l=>{const lGeo=new THREE.CircleGeometry(l.r,24);const lMesh=new THREE.Mesh(lGeo,mt.lakeMat);lMesh.rotation.x=-Math.PI/2;lMesh.position.set(l.x,meshTerrainH(l.x,l.z)+1,l.z);scene.add(lMesh)});
 
 // River running through the world
 const rGeo=new THREE.PlaneGeometry(26,600,24,80);
@@ -1112,9 +1124,9 @@ const rp=lp.clone();rp.position.x=6*s;g.add(rp);
 const top=new THREE.Mesh(new THREE.BoxGeometry(16*s,4*s,4*s),mt.st);top.position.set(0,24*s,0);top.castShadow=true;g.add(top);
 for(let i=0;i<8;i++){const rb=new THREE.Mesh(new THREE.BoxGeometry(1+Math.random()*3,1+Math.random()*2,1+Math.random()*3),mt.stD);
 rb.position.set((Math.random()-.5)*14*s,Math.random()*2,(Math.random()-.5)*6);rb.rotation.set(Math.random(),Math.random(),Math.random());rb.castShadow=true;g.add(rb)}
-g.position.set(x,terrainH(x,z),z);g.rotation.y=rot||0;scene.add(g)}
+g.position.set(x,meshTerrainH(x,z),z);g.rotation.y=rot||0;scene.add(g)}
 // === WORLD BUILDER HELPERS ===
-function wall(x,z,w,h,rot){const bY=terrainH(x,z);const g=new THREE.Group();
+function wall(x,z,w,h,rot){const bY=meshTerrainH(x,z);const g=new THREE.Group();
 const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,3),mt.st);m.position.y=h/2;m.castShadow=true;g.add(m);addSolid(m);
 // Crenellations
 const cN=Math.max(2,Math.floor(w/4));for(let i=0;i<cN;i++){if(i%2===0){const cr=new THREE.Mesh(new THREE.BoxGeometry(w/cN*.8,2,3.2),mt.stD);cr.position.set(-w/2+w/cN*(i+.5),h+1,0);cr.castShadow=true;g.add(cr)}}
@@ -1123,19 +1135,19 @@ const slitN=Math.max(1,Math.floor(w/8));for(let i=0;i<slitN;i++){const sl=new TH
 // Base molding
 const base=new THREE.Mesh(new THREE.BoxGeometry(w+1,1,3.8),mt.stD);base.position.y=.5;g.add(base);
 g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
-function wallW(x,z,w,h,rot){const bY=terrainH(x,z);const g=new THREE.Group();
+function wallW(x,z,w,h,rot){const bY=meshTerrainH(x,z);const g=new THREE.Group();
 const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,3),mt.stW);m.position.y=h/2;m.castShadow=true;g.add(m);addSolid(m);
 const cN=Math.max(2,Math.floor(w/4));for(let i=0;i<cN;i++){if(i%2===0){const cr=new THREE.Mesh(new THREE.BoxGeometry(w/cN*.8,2,3.2),mt.stW);cr.position.set(-w/2+w/cN*(i+.5),h+1,0);cr.castShadow=true;g.add(cr)}}
 const slitN=Math.max(1,Math.floor(w/8));for(let i=0;i<slitN;i++){const sl=new THREE.Mesh(new THREE.BoxGeometry(.4,2,.2),new MS({color:0x0a0a0a,roughness:1}));sl.position.set(-w/2+w/(slitN+1)*(i+1),h*.6,1.6);g.add(sl)}
 const base=new THREE.Mesh(new THREE.BoxGeometry(w+1,1,3.8),mt.stD);base.position.y=.5;g.add(base);
 g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
-function hut(x,z,rot,s){s=s||1;const h=terrainH(x,z);const g=new THREE.Group();
+function hut(x,z,rot,s){s=s||1;const h=meshTerrainH(x,z);const g=new THREE.Group();
 const wW=12*s,wD=10*s,wH=8*s,wallT=.6*s;const doorW=3*s,doorH2=5.5*s;
 const doorMat=new MS({color:0x3a2818,roughness:.85,metalness:.05});
 const intFloorMat=new MS({color:0x5a4a38,roughness:.92});
 const winGlassMat=new MS({color:0x2a4a6a,roughness:.15,metalness:.3,emissive:0x1a3a5a,emissiveIntensity:.5,transparent:true,opacity:.5});
 // Foundation
-const found=new THREE.Mesh(new THREE.BoxGeometry(wW+2*s,1.5*s,wD+2*s),mt.st);found.position.y=.75*s;found.castShadow=true;g.add(found);
+const found=new THREE.Mesh(new THREE.BoxGeometry(wW+2*s,1.5*s,wD+2*s),mt.st);found.position.y=.75*s;found.castShadow=true;g.add(found);addSolid(found);
 // Interior floor
 const intFloor=new THREE.Mesh(new THREE.BoxGeometry(wW-.5*s,.2*s,wD-.5*s),intFloorMat);intFloor.position.y=1.6*s;intFloor.receiveShadow=true;g.add(intFloor);
 // Back wall (solid)
@@ -1187,9 +1199,9 @@ const tbl=new THREE.Mesh(new THREE.BoxGeometry(3*s,.15*s,2*s),mt.wd);tbl.positio
 const tblLeg1=new THREE.Mesh(new THREE.CylinderGeometry(.1*s,.1*s,2*s,4),mt.wd);
 [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([lx,lz])=>{const lg=tblLeg1.clone();lg.position.set(lx*1.3*s,2.4*s,-2*s+lz*.8*s);g.add(lg)});
 g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g)}
-function tower(x,z,s,mat){s=s||1;mat=mat||mt.st;const h=terrainH(x,z);const g=new THREE.Group();
+function tower(x,z,s,mat){s=s||1;mat=mat||mt.st;const h=meshTerrainH(x,z);const g=new THREE.Group();
 // Base (wider)
-const base=new THREE.Mesh(new THREE.CylinderGeometry(7.5*s,8.5*s,4*s,10),mat);base.position.y=2*s;base.castShadow=true;g.add(base);
+const base=new THREE.Mesh(new THREE.CylinderGeometry(7.5*s,8.5*s,4*s,10),mat);base.position.y=2*s;base.castShadow=true;g.add(base);addSolid(base);
 // Main body
 const b=new THREE.Mesh(new THREE.CylinderGeometry(6*s,7*s,30*s,10),mat);b.position.y=17*s;b.castShadow=true;g.add(b);addSolid(b);
 // Battlement ring
@@ -1218,7 +1230,7 @@ doors.push({pivot:tDoorPivot,x:tdWX,z:tdWZ,openAng:-Math.PI/2,cur:0})}
 const fm=new THREE.Mesh(new THREE.SphereGeometry(1.5,6,6),mt.fl);fm.position.y=30*s;g.add(fm);
 g.position.set(x,h,z);scene.add(g);
 torchPositions.push({x,y:h+30*s,z,mesh:fm,ph:Math.random()*6.28,big:false})}
-function pine(x,z){const h=terrainH(x,z);const g=new THREE.Group();
+function pine(x,z){const h=meshTerrainH(x,z);const g=new THREE.Group();
 // Roots (exposed)
 for(let i=0;i<4;i++){const a=i/4*Math.PI*2;const root=new THREE.Mesh(new THREE.CylinderGeometry(.15,.4,3,4),mt.bk);root.position.set(Math.cos(a)*1.5,.5,Math.sin(a)*1.5);root.rotation.z=Math.cos(a)*.5;root.rotation.x=Math.sin(a)*.5;root.castShadow=true;g.add(root)}
 // Trunk (tapered, knotty)
@@ -1230,7 +1242,7 @@ for(let i=0;i<7;i++){const cn=new THREE.Mesh(new THREE.ConeGeometry(7.5-i*1,5,10
 // Sub-branches
 if(i<5){for(let j=0;j<3;j++){const a=j/3*Math.PI*2+i*.5;const br=new THREE.Mesh(new THREE.CylinderGeometry(.08,.15,2.5,4),mt.bk);br.position.set(Math.cos(a)*(3-i*.3),11+i*3,Math.sin(a)*(3-i*.3));br.rotation.z=Math.cos(a)*.6;br.rotation.x=Math.sin(a)*.6;g.add(br)}}}
 g.position.set(x,h,z);scene.add(g)}
-function palm(x,z){const h=terrainH(x,z);const g=new THREE.Group();
+function palm(x,z){const h=meshTerrainH(x,z);const g=new THREE.Group();
 // Trunk (curved, segmented)
 const tr=new THREE.Mesh(new THREE.CylinderGeometry(.5,.9,18,8),mt.bk);tr.position.y=9;tr.rotation.z=Math.sin(x)*.12;tr.castShadow=true;g.add(tr);
 // Trunk rings
@@ -1242,7 +1254,7 @@ for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const f=new THREE.Mesh(new THREE.Plan
 const f2=new THREE.Mesh(new THREE.PlaneGeometry(6,1.5),mt.lfL);f2.position.set(Math.cos(a)*2.5,18.5,Math.sin(a)*2.5);f2.rotation.set(-.8,a+.2,0);g.add(f2)}
 g.position.set(x,h,z);scene.add(g)}
 const dtMat=new MS({color:0x3a2a1a,roughness:.95}),dtMat2=new MS({color:0x4a3a22,roughness:.95});
-function deadTree(x,z){const h=terrainH(x,z);const g=new THREE.Group();
+function deadTree(x,z){const h=meshTerrainH(x,z);const g=new THREE.Group();
 // Gnarled trunk
 const tr=new THREE.Mesh(new THREE.CylinderGeometry(.4,1.5,14,6),dtMat);tr.position.y=7;tr.rotation.z=Math.random()*.15-.075;tr.castShadow=true;g.add(tr);
 // Exposed roots
@@ -1254,7 +1266,7 @@ for(let j=0;j<2;j++){const tw=new THREE.Mesh(new THREE.CylinderGeometry(.03,.08,
 // Bark peeling
 for(let i=0;i<4;i++){const peel=new THREE.Mesh(new THREE.PlaneGeometry(.5,1.5),new MS({color:0x5a4a30,roughness:1,side:THREE.DoubleSide}));peel.position.set((Math.random()-.5)*1.2,4+Math.random()*6,(Math.random()-.5)*1.2);peel.rotation.set(Math.random(),Math.random(),Math.random());g.add(peel)}
 g.position.set(x,h,z);scene.add(g)}
-function bonfire(x,z){const h=terrainH(x,z);const g=new THREE.Group();
+function bonfire(x,z){const h=meshTerrainH(x,z);const g=new THREE.Group();
 // Stone ring
 for(let i=0;i<14;i++){const a=i/14*Math.PI*2,r=4.5+Math.random()*.5;const rk=new THREE.Mesh(new THREE.IcosahedronGeometry(.8+Math.random()*.6,0),mt.rk);rk.position.set(Math.cos(a)*r,.4,Math.sin(a)*r);rk.castShadow=true;g.add(rk)}
 // Coal bed
@@ -1271,10 +1283,11 @@ const fmI=new THREE.Mesh(new THREE.SphereGeometry(1.2,6,6),new MS({color:0xffaa2
 const pot=new THREE.Mesh(new THREE.SphereGeometry(1.2,8,6,0,Math.PI*2,0,Math.PI/2),new MS({color:0x2a2a2a,roughness:.6,metalness:.7}));pot.position.set(3.5,1,0);pot.rotation.x=Math.PI;g.add(pot);
 g.position.set(x,h,z);scene.add(g);
 torchPositions.push({x,y:h+5,z,mesh:fm,ph:0,big:true})}
-function bridge(x,z,rot,len){const h=terrainH(x,z);const g=new THREE.Group();
+function bridge(x,z,rot,len){const h=meshTerrainH(x,z);const g=new THREE.Group();
 // Main planks (individual)
 const planks=Math.floor(len/2);for(let i=0;i<planks;i++){const pl=new THREE.Mesh(new THREE.BoxGeometry(5.5,.3,1.8),mt.bridge);pl.position.set(0,2,(i-planks/2)*2);pl.castShadow=true;pl.receiveShadow=true;g.add(pl)}
 // Support beams underneath
+const bridgeDeck=new THREE.Mesh(new THREE.BoxGeometry(5.5,.4,len),mt.bridge);bridgeDeck.position.set(0,2.1,0);bridgeDeck.receiveShadow=true;g.add(bridgeDeck);addSolid(bridgeDeck);
 [-2.2,2.2].forEach(sx=>{const beam=new THREE.Mesh(new THREE.BoxGeometry(.6,.6,len),mt.wd);beam.position.set(sx,1.5,0);beam.castShadow=true;g.add(beam)});
 // Rope railings
 [-1,1].forEach(sd=>{
@@ -1288,9 +1301,9 @@ const brace=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,2,3),mt.wd);brace.
 // Stone anchors at ends
 [-1,1].forEach(end=>{const anc=new THREE.Mesh(new THREE.BoxGeometry(6,3,3),mt.st);anc.position.set(0,1.5,end*len/2);anc.castShadow=true;g.add(anc)});
 g.position.set(x,h,z);g.rotation.y=rot;scene.add(g)}
-function ruin(x,z){const h=terrainH(x,z);const g=new THREE.Group();
+function ruin(x,z){const h=meshTerrainH(x,z);const g=new THREE.Group();
 // Standing wall fragments
-for(let i=0;i<3;i++){const w=new THREE.Mesh(new THREE.BoxGeometry(3+Math.random()*5,8+Math.random()*16,2.5),mt.stD);w.position.set((Math.random()-.5)*18,5+Math.random()*4,(Math.random()-.5)*18);w.rotation.set(Math.random()*.15,Math.random(),Math.random()*.15);w.castShadow=true;g.add(w)}
+for(let i=0;i<3;i++){const w=new THREE.Mesh(new THREE.BoxGeometry(3+Math.random()*5,8+Math.random()*16,2.5),mt.stD);w.position.set((Math.random()-.5)*18,5+Math.random()*4,(Math.random()-.5)*18);w.rotation.set(Math.random()*.15,Math.random(),Math.random()*.15);w.castShadow=true;g.add(w);addSolid(w)}
 // Fallen columns
 for(let i=0;i<2;i++){const col=new THREE.Mesh(new THREE.CylinderGeometry(.6,.8,8+Math.random()*4,6),mt.st);col.position.set((Math.random()-.5)*16,1,(Math.random()-.5)*16);col.rotation.z=Math.PI/2+Math.random()*.3;col.castShadow=true;g.add(col)}
 // Rubble pile
@@ -1301,7 +1314,7 @@ const archR=new THREE.Mesh(new THREE.BoxGeometry(2.5,8,2.5),mt.st);archR.positio
 // Overgrown moss patches
 for(let i=0;i<6;i++){const moss=new THREE.Mesh(new THREE.PlaneGeometry(1.5+Math.random()*2,1+Math.random()*1.5),new MS({color:0x2a4a1a,roughness:1,side:THREE.DoubleSide,transparent:true,opacity:.6}));moss.position.set((Math.random()-.5)*14,1+Math.random()*6,(Math.random()-.5)*14);moss.rotation.set(Math.random(),Math.random(),Math.random());g.add(moss)}
 g.position.set(x,h,z);scene.add(g)}
-function torch(tx,tz){const th=terrainH(tx,tz);const g=new THREE.Group();
+function torch(tx,tz){const th=meshTerrainH(tx,tz);const g=new THREE.Group();
 // Post
 const post=new THREE.Mesh(new THREE.CylinderGeometry(.3,.5,10,6),mt.wd);post.position.y=5;post.castShadow=true;g.add(post);
 // Iron bracket
@@ -1316,7 +1329,7 @@ g.position.set(tx,th,tz);scene.add(g);
 torchPositions.push({x:tx,y:th+11,z:tz,mesh:fm,ph:Math.random()*6.28,big:false})}
 
 // === GOTHIC ARCHITECTURE BUILDERS ===
-function gothicSpire(x,z,h,sc){sc=sc||1;const bY=terrainH(x,z);const g=new THREE.Group();
+function gothicSpire(x,z,h,sc){sc=sc||1;const bY=meshTerrainH(x,z);const g=new THREE.Group();
 // Base pillar (octagonal)
 const base=new THREE.Mesh(new THREE.CylinderGeometry(4*sc,5*sc,h*.6,8),mt.stGoth);base.position.y=h*.3;base.castShadow=true;g.add(base);addSolid(base);
 // Upper taper
@@ -1337,7 +1350,7 @@ g.position.set(x,bY,z);scene.add(g);
 const fm=new THREE.Mesh(new THREE.SphereGeometry(1.5,6,6),mt.fl);fm.position.set(x,bY+h*.55,z);scene.add(fm);
 torchPositions.push({x,y:bY+h*.55,z,mesh:fm,ph:Math.random()*6.28,big:false})}
 
-function gothicArch(x,z,rot,sc){sc=sc||1;const bY=terrainH(x,z);const g=new THREE.Group();
+function gothicArch(x,z,rot,sc){sc=sc||1;const bY=meshTerrainH(x,z);const g=new THREE.Group();
 // Two pillars
 [-1,1].forEach(s=>{const p=new THREE.Mesh(new THREE.BoxGeometry(3*sc,24*sc,3*sc),mt.stGoth);p.position.set(s*7*sc,12*sc,0);p.castShadow=true;g.add(p);addSolid(p);
 // Capital (decorative top)
@@ -1353,7 +1366,7 @@ for(let i=0;i<6;i++){const rb=new THREE.Mesh(new THREE.IcosahedronGeometry(.8+Ma
 rb.position.set((Math.random()-.5)*12*sc,Math.random()*1.5,(Math.random()-.5)*5);rb.rotation.set(Math.random(),Math.random(),Math.random());g.add(rb)}
 g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
 
-function flyingButtress(x,z,rot,sc){sc=sc||1;const bY=terrainH(x,z);const g=new THREE.Group();
+function flyingButtress(x,z,rot,sc){sc=sc||1;const bY=meshTerrainH(x,z);const g=new THREE.Group();
 // Base pier
 const pier=new THREE.Mesh(new THREE.BoxGeometry(2.5*sc,18*sc,2.5*sc),mt.stGoth);pier.position.set(0,9*sc,0);pier.castShadow=true;g.add(pier);
 // Arch arm (angled)
@@ -1362,14 +1375,14 @@ const arm=new THREE.Mesh(new THREE.BoxGeometry(1.5*sc,2*sc,14*sc),mt.st);arm.pos
 const pin=new THREE.Mesh(new THREE.ConeGeometry(1.5*sc,6*sc,6),mt.stD);pin.position.set(0,21*sc,0);pin.castShadow=true;g.add(pin);
 g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
 
-function cathedral(x,z,rot,sc){sc=sc||1;const bY=terrainH(x,z);const g=new THREE.Group();
+function cathedral(x,z,rot,sc){sc=sc||1;const bY=meshTerrainH(x,z);const g=new THREE.Group();
 // Main nave
 const nave=new THREE.Mesh(new THREE.BoxGeometry(20*sc,25*sc,40*sc),mt.stGoth);nave.position.y=12.5*sc;nave.castShadow=true;g.add(nave);addSolid(nave);
 // Peaked roof
-const roof=new THREE.Mesh(new THREE.BoxGeometry(22*sc,3*sc,42*sc),mt.rfSlate);roof.position.y=26*sc;roof.rotation.z=0;roof.castShadow=true;g.add(roof);
+const roof=new THREE.Mesh(new THREE.BoxGeometry(22*sc,3*sc,42*sc),mt.rfSlate);roof.position.y=26*sc;roof.rotation.z=0;roof.castShadow=true;g.add(roof);addSolid(roof);
 const roofPeak=new THREE.Mesh(new THREE.BoxGeometry(4*sc,8*sc,42*sc),mt.rfSlate);roofPeak.position.y=30*sc;roofPeak.castShadow=true;g.add(roofPeak);
 // Front face with pointed entrance
-const front=new THREE.Mesh(new THREE.BoxGeometry(22*sc,30*sc,2*sc),mt.st);front.position.set(0,15*sc,21*sc);front.castShadow=true;g.add(front);
+const front=new THREE.Mesh(new THREE.BoxGeometry(22*sc,30*sc,2*sc),mt.st);front.position.set(0,15*sc,21*sc);front.castShadow=true;g.add(front);addSolid(front);
 // Entrance void
 const door=new THREE.Mesh(new THREE.BoxGeometry(6*sc,12*sc,3*sc),new MS({color:0x050505,roughness:1}));door.position.set(0,6*sc,21*sc);g.add(door);
 // Pointed gable
@@ -1379,7 +1392,7 @@ for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const spoke=new THREE.Mesh(new THREE.
 const rwRing=new THREE.Mesh(new THREE.TorusGeometry(3.5*sc,.4*sc,6,16),mt.st);rwRing.position.set(0,22*sc,22*sc);g.add(rwRing);
 const rwGlow=new THREE.Mesh(new THREE.CircleGeometry(3*sc,12),new MS({color:0x2a3a5a,emissive:0x1a2a4a,emissiveIntensity:.8,side:THREE.DoubleSide}));rwGlow.position.set(0,22*sc,21.8*sc);g.add(rwGlow);
 // Bell towers (twin spires)
-[-1,1].forEach(s=>{const tw=new THREE.Mesh(new THREE.BoxGeometry(6*sc,35*sc,6*sc),mt.stGoth);tw.position.set(s*14*sc,17.5*sc,19*sc);tw.castShadow=true;g.add(tw);
+[-1,1].forEach(s=>{const tw=new THREE.Mesh(new THREE.BoxGeometry(6*sc,35*sc,6*sc),mt.stGoth);tw.position.set(s*14*sc,17.5*sc,19*sc);tw.castShadow=true;g.add(tw);addSolid(tw);
 const sp=new THREE.Mesh(new THREE.ConeGeometry(4*sc,16*sc,8),mt.stD);sp.position.set(s*14*sc,43*sc,19*sc);sp.castShadow=true;g.add(sp);
 const fin=new THREE.Mesh(new THREE.SphereGeometry(.6*sc,5,5),mt.gold);fin.position.set(s*14*sc,51*sc,19*sc);g.add(fin)});
 // Side buttresses
@@ -1391,8 +1404,8 @@ const fm1=new THREE.Mesh(new THREE.SphereGeometry(1.2,6,6),mt.fl);fm1.position.s
 torchPositions.push({x,y:bY+10*sc,z,mesh:fm1,ph:Math.random()*6.28,big:true});
 g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
 
-function grandStairs(x,z,rot,steps,w,sc){sc=sc||1;steps=steps||12;w=w||10;const bY=terrainH(x,z);const g=new THREE.Group();
-for(let i=0;i<steps;i++){const step=new THREE.Mesh(new THREE.BoxGeometry(w*sc,1.2*sc,2.5*sc),mt.stGoth);step.position.set(0,i*1.1*sc,i*2.2*sc);step.castShadow=true;step.receiveShadow=true;g.add(step)}
+function grandStairs(x,z,rot,steps,w,sc){sc=sc||1;steps=steps||12;w=w||10;const bY=meshTerrainH(x,z);const g=new THREE.Group();
+for(let i=0;i<steps;i++){const step=new THREE.Mesh(new THREE.BoxGeometry(w*sc,1.2*sc,2.5*sc),mt.stGoth);step.position.set(0,i*1.1*sc,i*2.2*sc);step.castShadow=true;step.receiveShadow=true;g.add(step);addSolid(step)}
 // Balustrades
 [-1,1].forEach(s=>{for(let i=0;i<steps;i+=2){const post=new THREE.Mesh(new THREE.CylinderGeometry(.3*sc,.35*sc,4*sc,5),mt.st);post.position.set(s*(w/2+.5)*sc,i*1.1*sc+2*sc,i*2.2*sc);post.castShadow=true;g.add(post)}});
 g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
@@ -1408,7 +1421,7 @@ torch(490,90);torch(620,10);
 
 // ========== WILDERNESS (0,-650) ==========
 for(let i=0;i<5;i++)ruin((Math.random()-.5)*300,-550-Math.random()*200);
-for(let i=0;i<3;i++){const lx=(Math.random()-.5)*200,lz=-600-Math.random()*150;const lv=new THREE.Mesh(new THREE.CircleGeometry(6+Math.random()*8,8),mt.lava);lv.rotation.x=-Math.PI/2;lv.position.set(lx,terrainH(lx,lz)+.5,lz);scene.add(lv);torchPositions.push({x:lx,y:terrainH(lx,lz)+4,z:lz,mesh:lv,ph:Math.random()*6.28,big:true,col:0xff4400})}
+for(let i=0;i<3;i++){const lx=(Math.random()-.5)*200,lz=-600-Math.random()*150;const lv=new THREE.Mesh(new THREE.CircleGeometry(6+Math.random()*8,8),mt.lava);lv.rotation.x=-Math.PI/2;lv.position.set(lx,meshTerrainH(lx,lz)+.5,lz);scene.add(lv);torchPositions.push({x:lx,y:meshTerrainH(lx,lz)+4,z:lz,mesh:lv,ph:Math.random()*6.28,big:true,col:0xff4400})}
 tower(-45,-580,1.5);tower(55,-580,1.5);
 
 // ========== AL KHARID (580,400) ==========
@@ -1425,7 +1438,7 @@ hut(-320,-160,1,.8);hut(-280,-180,-.5,.9);tower(-315,-100,1.2);bonfire(-300,-150
 
 // ========== PORT SARIM (-160,480) ==========
 hut(-190,460,.5,1);hut(-150,470,.8,1);bridge(-160,420,0,40);
-const hull=new THREE.Mesh(new THREE.BoxGeometry(14,6,30),mt.wd);hull.position.set(-30,terrainH(-30,510)+3,510);hull.castShadow=true;scene.add(hull);
+const hull=new THREE.Mesh(new THREE.BoxGeometry(14,6,30),mt.wd);hull.position.set(-30,meshTerrainH(-30,510)+3,510);hull.castShadow=true;scene.add(hull);
 bonfire(-160,470);
 
 // ========== EDGEVILLE (150,-350) ==========
@@ -1471,7 +1484,7 @@ tower(-855,-3230,2);tower(-740,-3230,2);bonfire(-800,-3200);cave(-820,-3250,.2);
 cathedral(-4000,-300,0,1.5);grandStairs(-4000,-265,0,14,14,1.2);bonfire(-4000,-300);
 
 // ========== TZHAAR CITY (1800,1200) ==========
-for(let i=0;i<3;i++){const lx=1760+Math.random()*80,lz=1160+Math.random()*80;const lv=new THREE.Mesh(new THREE.CircleGeometry(5,8),mt.lava);lv.rotation.x=-Math.PI/2;lv.position.set(lx,terrainH(lx,lz)+.5,lz);scene.add(lv);torchPositions.push({x:lx,y:terrainH(lx,lz)+3,z:lz,mesh:lv,ph:Math.random()*6.28,big:true,col:0xff3300})}
+for(let i=0;i<3;i++){const lx=1760+Math.random()*80,lz=1160+Math.random()*80;const lv=new THREE.Mesh(new THREE.CircleGeometry(5,8),mt.lava);lv.rotation.x=-Math.PI/2;lv.position.set(lx,meshTerrainH(lx,lz)+.5,lz);scene.add(lv);torchPositions.push({x:lx,y:meshTerrainH(lx,lz)+3,z:lz,mesh:lv,ph:Math.random()*6.28,big:true,col:0xff3300})}
 tower(1800,1200,1.8);cave(1810,1180,.2);bonfire(1800,1200);
 
 // === BRIDGES over rivers ===
@@ -1498,7 +1511,7 @@ const deadTrunks=new THREE.InstancedMesh(deadTG,deadMat,DEAD_MAX);
 const deadBranches=new THREE.InstancedMesh(deadBG,deadMat,DEAD_MAX);
 let pi=0,pa=0,de=0;_quat.identity();
 for(let i=0;i<1200;i++){const x=(Math.random()-.5)*60000,z=(Math.random()-.5)*50000;
-if(isInLake(x,z))continue;const rg=getReg(x,z);const h=terrainH(x,z);if(h>100)continue;
+if(isInLake(x,z))continue;const rg=getReg(x,z);const h=meshTerrainH(x,z);if(h>100)continue;
 const sc=.7+Math.random()*.6;
 const isDes=rg.n.includes('Desert')||rg.n==='Al Kharid'||rg.n==='Sophanem'||rg.n==='Menaphos';
 const isDead=rg.n==='Wilderness'||rg.n.includes('Wild')||rg.n==='Draynor'||rg.n==='Morytania'||rg.n==='Canifis';
@@ -1522,7 +1535,7 @@ const bPos=boulderGeo.attributes.position;for(let j=0;j<bPos.count;j++){bPos.set
 const bInst1=new THREE.InstancedMesh(boulderGeo,mt.rk,800);const bInst2=new THREE.InstancedMesh(boulderGeo,mt.rkD,800);
 let c1=0,c2=0;const dm=new THREE.Matrix4();
 for(let i=0;i<1600&&(c1<800||c2<800);i++){const bx=(Math.random()-.5)*60000,bz=(Math.random()-.5)*50000;
-if(isInLake(bx,bz))continue;const s=2+Math.random()*5;dm.makeScale(s,s,s);dm.setPosition(bx,terrainH(bx,bz)+s*.4,bz);
+if(isInLake(bx,bz))continue;const s=2+Math.random()*5;dm.makeScale(s,s,s);dm.setPosition(bx,meshTerrainH(bx,bz)+s*.4,bz);
 if(Math.random()>.5&&c1<800){bInst1.setMatrixAt(c1++,dm)}else if(c2<800){bInst2.setMatrixAt(c2++,dm)}}
 bInst1.count=c1;bInst2.count=c2;bInst1.instanceMatrix.needsUpdate=true;bInst2.instanceMatrix.needsUpdate=true;
 bInst1.castShadow=true;bInst2.castShadow=true;scene.add(bInst1);scene.add(bInst2)}
@@ -1534,54 +1547,134 @@ const grassInst=new THREE.InstancedMesh(grassGeo,grassMat,5000);
 let gi=0;const gm=new THREE.Matrix4(),gr=new THREE.Matrix4();
 for(let i=0;i<3000&&gi<5000;i++){const gx=(Math.random()-.5)*50000,gz=(Math.random()-.5)*40000;const rg=getReg(gx,gz);
 if(rg.n==='Wilderness'||rg.n==='Al Kharid'||isInLake(gx,gz))continue;
-const gh=terrainH(gx,gz);if(gh>80)continue;
+const gh=meshTerrainH(gx,gz);if(gh>80)continue;
 gr.makeRotationY(Math.random()*Math.PI);gm.makeTranslation(gx,gh+1.5,gz);gm.multiply(gr);grassInst.setMatrixAt(gi++,gm);
 gr.makeRotationY(Math.random()*Math.PI+Math.PI/2);gm.makeTranslation(gx,gh+1.5,gz);gm.multiply(gr);grassInst.setMatrixAt(gi++,gm)}
 grassInst.count=gi;grassInst.instanceMatrix.needsUpdate=true;scene.add(grassInst)}
 
 console.log('INIT: scatter done, starting procCity');
 // === PROCEDURAL CITY GENERATION ===
-// Generate dense cities with many building types, streets, market stalls
+// Footprint tracking to prevent building overlap
+const cityFootprints=[];
+function canPlace(bx,bz,rad){for(const f of cityFootprints){if(Math.hypot(bx-f.x,bz-f.z)<rad+f.r)return false}return true}
+function markPlace(bx,bz,rad){cityFootprints.push({x:bx,z:bz,r:rad})}
 function procCity(cx,cz,radius,density,style){
 const bTypes=['house','shop','tavern','workshop','warehouse','manor'];
-const nBuildings=Math.floor(density*radius/4);// More buildings for detail
+const nBuildings=Math.floor(density*radius/4);
 // City walls
-const wallSegs=Math.floor(radius*2*Math.PI/30);// Fewer wall segments for perf
+const wallSegs=Math.floor(radius*2*Math.PI/30);
 for(let i=0;i<wallSegs;i++){const a=i/wallSegs*Math.PI*2;
 wall(cx+Math.cos(a)*(radius+5),cz+Math.sin(a)*(radius+5),16,18,a)}
 // Corner towers
-for(let i=0;i<6;i++){const a=i/6*Math.PI*2;tower(cx+Math.cos(a)*(radius+8),cz+Math.sin(a)*(radius+8),1.3)}
+for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const tx=cx+Math.cos(a)*(radius+8),tz=cz+Math.sin(a)*(radius+8);tower(tx,tz,1.3);markPlace(tx,tz,12)}
 // Gate arches
 for(let i=0;i<4;i++){const a=i/4*Math.PI*2;gothicArch(cx+Math.cos(a)*(radius+5),cz+Math.sin(a)*(radius+5),a,1)}
-// Streets (radial + ring)
+// Streets
 const streetMat=new MS({color:0x6a6a60,roughness:.95});
 for(let i=0;i<4;i++){const a=i/4*Math.PI*2;const sLen=radius*1.8;
-const st=new THREE.Mesh(new THREE.BoxGeometry(4,.1,sLen),streetMat);st.position.set(cx+Math.cos(a)*radius*.4,terrainH(cx,cz)+.2,cz+Math.sin(a)*radius*.4);st.rotation.y=a;st.receiveShadow=true;scene.add(st)}
-// Buildings along streets
-for(let i=0;i<nBuildings;i++){
-const a=Math.random()*Math.PI*2;const r=10+Math.random()*(radius-15);
+const st=new THREE.Mesh(new THREE.BoxGeometry(4,.1,sLen),streetMat);st.position.set(cx+Math.cos(a)*radius*.4,meshTerrainH(cx,cz)+.2,cz+Math.sin(a)*radius*.4);st.rotation.y=a;st.receiveShadow=true;scene.add(st)}
+// Buildings with overlap prevention
+let placed=0;
+for(let i=0;i<nBuildings*3&&placed<nBuildings;i++){
+const a=Math.random()*Math.PI*2;const r=14+Math.random()*(radius-20);
 const bx=cx+Math.cos(a)*r,bz=cz+Math.sin(a)*r;
 if(isInLake(bx,bz))continue;
 const bType=bTypes[Math.floor(Math.random()*bTypes.length)];
+const sc=.7+Math.random()*.6;const footprint=bType==='manor'?18*sc:bType==='warehouse'?14*sc:10*sc;
+if(!canPlace(bx,bz,footprint))continue;
+markPlace(bx,bz,footprint);placed++;
 const bRot=a+Math.PI+Math.random()*.4-.2;
-const sc=.7+Math.random()*.6;
 if(bType==='house'||bType==='shop')hut(bx,bz,bRot,sc);
 else if(bType==='tavern'){hut(bx,bz,bRot,sc*1.3);torch(bx+Math.cos(bRot)*8,bz+Math.sin(bRot)*8)}
 else if(bType==='workshop'){hut(bx,bz,bRot,sc*.9)}
-else if(bType==='warehouse'){const h=terrainH(bx,bz);const wh=new THREE.Mesh(new THREE.BoxGeometry(16*sc,12*sc,14*sc),mt.wd);wh.position.set(bx,h+6*sc,bz);wh.rotation.y=bRot;wh.castShadow=true;scene.add(wh);const rf=new THREE.Mesh(new THREE.BoxGeometry(18*sc,1*sc,16*sc),mt.rf);rf.position.set(bx,h+12.5*sc,bz);rf.rotation.y=bRot;scene.add(rf)}
+else if(bType==='warehouse'){const h=meshTerrainH(bx,bz);const wh=new THREE.Mesh(new THREE.BoxGeometry(16*sc,12*sc,14*sc),mt.wd);wh.position.set(bx,h+6*sc,bz);wh.rotation.y=bRot;wh.castShadow=true;scene.add(wh);addSolid(wh);const rf=new THREE.Mesh(new THREE.BoxGeometry(18*sc,1*sc,16*sc),mt.rf);rf.position.set(bx,h+12.5*sc,bz);rf.rotation.y=bRot;scene.add(rf);addSolid(rf)}
 else if(bType==='manor'){hut(bx,bz,bRot,sc*1.5);
-// Manor fence
 for(let f=0;f<4;f++){const fa=bRot+f/4*Math.PI*2;const fx=bx+Math.cos(fa)*12*sc,fz=bz+Math.sin(fa)*12*sc;
-const fence=new THREE.Mesh(new THREE.BoxGeometry(8*sc,3,.2),mt.wd);fence.position.set(fx,terrainH(fx,fz)+1.5,fz);fence.rotation.y=fa;scene.add(fence)}}}
-// Market square at center
+const fence=new THREE.Mesh(new THREE.BoxGeometry(8*sc,3,.2),mt.wd);fence.position.set(fx,meshTerrainH(fx,fz)+1.5,fz);fence.rotation.y=fa;scene.add(fence)}}}
+// Market square at center (reserve footprint)
+markPlace(cx,cz,22);
 for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const sx=cx+Math.cos(a)*15,sz=cz+Math.sin(a)*15;
-const stall=new THREE.Mesh(new THREE.BoxGeometry(4,3,3),mt.wd);stall.position.set(sx,terrainH(sx,sz)+1.5,sz);stall.rotation.y=a;scene.add(stall);
-const canopy=new THREE.Mesh(new THREE.BoxGeometry(5,.15,4),new MS({color:[0x8a2020,0x203a8a,0x2a6a2a,0x8a6a20,0x6a2a6a,0x2a6a6a][i],roughness:.9}));canopy.position.set(sx,terrainH(sx,sz)+3.2,sz);canopy.rotation.y=a;scene.add(canopy)}
-// Central fountain
-const fountain=new THREE.Mesh(new THREE.CylinderGeometry(4,5,2,12),mt.st);fountain.position.set(cx,terrainH(cx,cz)+1,cz);scene.add(fountain);
-const fWater=new THREE.Mesh(new THREE.CylinderGeometry(3.5,3.5,.5,12),mt.lakeMat);fWater.position.set(cx,terrainH(cx,cz)+2.3,cz);scene.add(fWater);
+const stall=new THREE.Mesh(new THREE.BoxGeometry(4,3,3),mt.wd);stall.position.set(sx,meshTerrainH(sx,sz)+1.5,sz);stall.rotation.y=a;scene.add(stall);addSolid(stall);
+const canopy=new THREE.Mesh(new THREE.BoxGeometry(5,.15,4),new MS({color:[0x8a2020,0x203a8a,0x2a6a2a,0x8a6a20,0x6a2a6a,0x2a6a6a][i],roughness:.9}));canopy.position.set(sx,meshTerrainH(sx,sz)+3.2,sz);canopy.rotation.y=a;scene.add(canopy)}
+const fountain=new THREE.Mesh(new THREE.CylinderGeometry(4,5,2,12),mt.st);fountain.position.set(cx,meshTerrainH(cx,cz)+1,cz);scene.add(fountain);addSolid(fountain);
+const fWater=new THREE.Mesh(new THREE.CylinderGeometry(3.5,3.5,.5,12),mt.lakeMat);fWater.position.set(cx,meshTerrainH(cx,cz)+2.3,cz);scene.add(fWater);
 bonfire(cx+20,cz+20);bonfire(cx-20,cz-20);
 }
+
+// === MASSIVE CASTLE GENERATOR ===
+function castle(cx,cz,sc,rot){
+sc=sc||1;rot=rot||0;const bY=meshTerrainH(cx,cz);const g=new THREE.Group();
+// --- OUTER CURTAIN WALL (huge perimeter) ---
+const wallR=120*sc,wallH=40*sc,wallT=6*sc;
+const wallSegs=20;
+for(let i=0;i<wallSegs;i++){const a=i/wallSegs*Math.PI*2;const a2=(i+1)/wallSegs*Math.PI*2;
+const wx=Math.cos(a)*wallR,wz=Math.sin(a)*wallR;
+const segLen=wallR*2*Math.PI/wallSegs;
+const wm=new THREE.Mesh(new THREE.BoxGeometry(segLen,wallH,wallT),mt.stGoth);
+wm.position.set((Math.cos(a)+Math.cos(a2))/2*wallR,wallH/2,(Math.sin(a)+Math.sin(a2))/2*wallR);
+wm.rotation.y=-(a+a2)/2+Math.PI/2;wm.castShadow=true;g.add(wm);addSolid(wm);
+// Battlements on top
+for(let b=0;b<3;b++){const bOff=(b-1)*segLen/3;
+const merlon=new THREE.Mesh(new THREE.BoxGeometry(3*sc,4*sc,wallT+1),mt.stD);
+merlon.position.set(wm.position.x+Math.cos(-(a+a2)/2+Math.PI/2)*bOff,wallH+2*sc,wm.position.z+Math.sin(-(a+a2)/2+Math.PI/2)*bOff);
+merlon.rotation.y=wm.rotation.y;g.add(merlon)}}
+// --- CORNER TOWERS (8 massive towers) ---
+for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const tx=Math.cos(a)*(wallR+4*sc),tz=Math.sin(a)*(wallR+4*sc);
+const tH=55*sc;
+const tBase=new THREE.Mesh(new THREE.CylinderGeometry(10*sc,12*sc,tH,12),mt.stGoth);tBase.position.set(tx,tH/2,tz);tBase.castShadow=true;g.add(tBase);addSolid(tBase);
+const tRoof=new THREE.Mesh(new THREE.ConeGeometry(12*sc,18*sc,12),mt.rfSlate);tRoof.position.set(tx,tH+9*sc,tz);tRoof.castShadow=true;g.add(tRoof);
+const tFin=new THREE.Mesh(new THREE.SphereGeometry(1.5*sc,6,6),mt.gold);tFin.position.set(tx,tH+18*sc,tz);g.add(tFin);
+// Tower battlements
+for(let b=0;b<8;b++){const ba=b/8*Math.PI*2;
+const merlon=new THREE.Mesh(new THREE.BoxGeometry(3*sc,4*sc,3*sc),mt.stD);
+merlon.position.set(tx+Math.cos(ba)*10.5*sc,tH+2*sc,tz+Math.sin(ba)*10.5*sc);g.add(merlon)}}
+// --- KEEP (central massive tower) ---
+const keepW=50*sc,keepD=40*sc,keepH=80*sc;
+const keep=new THREE.Mesh(new THREE.BoxGeometry(keepW,keepH,keepD),mt.stGoth);keep.position.y=keepH/2;keep.castShadow=true;g.add(keep);addSolid(keep);
+// Keep roof
+const keepRoof=new THREE.Mesh(new THREE.BoxGeometry(keepW+6*sc,4*sc,keepD+6*sc),mt.rfSlate);keepRoof.position.y=keepH+2*sc;keepRoof.castShadow=true;g.add(keepRoof);addSolid(keepRoof);
+// Keep battlements
+for(let i=0;i<12;i++){const bx=-keepW/2+i*keepW/11;
+const m1=new THREE.Mesh(new THREE.BoxGeometry(3*sc,5*sc,3*sc),mt.stD);m1.position.set(bx,keepH+4.5*sc,keepD/2);m1.castShadow=true;g.add(m1);
+const m2=m1.clone();m2.position.z=-keepD/2;g.add(m2)}
+for(let i=0;i<8;i++){const bz=-keepD/2+i*keepD/7;
+const m1=new THREE.Mesh(new THREE.BoxGeometry(3*sc,5*sc,3*sc),mt.stD);m1.position.set(keepW/2,keepH+4.5*sc,bz);g.add(m1);
+const m2=m1.clone();m2.position.x=-keepW/2;g.add(m2)}
+// Keep windows (rows of tall gothic windows)
+for(let lv=0;lv<3;lv++){for(let i=0;i<6;i++){const wx=-keepW/2+keepW/(6+1)*(i+1);
+const win=new THREE.Mesh(new THREE.BoxGeometry(2*sc,8*sc,.5),new MS({color:0x1a2a4a,emissive:0x0a1a3a,emissiveIntensity:.6,transparent:true,opacity:.5}));
+win.position.set(wx,20*sc+lv*22*sc,keepD/2+.5);g.add(win);
+const wFrame=new THREE.Mesh(new THREE.BoxGeometry(3*sc,9*sc,.3),mt.stD);wFrame.position.set(wx,20*sc+lv*22*sc,keepD/2+.7);g.add(wFrame)}}
+// --- GATEHOUSE (front entrance with portcullis) ---
+const ghW=20*sc,ghH=35*sc,ghD=14*sc;
+const ghL=new THREE.Mesh(new THREE.BoxGeometry(ghW/2-3*sc,ghH,ghD),mt.stGoth);ghL.position.set(-ghW/4-1.5*sc,ghH/2,wallR);ghL.castShadow=true;g.add(ghL);addSolid(ghL);
+const ghR=ghL.clone();ghR.position.x=ghW/4+1.5*sc;g.add(ghR);addSolid(ghR);
+// Portcullis arch
+const ghArch=new THREE.Mesh(new THREE.BoxGeometry(7*sc,4*sc,ghD),mt.stD);ghArch.position.set(0,ghH-2*sc,wallR);g.add(ghArch);
+// Gatehouse towers
+[-1,1].forEach(s=>{const gt=new THREE.Mesh(new THREE.CylinderGeometry(7*sc,8*sc,ghH+10*sc,10),mt.stGoth);
+gt.position.set(s*12*sc,(ghH+10*sc)/2,wallR);gt.castShadow=true;g.add(gt);addSolid(gt);
+const gtRoof=new THREE.Mesh(new THREE.ConeGeometry(9*sc,14*sc,10),mt.rfSlate);gtRoof.position.set(s*12*sc,ghH+12*sc,wallR);g.add(gtRoof)});
+// --- INNER COURTYARD FEATURES ---
+// Great hall
+const hallW=36*sc,hallH=30*sc,hallD=60*sc;
+const hall=new THREE.Mesh(new THREE.BoxGeometry(hallW,hallH,hallD),mt.stD);hall.position.set(0,hallH/2,-30*sc);hall.castShadow=true;g.add(hall);addSolid(hall);
+const hallRoof=new THREE.Mesh(new THREE.BoxGeometry(hallW+4*sc,3*sc,hallD+4*sc),mt.rfSlate);hallRoof.position.set(0,hallH+1.5*sc,-30*sc);g.add(hallRoof);addSolid(hallRoof);
+// Chapel spire
+const chapel=new THREE.Mesh(new THREE.BoxGeometry(16*sc,25*sc,20*sc),mt.st);chapel.position.set(40*sc,12.5*sc,-20*sc);chapel.castShadow=true;g.add(chapel);addSolid(chapel);
+const chapelSpire=new THREE.Mesh(new THREE.ConeGeometry(6*sc,30*sc,6),mt.rfSlate);chapelSpire.position.set(40*sc,40*sc,-20*sc);chapelSpire.castShadow=true;g.add(chapelSpire);
+const cross=new THREE.Mesh(new THREE.BoxGeometry(.5*sc,4*sc,.5*sc),mt.gold);cross.position.set(40*sc,56*sc,-20*sc);g.add(cross);
+// Courtyard torches
+for(let i=0;i<6;i++){const ta=i/6*Math.PI*2;const ttx=Math.cos(ta)*40*sc,ttz=Math.sin(ta)*40*sc;
+const tPost=new THREE.Mesh(new THREE.CylinderGeometry(.4*sc,.5*sc,12*sc,5),mt.wd);tPost.position.set(ttx,6*sc,ttz);g.add(tPost);
+const tFlame=new THREE.Mesh(new THREE.SphereGeometry(1*sc,6,6),mt.fl);tFlame.position.set(ttx,13*sc,ttz);g.add(tFlame);
+torchPositions.push({x:cx+ttx*Math.cos(rot)-ttz*Math.sin(rot),y:bY+13*sc,z:cz+ttx*Math.sin(rot)+ttz*Math.cos(rot),mesh:tFlame,ph:i,big:true})}
+// Inner well
+const well=new THREE.Mesh(new THREE.CylinderGeometry(3*sc,3.5*sc,3*sc,10),mt.st);well.position.set(20*sc,1.5*sc,20*sc);g.add(well);
+g.position.set(cx,bY,cz);g.rotation.y=rot;scene.add(g);
+markPlace(cx,cz,wallR+20*sc);
+}
+
 console.log('INIT: procCity defined, generating cities');
 // Generate cities at major regions
 procCity(0,0,80,1,'medieval');          // Lumbridge
@@ -1589,8 +1682,15 @@ procCity(555,50,70,1.2,'medieval');      // Varrock
 procCity(-480,280,65,1,'white');        // Falador
 procCity(-1200,100,70,1,'medieval');    // Ardougne
 
+// === MASSIVE CASTLES ===
+castle(900,-800,1.2,0);       // Eastern Fortress
+castle(-2000,-500,1.5,.5);    // Western Stronghold
+castle(0,-1800,1.8,Math.PI/6);// Wilderness Castle (huge)
+castle(-800,600,1,-.3);       // Southern Keep
+castle(1500,400,1.3,.8);      // Desert Citadel
+
 // === WATERFALLS ===
-function waterfall(x,z,h,w){const bY=terrainH(x,z);const g=new THREE.Group();
+function waterfall(x,z,h,w){const bY=meshTerrainH(x,z);const g=new THREE.Group();
 const wfGeo=new THREE.PlaneGeometry(w,h,6,16);const wfMat=new MS({color:0x4a8aaa,roughness:.1,metalness:.35,transparent:true,opacity:.6,side:THREE.DoubleSide,emissive:0x1a4a5a,emissiveIntensity:.25});
 const wf=new THREE.Mesh(wfGeo,wfMat);wf.position.y=h/2;g.add(wf);
 // Inner cascade (brighter)
@@ -1605,7 +1705,7 @@ g.position.set(x,bY,z);scene.add(g)}
 waterfall(-480,-420,25,10);waterfall(200,200,15,6);waterfall(-1250,50,20,8);
 
 // === CAVE ENTRANCES ===
-function cave(x,z,rot){const h=terrainH(x,z);const cg=new THREE.Group();
+function cave(x,z,rot){const h=meshTerrainH(x,z);const cg=new THREE.Group();
 const arch=new THREE.Mesh(new THREE.TorusGeometry(8,3,6,8,Math.PI),new MS({color:0x3a3530,roughness:.95}));arch.position.y=8;arch.rotation.z=Math.PI;cg.add(arch);
 const dark=new THREE.Mesh(new THREE.CircleGeometry(7,8),new MS({color:0x050505,roughness:1}));dark.position.set(0,5,-1);cg.add(dark);
 for(let i=0;i<3;i++){const r=new THREE.Mesh(new THREE.IcosahedronGeometry(2+Math.random()*2,0),mt.rk);r.position.set(-8+Math.random()*16,Math.random()*3,(Math.random()-.5)*4);cg.add(r)}
@@ -1613,7 +1713,7 @@ cg.position.set(x,h,z);cg.rotation.y=rot||0;scene.add(cg)}
 cave(50,-600,.5);cave(-250,-180,-.3);cave(-520,-430,.8);
 
 // === SKELETON BONE PILES ===
-function bonePile(x,z){const h=terrainH(x,z);const boneMat=new MS({color:0xccccaa,roughness:.85});
+function bonePile(x,z){const h=meshTerrainH(x,z);const boneMat=new MS({color:0xccccaa,roughness:.85});
 for(let i=0;i<3;i++){const b=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.8+Math.random(),4),boneMat);b.position.set(x+(Math.random()-.5)*3,h+.3,z+(Math.random()-.5)*3);b.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI);scene.add(b)}
 const skull=new THREE.Mesh(new THREE.SphereGeometry(.5,6,6),boneMat);skull.position.set(x,h+.6,z);scene.add(skull)}
 for(let i=0;i<5;i++){const bx=(Math.random()-.5)*4000,bz=(Math.random()-.5)*4000;bonePile(bx,bz)}
@@ -1621,7 +1721,7 @@ for(let i=0;i<5;i++){const bx=(Math.random()-.5)*4000,bz=(Math.random()-.5)*4000
 playerGroup=buildPlayerModel(playerClass);scene.add(playerGroup);
 
 // === FIRELINK SHRINE (Spawn Hub at 0,5) — Gothic Ruin ===
-const fH=terrainH(0,5);
+const fH=meshTerrainH(0,5);
 // Circular stone base (larger, weathered)
 const shrBase=new THREE.Mesh(new THREE.CylinderGeometry(22,24,4,16),mt.stGoth);shrBase.position.set(0,fH+2,5);shrBase.receiveShadow=true;scene.add(shrBase);
 const shrFloor=new THREE.Mesh(new THREE.CylinderGeometry(20,20,1.5,16),mt.stD);shrFloor.position.set(0,fH+4.2,5);scene.add(shrFloor);
@@ -1812,7 +1912,7 @@ function makeEnterable(x,z,type,name){
 enterableBuildings.push({x,z,type,name,r:8});
 // Door marker (glowing)
 const doorGlow=new THREE.Mesh(new THREE.BoxGeometry(2.5,4,.1),new MS({color:0xffcc44,emissive:0xffaa22,emissiveIntensity:1.5,transparent:true,opacity:.4}));
-doorGlow.position.set(x,terrainH(x,z)+2.5,z);scene.add(doorGlow)}
+doorGlow.position.set(x,meshTerrainH(x,z)+2.5,z);scene.add(doorGlow)}
 
 // Make key buildings enterable
 makeEnterable(40,30,'house','Lumbridge House');makeEnterable(60,15,'shop','Lumbridge Shop');
@@ -1972,12 +2072,15 @@ if(!isBeast){
 // === ARMS ===
 if(!isBeast){
 [-1,1].forEach(s=>{
-const upperArm=new THREE.Mesh(new THREE.CylinderGeometry(.4,.35,2.8,6),mat);upperArm.position.set(s*2,5.5,0);upperArm.castShadow=true;g.add(upperArm);
-const elbow=new THREE.Mesh(new THREE.SphereGeometry(.35,6,6),matD);elbow.position.set(s*2,4,0);g.add(elbow);
-const forearm=new THREE.Mesh(new THREE.CylinderGeometry(.35,.3,2.5,6),mat);forearm.position.set(s*2,2.8,0);forearm.castShadow=true;g.add(forearm);
-const hand=new THREE.Mesh(new THREE.BoxGeometry(.5,.3,.6),matD);hand.position.set(s*2,1.5,0);g.add(hand);
+const armGrp=new THREE.Group();armGrp.position.set(s*2,7,0);
+const upperArm=new THREE.Mesh(new THREE.CylinderGeometry(.4,.35,2.8,6),mat);upperArm.position.y=-1.5;upperArm.castShadow=true;armGrp.add(upperArm);
+const elbow=new THREE.Mesh(new THREE.SphereGeometry(.35,6,6),matD);elbow.position.y=-3;armGrp.add(elbow);
+const forearm=new THREE.Mesh(new THREE.CylinderGeometry(.35,.3,2.5,6),mat);forearm.position.y=-4.2;forearm.castShadow=true;armGrp.add(forearm);
+const hand=new THREE.Mesh(new THREE.BoxGeometry(.5,.3,.6),matD);hand.position.y=-5.5;armGrp.add(hand);
 if(isArmored){
-const brace=new THREE.Mesh(new THREE.CylinderGeometry(.42,.38,.8,6),matD);brace.position.set(s*2,3.5,0);g.add(brace)}
+const brace=new THREE.Mesh(new THREE.CylinderGeometry(.42,.38,.8,6),matD);brace.position.y=-3.5;armGrp.add(brace)}
+g.add(armGrp);
+if(s===1)g.userData.rArm=armGrp;
 });
 } else {
 // Beast legs (4 legs)
@@ -2036,9 +2139,21 @@ g.scale.setScalar(sc);
 return g;
 }
 
+// Enemy attack styles: determines range, speed, telegraph, and animation
+const eAtkStyles={
+guard:'slash',whiteknight:'slash',knight:'slash',warrior:'slash',barbarian:'chop',pirate:'chop',
+skeleton:'slash',zombie:'smash',ghost:'magic',shade:'magic',revenant:'magic',
+wolf:'bite',bear:'swipe',spider:'bite',snake:'bite',bat:'bite',cow:'charge',chicken:'peck',rat:'bite',lizard:'bite',scarab:'bite',
+demon:'smash',hellhound:'bite',tzhaar:'smash',elemental:'magic',
+mage:'magic',darkwiz:'magic',cultist:'magic',elf:'magic',
+troll:'smash',ogre:'smash',dragon:'breath',hydra:'breath',cerberus:'bite',vorkath:'breath',nightmare:'magic',nex:'magic',jad:'magic',zuk:'breath',kraken:'smash'
+};
+const eAtkRange={slash:10,chop:11,smash:12,bite:8,swipe:10,charge:14,peck:6,magic:28,breath:22};
 function spawnE(type,x,z,lv){const hp=eHP[type]||40;const mesh=buildEnemy(type,lv||1);
-const e={mesh,hp,maxHp:hp,poi:30,x,z,type,lv:lv||1,atkCD:0,aggro:50+(lv||1)*2,dmg:Math.max(5,8+(lv||1)*2)};
-const h=terrainH(x,z);e.mesh.position.set(x,h,z);scene.add(e.mesh);enemies.push(e)}
+const style=eAtkStyles[type]||'slash';const range=eAtkRange[style]||10;
+const e={mesh,hp,maxHp:hp,poi:30,x,z,type,lv:lv||1,atkCD:0,aggro:50+(lv||1)*2,dmg:Math.max(5,8+(lv||1)*2),
+atkStyle:style,atkRange:range,windUp:0,swingT:0,strafeAng:Math.random()*Math.PI*2,strafeCW:Math.random()>.5?1:-1};
+const h=meshTerrainH(x,z);e.mesh.position.set(x,h,z);scene.add(e.mesh);enemies.push(e)}
 
 function calcHit(a,d){const g=totalGear();const ab=a===player?40+g.atk:22+((a.lv||1)*1.5);const db=d===player?30+g.def:15;return Math.random()<Math.max(.08,Math.min(.94,(ab/(db+12))*.82))}
 
@@ -2048,16 +2163,31 @@ const slot=gearSlots[Math.floor(Math.random()*gearSlots.length)];
 const cur=equipped[slot];const boost=1.01;
 const newItem={name:e.type+' '+slot+' Lv'+(e.lv||1),atk:Math.ceil(Math.max(cur.atk*boost,cur.atk+1)),def:Math.ceil(Math.max(cur.def*boost,cur.def+1)),str:Math.ceil(Math.max(cur.str*boost,cur.str+1)),slot};
 const c=0xffdd44;const m=new THREE.Mesh(new THREE.BoxGeometry(2.5,2.5,2.5),new MS({color:c,emissive:c,emissiveIntensity:.6,roughness:.3,metalness:.3}));
-m.position.set(x,terrainH(x,z)+4,z);m.userData={vx:(Math.random()-.5)*5,vz:(Math.random()-.5)*5,vy:8,life:900,item:newItem.name,gear:newItem};scene.add(m);lootArr.push(m);
+m.position.set(x,meshTerrainH(x,z)+4,z);m.userData={vx:(Math.random()-.5)*5,vz:(Math.random()-.5)*5,vy:8,life:900,item:newItem.name,gear:newItem};scene.add(m);lootArr.push(m);
 // Also drop bones/coins
 const c2=0xccccaa;const m2=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.5,1.5),new MS({color:c2,emissive:c2,emissiveIntensity:.2,roughness:.6}));
-m2.position.set(x+2,terrainH(x,z)+4,z+2);m2.userData={vx:(Math.random()-.5)*4,vz:(Math.random()-.5)*4,vy:7,life:600,item:'Bones'};scene.add(m2);lootArr.push(m2);
+m2.position.set(x+2,meshTerrainH(x,z)+4,z+2);m2.userData={vx:(Math.random()-.5)*4,vz:(Math.random()-.5)*4,vy:7,life:600,item:'Bones'};scene.add(m2);lootArr.push(m2);
 }
 function hitFX(x,y,z,col=0xff4400){for(let i=0;i<25;i++){const p=new THREE.Mesh(new THREE.SphereGeometry(.3,4,4),new MS({color:col,emissive:col,emissiveIntensity:1.5,roughness:1}));p.position.set(x,y,z);p.userData={vx:(Math.random()-.5)*10,vy:(Math.random()-.5)*10+4,vz:(Math.random()-.5)*10,life:22};scene.add(p);particles.push(p)}}
 function cycleLock(){if(!enemies.length)return;lockIdx=(lockIdx+1)%enemies.length;lockOn=enemies[lockIdx];log('Locked on: '+lockOn.type,'#cc4')}
 function parry(){player.blocking=true;if(lockOn){const d=Math.hypot(lockOn.mesh.position.x-player.x,lockOn.mesh.position.z-player.z);if(d<18){hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+6,lockOn.mesh.position.z,0x00ffff);lockOn.hp-=12;player.sta=Math.min(player.sta+28,player.maxSta);skills.Defence.xp+=8;log('PARRY RIPOSTE!','#0ff')}}}
 
 let gpIndex=-1;
+// Dark Souls-style gamepad mapping (customizable)
+// Maps action names to gamepad button indices. Standard: A=0 B=1 X=2 Y=3 LB=4 RB=5 LT=6 RT=7 Back=8 Start=9 LSClick=10 RSClick=11 DUp=12 DDown=13 DLeft=14 DRight=15
+const gpMap={
+roll:1,     // B/Circle = Roll (Dark Souls default)
+attack:7,   // RT = Light Attack
+parry:5,    // RB = Parry/Heavy Attack
+block:6,    // LT = Block/Guard
+lockon:10,  // LS Click = Lock-on (DS3 style)
+heal:0,     // A/Cross = Heal (Estus)
+useItem:2,  // X/Square = Use item
+twoHand:3,  // Y/Triangle = Two-hand toggle
+inventory:9,// Start = Inventory/Menu
+skills:8,   // Back/Select = Skills
+dUp:12,dDown:13,dLeft:14,dRight:15
+};
 window.addEventListener('gamepadconnected',e=>{gpIndex=e.gamepad.index;log('Controller connected: '+e.gamepad.id,'#0f0');console.log('Gamepad connected',e.gamepad)});
 window.addEventListener('gamepaddisconnected',e=>{if(e.gamepad.index===gpIndex)gpIndex=-1;log('Controller disconnected','#f80')});
 function pollGamepad(){
@@ -2071,18 +2201,23 @@ gpAxes[0]=Math.abs(gp.axes[0])>dz?gp.axes[0]:0;
 gpAxes[1]=Math.abs(gp.axes[1])>dz?gp.axes[1]:0;
 gpAxes[2]=Math.abs(gp.axes[2])>dz?gp.axes[2]:0;
 gpAxes[3]=Math.abs(gp.axes[3])>dz?gp.axes[3]:0;
-gpButtons.a=gp.buttons[0]?.pressed;gpButtons.x=gp.buttons[2]?.pressed;
-gpButtons.b=gp.buttons[1]?.pressed;gpButtons.y=gp.buttons[3]?.pressed;
-gpButtons.lb=gp.buttons[4]?.pressed;gpButtons.rb=gp.buttons[5]?.pressed;
-gpButtons.lt=gp.buttons[6]?.value>.3;gpButtons.rt=gp.buttons[7]?.value>.3;
-gpButtons.start=gp.buttons[9]?.pressed;gpButtons.back=gp.buttons[8]?.pressed;
-gpButtons.dUp=gp.buttons[12]?.pressed;gpButtons.dDown=gp.buttons[13]?.pressed;
-gpButtons.dLeft=gp.buttons[14]?.pressed;gpButtons.dRight=gp.buttons[15]?.pressed;
+// Read raw buttons, map through gpMap
+const isP=idx=>gp.buttons[idx]?.pressed;const isV=idx=>(gp.buttons[idx]?.value||0)>.3;
+gpButtons.a=isP(gpMap.heal);gpButtons.x=isP(gpMap.useItem);
+gpButtons.b=isP(gpMap.roll);gpButtons.y=isP(gpMap.twoHand);
+gpButtons.lb=isV(gpMap.block);gpButtons.rb=isP(gpMap.parry);
+gpButtons.lt=isV(gpMap.block);gpButtons.rt=isV(gpMap.attack);
+gpButtons.start=isP(gpMap.inventory);gpButtons.back=isP(gpMap.skills);
+gpButtons.dUp=isP(gpMap.dUp);gpButtons.dDown=isP(gpMap.dDown);
+gpButtons.dLeft=isP(gpMap.dLeft);gpButtons.dRight=isP(gpMap.dRight);
+// Lock-on via mapped button
+if(isP(gpMap.lockon)&&!player._lkCD){cycleLock();player._lkCD=20}
+if(player._lkCD)player._lkCD--;
 }
 
 function loop(){
 requestAnimationFrame(loop);time+=.016;pollGamepad();
-if(player.dead){player.deadTimer-=.016;if(player.deadTimer<=0){player.dead=false;player.hp=player.maxHp;player.sta=player.maxSta;player.x=0;player.z=5;player.y=terrainH(0,5);document.getElementById('death-overlay').classList.remove('active');log('Respawned at bonfire','#cc4')}composer.render();return}
+if(player.dead){player.deadTimer-=.016;if(player.deadTimer<=0){player.dead=false;player.hp=player.maxHp;player.sta=player.maxSta;player.x=0;player.z=5;player.y=meshTerrainH(0,5);document.getElementById('death-overlay').classList.remove('active');log('Respawned at bonfire','#cc4')}composer.render();return}
 
 const gSens=(gameOpts?gameOpts.sens:5)/5;camYaw+=gpAxes[2]*.35*gSens*(gameOpts?gameOpts.flipx:1);camPitch=Math.max(.05,Math.min(1.2,camPitch-gpAxes[3]*.25*gSens*(gameOpts?gameOpts.flipy:1)));
 // Auto-camera: lerp camYaw behind player when not panning
@@ -2107,7 +2242,7 @@ let diff=targetAng-player.ang;while(diff>Math.PI)diff-=Math.PI*2;while(diff<-Mat
 player.ang+=diff*.15}
 else{const co=pushOut(player.x,player.y,player.z);player.x=co.x;player.z=co.z}
 
-player.y=inDungeon?-inDungeon.depth*50+2:meshTerrainH(player.x,player.z);
+player.y=inDungeon?-inDungeon.depth*50+2:surfaceH(player.x,player.z,player.y);
 const curReg=getReg(player.x,player.z);
 const totalLv=skillDefs.reduce((a,s)=>a+skills[s].lvl,0);
 document.getElementById('locbar').textContent=(inDungeon?'⚔ Dungeon Depth '+inDungeon.depth+' — ':'')+curReg.n+' · Zone Lv '+curReg.lv+'+';
@@ -2132,13 +2267,16 @@ if(cullFrame%20===0&&shadowCull)shadowCull();
 if(!window._sunRef)window._sunRef=scene.children.find(c=>c.isDirectionalLight&&c.castShadow);
 if(window._sunRef){window._sunRef.position.set(player.x+200,350,player.z-100);window._sunRef.target.position.set(player.x,player.y,player.z);window._sunRef.target.updateMatrixWorld()}}
 
-if(keys['q']||gpButtons.lb)player.sta=Math.min(player.sta+5,player.maxSta);
+if(keys['q'])player.sta=Math.min(player.sta+5,player.maxSta);
 else player.sta=Math.min(player.sta+1,player.maxSta);
+// Heal with A/Cross or key 3
+if((keys['3']||gpButtons.a)&&!player._healCD&&player.hp<player.maxHp){player.hp=Math.min(player.hp+40,player.maxHp);player._healCD=60;log('Healed with Estus Flask','#4c4');hitFX(player.x,player.y+6,player.z,0x44cc44)}
+if(player._healCD)player._healCD--;
 
-if((keys[' ']||gpButtons.a)&&!player.rolling&&player.sta>24){player.rolling=true;player.rollT=22;player.sta-=24;skills.Agility.xp+=2}
-if(mouse.right||gpButtons.lt||gpButtons.b){parry()}else{player.blocking=false}
-// Gamepad: RB=lock-on, Start=inventory, Back=skills
-if(gpButtons.rb&&!player._rbCD){cycleLock();player._rbCD=20}
+if((keys[' ']||gpButtons.b)&&!player.rolling&&player.sta>24){player.rolling=true;player.rollT=22;player.sta-=24;skills.Agility.xp+=2}
+if(mouse.right||gpButtons.lt||gpButtons.lb){parry()}else{player.blocking=false}
+// Gamepad: RB=parry riposte
+if(gpButtons.rb&&!player._rbCD){parry();player._rbCD=12}
 if(player._rbCD)player._rbCD--;
 if(gpButtons.start&&!player._stCD){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));document.querySelector('[data-tab="inventory"]').classList.add('active');document.getElementById('tp-inventory').classList.add('active');player._stCD=20}
 if(player._stCD)player._stCD--;
@@ -2168,10 +2306,54 @@ else cam.lookAt(player.x,player.y+8,player.z);
 
 for(let i=enemies.length-1;i>=0;i--){let e=enemies[i];
 let dx=player.x-e.mesh.position.x,dz=player.z-e.mesh.position.z,dist=Math.hypot(dx,dz);
-if(dist<e.aggro){const a=Math.atan2(dz,dx);e.mesh.position.x+=Math.cos(a)*.2;e.mesh.position.z+=Math.sin(a)*.2;
-const eh=terrainH(e.mesh.position.x,e.mesh.position.z);e.mesh.position.y=eh+Math.sin(time*2+i)*.3;
-e.mesh.rotation.y=Math.atan2(dx,dz);
-if(dist<12&&e.atkCD<=0){if(calcHit(e,player)){const gd=totalGear();let blockMult=player.blocking?.65:.3;const blocked=Math.floor(gd.def*blockMult);const realDmg=Math.max(1,e.dmg-blocked);player.hp-=realDmg;if(player.blocking){player.sta-=8;skills.Defence.xp+=4;hitFX(player.x,player.y+8,player.z,0x4488ff);log(`BLOCKED ${e.type}! -${realDmg} (absorbed ${blocked})`,'#48f')}else{hitFX(player.x,player.y+8,player.z);log(`${e.type} hit for ${realDmg} (blocked ${blocked})`,'#f44')}}e.atkCD=42}}
+const faceAng=Math.atan2(dx,dz);
+if(dist<e.aggro){
+const isMelee=e.atkStyle==='slash'||e.atkStyle==='chop'||e.atkStyle==='smash'||e.atkStyle==='bite'||e.atkStyle==='swipe'||e.atkStyle==='charge'||e.atkStyle==='peck';
+const stopDist=isMelee?e.atkRange*.7:e.atkRange*.85;
+// Movement: approach until in range, then circle-strafe
+if(dist>stopDist&&e.swingT<=0){
+const a=Math.atan2(dz,dx);const spd=e.atkStyle==='charge'&&e.windUp>15?.6:.2;
+e.mesh.position.x+=Math.cos(a)*spd;e.mesh.position.z+=Math.sin(a)*spd;
+} else if(dist<stopDist*1.3&&e.swingT<=0&&isMelee){
+// Circle-strafe when in range and not attacking
+e.strafeAng+=.015*e.strafeCW;
+const sx=Math.cos(e.strafeAng)*.12,sz=Math.sin(e.strafeAng)*.12;
+e.mesh.position.x+=sx;e.mesh.position.z+=sz;
+}
+const eco=pushOut(e.mesh.position.x,e.mesh.position.y,e.mesh.position.z);e.mesh.position.x=eco.x;e.mesh.position.z=eco.z;
+const eh=surfaceH(e.mesh.position.x,e.mesh.position.z,e.mesh.position.y);e.mesh.position.y=eh+Math.sin(time*2+i)*.15;
+e.mesh.rotation.y=faceAng;
+// Attack logic: wind-up → swing → damage → cooldown
+if(dist<e.atkRange&&e.atkCD<=0&&e.swingT<=0){
+// Start wind-up
+e.windUp++;
+// Visual telegraph: lean back during windup
+if(e.mesh.userData.rArm&&e.windUp<18){e.mesh.userData.rArm.rotation.x=-e.windUp*.12}
+const windUpTime=e.atkStyle==='magic'||e.atkStyle==='breath'?24:e.atkStyle==='smash'?20:e.atkStyle==='charge'?28:15;
+if(e.windUp>=windUpTime){
+// Execute attack
+e.swingT=12;e.windUp=0;e.atkCD=36+Math.floor(Math.random()*16);
+// Ranged: spawn projectile
+if(e.atkStyle==='magic'||e.atkStyle==='breath'){
+const pc=e.atkStyle==='magic'?0x6a1aaa:0xff4400;const pe=e.atkStyle==='magic'?0x4a0a8a:0xff2200;
+const proj=new THREE.Mesh(new THREE.SphereGeometry(e.atkStyle==='breath'?1.2:.7,6,6),new MS({color:pc,emissive:pe,emissiveIntensity:3,transparent:true,opacity:.8}));
+proj.position.copy(e.mesh.position);proj.position.y+=6;
+const pAng=Math.atan2(player.z-e.mesh.position.z,player.x-e.mesh.position.x);
+proj.userData={vx:Math.cos(pAng)*1.2,vz:Math.sin(pAng)*1.2,life:80,dmg:e.dmg,owner:e};
+scene.add(proj);particles.push(proj);
+} else {
+// Melee: damage if still in range
+if(dist<e.atkRange*1.15){
+if(calcHit(e,player)){const gd=totalGear();let blockMult=player.blocking?.65:.3;const blocked=Math.floor(gd.def*blockMult);const realDmg=Math.max(1,e.dmg-blocked);
+player.hp-=realDmg;
+if(player.blocking){player.sta-=8;skills.Defence.xp+=4;hitFX(player.x,player.y+8,player.z,0x4488ff);log(`BLOCKED ${e.type}! -${realDmg} (absorbed ${blocked})`,'#48f')}
+else{hitFX(player.x,player.y+8,player.z);log(`${e.type} hit for ${realDmg} (blocked ${blocked})`,'#f44')}}}}
+}} else {e.windUp=Math.max(0,e.windUp-1)}
+// Swing animation
+if(e.swingT>0){e.swingT--;
+if(e.mesh.userData.rArm){const pct=e.swingT/12;e.mesh.userData.rArm.rotation.x=(-1.5+pct*3)*Math.max(0,1-pct);e.mesh.userData.rArm.rotation.z=-.4*(1-pct)}}
+else if(e.mesh.userData.rArm&&e.windUp<=0){e.mesh.userData.rArm.rotation.x*=.85;e.mesh.userData.rArm.rotation.z*=.85}
+}
 e.atkCD=Math.max(0,e.atkCD-1);
 // Update enemy HP bar
 if(e.mesh.userData.hpBar){const pct=Math.max(0,e.hp/e.maxHp);e.mesh.userData.hpBar.scale.x=pct;e.mesh.userData.hpBar.material.color.set(pct>.5?0x00cc00:pct>.25?0xccaa00:0xcc0000);
@@ -2193,7 +2375,7 @@ if(Math.abs(ad)<1.2&&calcHit(player,e)){e.hp-=pDmg;hitFX(e.mesh.position.x,e.mes
 player.atkCD=Math.max(0,player.atkCD-1);if(player._parryCD)player._parryCD--;if(player._estusCD)player._estusCD--;
 
 for(let i=lootArr.length-1;i>=0;i--){let l=lootArr[i];l.userData.vy-=.45;l.position.x+=l.userData.vx*.6;l.position.z+=l.userData.vz*.6;l.position.y+=l.userData.vy*.6;l.userData.vx*=.92;l.userData.vz*=.92;l.userData.life--;l.rotation.y+=.05;
-const lh=terrainH(l.position.x,l.position.z)+1.5;if(l.position.y<lh){l.position.y=lh;l.userData.vy*=-.4}
+const lh=meshTerrainH(l.position.x,l.position.z)+1.5;if(l.position.y<lh){l.position.y=lh;l.userData.vy*=-.4}
 if(l.userData.life<=0){scene.remove(l);lootArr.splice(i,1);continue}
 if(Math.hypot(l.position.x-player.x,l.position.z-player.z)<9){
 if(l.userData.gear){const g=l.userData.gear;equipped[g.slot]=g;updateEqUI();log('EQUIPPED: '+g.name+' [ATK+'+g.atk+' DEF+'+g.def+' STR+'+g.str+']','#0ff')}
@@ -2205,7 +2387,16 @@ if(lv>skills[si.skill].lvl){skills[si.skill].lvl=lv;log(si.skill+' level up! Now
 log(si.skill+' +'+si.xp+'xp','#cc4');updateSkillUI()}}else log('Inventory full!','#f44');
 scene.remove(l);lootArr.splice(i,1)}}
 
-for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.position.x+=p.userData.vx*.14;p.position.y+=p.userData.vy*.14;p.position.z+=p.userData.vz*.14;p.userData.vy-=.5;p.userData.life--;p.scale.setScalar(Math.max(0,p.userData.life/22));if(p.userData.life<=0){scene.remove(p);particles.splice(i,1)}}
+for(let i=particles.length-1;i>=0;i--){let p=particles[i];
+// Enemy projectiles move straight (no gravity) and check player hit
+if(p.userData.dmg){p.position.x+=p.userData.vx;p.position.z+=p.userData.vz;p.userData.life--;
+const pd=Math.hypot(p.position.x-player.x,p.position.z-player.z);
+if(pd<4&&!player.rolling){const gd=totalGear();let blockMult=player.blocking?.65:.3;const blocked=Math.floor(gd.def*blockMult);const realDmg=Math.max(1,p.userData.dmg-blocked);
+player.hp-=realDmg;hitFX(player.x,player.y+8,player.z,0x8844ff);
+if(player.blocking)log(`BLOCKED projectile! -${realDmg}`,'#48f');else log(`Hit by projectile! -${realDmg}`,'#f44');
+p.userData.life=0}
+if(p.userData.life<=0){scene.remove(p);particles.splice(i,1)}}
+else{p.position.x+=p.userData.vx*.14;p.position.y+=p.userData.vy*.14;p.position.z+=p.userData.vz*.14;p.userData.vy-=.5;p.userData.life--;p.scale.setScalar(Math.max(0,p.userData.life/22));if(p.userData.life<=0){scene.remove(p);particles.splice(i,1)}}}
 
 // Animate torch meshes + assign 8 nearest PointLights
 const sorted=torchPositions.map(t=>({...t,d:Math.hypot(t.x-player.x,t.z-player.z)})).sort((a,b)=>a.d-b.d);
@@ -2341,7 +2532,7 @@ try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;
 const data=JSON.parse(raw);
 player.x=data.player.x;player.z=data.player.z;player.hp=data.player.hp;player.maxHp=data.player.maxHp;
 player.sta=data.player.sta;player.maxSta=data.player.maxSta;player.poi=data.player.poi;player.maxPoi=data.player.maxPoi;
-player.speed=data.player.speed||.42;player.y=terrainH(player.x,player.z);
+player.speed=data.player.speed||.42;player.y=meshTerrainH(player.x,player.z);
 skillDefs.forEach(s=>{if(data.skills[s]){skills[s].lvl=data.skills[s].lvl;skills[s].xp=data.skills[s].xp}});
 if(data.inventory){inventory.length=0;data.inventory.forEach(i=>inventory.push(i));updateInvUI()}
 if(data.equipped){gearSlots.forEach(s=>{if(data.equipped[s])equipped[s]=data.equipped[s]})}
