@@ -96,6 +96,11 @@ canvas{display:block}
 #item-tooltip .tt-desc{font-size:10px;color:#aa9;line-height:1.4}
 #item-tooltip .tt-stats{font-size:10px;color:#4c4;margin-top:3px}
 #item-tooltip .tt-use{font-size:9px;color:#88c;margin-top:2px;font-style:italic}
+/* Inventory context menu */
+#inv-context-menu{position:fixed;z-index:10000;display:none;background:linear-gradient(180deg,#3b3020,#2a2018);border:2px solid #c8a96e;border-radius:4px;padding:4px 0;min-width:120px;box-shadow:0 4px 12px rgba(0,0,0,.6);font-family:'Times New Roman',serif;font-size:11px}
+#inv-context-menu .ctx-item{padding:6px 12px;color:#e8d4a8;cursor:pointer;transition:background .15s}
+#inv-context-menu .ctx-item:hover{background:#4a3a28;color:#ffd700}
+#inv-context-menu .ctx-divider{height:1px;background:#5a4a32;margin:4px 0}
 /* Equipment tab */
 .eq-grid{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px}
 .eq-row{display:flex;gap:4px}
@@ -285,6 +290,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="class-card" data-c="knight"><h3>Knight</h3><p>Noble balanced combatant.</p><div class="cst">STR 11 DEF 16<br>HP 180 STA 90</div></div>
 <div class="class-card" data-c="sorcerer"><h3>Sorcerer</h3><p>Master of arcane arts.</p><div class="cst">MAG 16 INT 14<br>HP 100 POI 140</div></div>
 <div class="class-card" data-c="deprived"><h3>Deprived</h3><p>Naked. True challenge.</p><div class="cst">ALL 6<br>HP 80 STA 80</div></div>
+<div class="class-card" data-c="ranger"><h3>Ranger</h3><p>Expert marksman hunter.</p><div class="cst">RNG 16 AGI 14<br>HP 120 STA 100</div></div>
 </div></div>
 <div id="game-ui">
 <div id="esc-hud-btn" onclick="document.getElementById('esc-menu').classList.toggle('active')">&#9776; MENU</div>
@@ -302,7 +308,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="ab-slot" data-action="attack" title="Attack"><span class="ab-ico">&#9876;</span><span class="ab-name">Attack</span><span class="ab-key">1</span><div class="ab-cd"></div></div>
 <div class="ab-slot" data-action="parry" title="Parry/Block"><span class="ab-ico">&#128737;</span><span class="ab-name">Parry</span><span class="ab-key">2</span><div class="ab-cd"></div></div>
 <div class="ab-slot" data-action="heal" title="Estus Flask"><span class="ab-ico">&#127863;</span><span class="ab-name">Heal</span><span class="ab-key">3</span><div class="ab-cd"></div></div>
-<div class="ab-slot" data-action="bones" title="Bury Bones"><span class="ab-ico">&#129460;</span><span class="ab-name">Bones</span><span class="ab-key">4</span><div class="ab-cd"></div></div>
+<div class="ab-slot" data-action="shoot" title="Shoot Arrow (4)"><span class="ab-ico">&#127993;</span><span class="ab-name">Shoot</span><span class="ab-key">4</span><div class="ab-cd"></div></div>
 <div class="ab-slot" data-action="prayer" title="Prayer (Q)"><span class="ab-ico">&#10013;</span><span class="ab-name">Prayer</span><span class="ab-key">Q</span><div class="ab-cd"></div></div>
 <div class="ab-slot" data-action="gather" title="Gather (G)"><span class="ab-ico">&#9935;</span><span class="ab-name">Gather</span><span class="ab-key">G</span><div class="ab-cd"></div></div>
 <div class="ab-slot" data-action="jump" title="Jump (Z)"><span class="ab-ico">&#11014;</span><span class="ab-name">Jump</span><span class="ab-key">Z</span><div class="ab-cd"></div></div>
@@ -348,7 +354,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="tab-page" id="tp-equipment">
 <div class="eq-grid">
 <div class="eq-row"><div class="eq-slot" id="eq-Helm"><span class="eq-ico">&#9748;</span><span class="eq-name">Helm</span></div></div>
-<div class="eq-row"><div class="eq-slot" id="eq-Weapon"><span class="eq-ico">&#9876;</span><span class="eq-name">Weapon</span></div><div class="eq-slot" id="eq-Chest"><span class="eq-ico">&#128085;</span><span class="eq-name">Chest</span></div><div class="eq-slot" id="eq-Shield"><span class="eq-ico">&#128737;</span><span class="eq-name">Shield</span></div></div>
+<div class="eq-row"><div class="eq-slot" id="eq-Weapon"><span class="eq-ico">&#9876;</span><span class="eq-name">Weapon</span></div><div class="eq-slot" id="eq-Chest"><span class="eq-ico">&#128085;</span><span class="eq-name">Chest</span></div><div class="eq-slot" id="eq-Shield"><span class="eq-ico">&#128737;</span><span class="eq-name">Shield</span></div><div class="eq-slot" id="eq-OffHand"><span class="eq-ico">&#128299;</span><span class="eq-name">OffHand</span></div></div>
 <div class="eq-row"><div class="eq-slot" id="eq-Legs"><span class="eq-ico">&#128086;</span><span class="eq-name">Legs</span></div></div>
 <div class="eq-row"><div class="eq-slot" id="eq-Gloves"><span class="eq-ico">&#9995;</span><span class="eq-name">Gloves</span></div><div class="eq-slot" id="eq-Boots"><span class="eq-ico">&#128095;</span><span class="eq-name">Boots</span></div><div class="eq-slot" id="eq-Ring"><span class="eq-ico">&#128141;</span><span class="eq-name">Ring</span></div></div>
 </div>
@@ -413,6 +419,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <canvas id="loot-label-canvas"></canvas>
 <div id="loot-prompt"><span class="lp-title">—</span><span class="lp-key">Press E (or X/□) to pick up</span></div>
 <div id="item-tooltip"><span class="tt-ico"></span><div class="tt-name"></div><div class="tt-desc"></div><div class="tt-stats"></div><div class="tt-use"></div></div>
+<!-- Inventory Context Menu -->
+<div id="inv-context-menu">
+<div class="ctx-item" id="ctx-equip">Equip</div>
+<div class="ctx-item" id="ctx-drop">Drop</div>
+</div>
 <div id="ability-browser"><div id="ab-header"><h3>ABILITIES &amp; ACTIONS</h3><span id="ab-close">&times;</span></div><div id="ab-cats"></div><div id="ab-list"></div><div id="ab-hint">Drag an ability onto an action bar slot to assign it. Press P to close.</div></div>
 
 <!-- === SPELL BOOK === -->
@@ -612,8 +623,8 @@ leather:new MS({color:0x4a3a28,roughness:.88,metalness:.05}),
 };
 function eMat(t){return new MS({color:t==='goblin'?0x2a5a28:t==='cow'?0x7a4a2a:0xcca855,roughness:.7,metalness:.08})}
 
-const skillDefs=['Attack','Strength','Defence','Hitpoints','Ranged','Prayer','Magic','Cooking','Woodcutting','Fishing','Mining','Smithing','Crafting','Firemaking','Herblore','Agility','Thieving','Slayer','Runecraft'];
-const skillIcons={Attack:'\u2694',Strength:'\uD83D\uDCAA',Defence:'\uD83D\uDEE1',Hitpoints:'\u2764',Ranged:'\uD83C\uDFF9',Prayer:'\u271D',Magic:'\u2728',Cooking:'\uD83C\uDF56',Woodcutting:'\uD83E\uDE93',Fishing:'\uD83C\uDFA3',Mining:'\u26CF',Smithing:'\uD83D\uDD28',Crafting:'\u2702',Firemaking:'\uD83D\uDD25',Herblore:'\uD83C\uDF3F',Agility:'\uD83C\uDFC3',Thieving:'\uD83D\uDC4B',Slayer:'\uD83D\uDC80',Runecraft:'\uD83D\uDD2E'};
+const skillDefs=['Attack','Strength','Defence','Hitpoints','Ranged','Prayer','Magic','Cooking','Woodcutting','Fishing','Mining','Smithing','Crafting','Firemaking','Herblore','Agility','Thieving','Slayer','Runecraft','Farming'];
+const skillIcons={Attack:'\u2694',Strength:'\uD83D\uDCAA',Defence:'\uD83D\uDEE1',Hitpoints:'\u2764',Ranged:'\uD83C\uDFF9',Prayer:'\u271D',Magic:'\u2728',Cooking:'\uD83C\uDF56',Woodcutting:'\uD83E\uDE93',Fishing:'\uD83C\uDFA3',Mining:'\u26CF',Smithing:'\uD83D\uDD28',Crafting:'\u2702',Firemaking:'\uD83D\uDD25',Herblore:'\uD83C\uDF3F',Agility:'\uD83C\uDFC3',Thieving:'\uD83D\uDC4B',Slayer:'\uD83D\uDC80',Runecraft:'\uD83D\uDD2E',Farming:'\uD83C\uDF3E'};
 const skills={};skillDefs.forEach(s=>skills[s]={lvl:1,xp:0});skills.Hitpoints.lvl=10;skills.Hitpoints.xp=1154;skills.Attack.lvl=3;skills.Attack.xp=174;skills.Strength.lvl=2;skills.Strength.xp=83;skills.Defence.lvl=2;skills.Defence.xp=83;
 const sgEl=document.getElementById('skill-grid');
 skillDefs.forEach(s=>{const d=document.createElement('div');d.className='sk-cell';d.id='sk-'+s;d.innerHTML=`<span class="sk-ico">${skillIcons[s]||''}</span><span class="sk-name">${s}</span><span class="sk-lv">${skills[s].lvl}</span><span class="sk-xp">${skills[s].xp}xp</span>`;sgEl.appendChild(d)});
@@ -639,7 +650,11 @@ const itemIcoMap=[
 ['Ollscray','📜'],['Ournaljay','📓'],['Apmay','🗺'],['Eykay','🔑'],['Askmay','🎭'],
 ['Ossilfay','🪨'],['Ellshay','🐚'],['Orbhay','🧬'],['Arbay','🟤'],
 ['Athay','🎩'],['Aptchay','🎩'],
-['Irefay Apecay','🔥'],['Infernalway Apecay','🔥']
+['Irefay Apecay','🔥'],['Infernalway Apecay','🔥'],
+// Food items - fruits and crops
+['Apple','🍎'],['Redberry','🍒'],['Dwellberry','🫐'],['Jangerberry','🍇'],['Wildberry','🍓'],
+['Banana','🍌'],['Orange','🍊'],['Lemon','🍋'],['Pineapple','🍍'],
+['Cabbage','🥬'],['Potato','🥔'],['Onion','🧅'],['Grain','🌾']
 ];
 function getItemIco(name){for(const[kw,ico]of itemIcoMap){if(name.indexOf(kw)>=0)return ico}return'📦'}
 function getItemDesc(name,uid){
@@ -649,7 +664,7 @@ if(u.slot)return{desc:'Equippable gear — '+u.slot+' ['+u.uid+']',stats:'ATK +'
 if(u.atk||u.def||u.str)return{desc:'Item ['+u.uid+']',stats:'ATK +'+u.atk+' DEF +'+u.def+' STR +'+u.str,use:''}}
 const sl=typeof specialLoot!=='undefined'?specialLoot.find(l=>l.name===name):null;
 if(sl)return{desc:'Equippable gear — '+sl.slot,stats:'ATK +'+sl.atk+' DEF +'+sl.def+' STR +'+sl.str,use:'Click to equip'};
-if(typeof skillItems!=='undefined'&&skillItems[name]){const sk=skillItems[name];return{desc:sk.skill+' resource',stats:'+'+sk.xp+' '+sk.skill+' XP',use:'Click to use'}}
+if(typeof skillItems!=='undefined'&&skillItems[name]){const sk=skillItems[name];const healInfo=sk.heal?'Heal '+sk.heal+' HP':'';return{desc:sk.skill+' resource'+(sk.heal?' — Food item':''),stats:healInfo+' +'+(sk.xp||10)+' '+sk.skill+' XP',use:sk.heal?'Click to eat and heal':'Click to use'}}
 if(name.indexOf('Oinscay')>=0)return{desc:'Currency',stats:'',use:'Gold coins'};
 if(name.indexOf('Onesbay')>=0)return{desc:'Prayer item — bury for XP',stats:'',use:'Click to bury'};
 if(name.indexOf('Uneray')>=0)return{desc:'Magic rune for spellcasting',stats:'',use:'Used in spells'};
@@ -667,8 +682,46 @@ ttEl.style.display='block';
 const x=Math.min(e.clientX+12,innerWidth-270);const y=Math.max(e.clientY-80,8);
 ttEl.style.left=x+'px';ttEl.style.top=y+'px'}
 function hideTooltip(){ttEl.style.display='none'}
+// Inventory context menu handlers
+const ctxMenu=document.getElementById('inv-context-menu');
+const ctxEquip=document.getElementById('ctx-equip');
+const ctxDrop=document.getElementById('ctx-drop');
+let ctxSlotIndex=null;
+function hideContextMenu(){ctxMenu.style.display='none';ctxSlotIndex=null}
+function equipItem(index){
+const raw=inventory[index];if(!raw)return;
+const itemName=typeof raw==='string'?raw:raw.name;const itemUID=typeof raw==='object'?raw.uid:null;
+// Check itemDB for gear
+if(itemUID&&typeof itemDB!=='undefined'&&itemDB[itemUID]&&itemDB[itemUID].slot){
+const u=itemDB[itemUID];const old=equipped[u.slot];
+equipped[u.slot]={name:u.name,atk:u.atk,def:u.def,str:u.str};
+inventory.splice(index,1);
+if(old&&old.name!=='None')inventory.push({name:old.name,uid:null});
+log('Equipped '+u.name+' [ATK+'+u.atk+' DEF+'+u.def+' STR+'+u.str+']','#0ff');updateInvUI();updateEqUI();return true}
+// Check specialLoot
+const sl=typeof specialLoot!=='undefined'?specialLoot.find(l=>l.name===itemName):null;
+if(sl){const old=equipped[sl.slot];equipped[sl.slot]={name:sl.name,atk:sl.atk,def:sl.def,str:sl.str};
+inventory.splice(index,1);
+if(old&&old.name!=='None')inventory.push({name:old.name,uid:null});
+log('Equipped '+sl.name+' [ATK+'+sl.atk+' DEF+'+sl.def+' STR+'+sl.str+']','#0ff');updateInvUI();updateEqUI();return true}
+return false}
+function dropItem(index){
+const raw=inventory[index];if(!raw)return;
+const itemName=typeof raw==='string'?raw:raw.name;
+inventory.splice(index,1);
+log('Dropped '+itemName,'#f80');
+// Spawn loot on ground near player
+const dropX=player.x+(Math.random()-.5)*8;
+const dropZ=player.z+(Math.random()-.5)*8;
+spawnLoot(dropX,dropZ,{lv:1,type:'drop'});
+updateInvUI()}
+// Context menu click handlers
+ctxEquip.onclick=()=>{if(ctxSlotIndex!==null){equipItem(ctxSlotIndex);hideContextMenu();}}
+ctxDrop.onclick=()=>{if(ctxSlotIndex!==null){dropItem(ctxSlotIndex);hideContextMenu();}}
+// Close context menu on click elsewhere
+document.addEventListener('click',(e)=>{if(!ctxMenu.contains(e.target))hideContextMenu();});
 function updateInvUI(){for(let i=0;i<28;i++){const el=document.getElementById('inv-'+i);
-el.innerHTML='';el.onclick=null;el.onmouseenter=null;el.onmouseleave=null;el.onmousemove=null;
+el.innerHTML='';el.onclick=null;el.onmouseenter=null;el.onmouseleave=null;el.onmousemove=null;el.oncontextmenu=null;
 if(inventory[i]){
 const raw=inventory[i];const itemName=typeof raw==='string'?raw:raw.name;const itemUID=typeof raw==='object'?raw.uid:null;
 const ico=getItemIco(itemName);
@@ -678,8 +731,15 @@ ttEl.querySelector('.tt-desc').textContent=d.desc;ttEl.querySelector('.tt-stats'
 ttEl.style.display='block';const x=Math.min(ev.clientX+12,innerWidth-270);const y=Math.max(ev.clientY-80,8);ttEl.style.left=x+'px';ttEl.style.top=y+'px'};
 el.onmouseleave=hideTooltip;
 el.onmousemove=(ev)=>{const x=Math.min(ev.clientX+12,innerWidth-270);const y=Math.max(ev.clientY-80,8);ttEl.style.left=x+'px';ttEl.style.top=y+'px'};
+// Right-click context menu
+el.oncontextmenu=(ev)=>{ev.preventDefault();ctxSlotIndex=i;
+const isGear=(itemUID&&typeof itemDB!=='undefined'&&itemDB[itemUID]&&itemDB[itemUID].slot)||(typeof specialLoot!=='undefined'&&specialLoot.find(l=>l.name===itemName));
+ctxEquip.style.display=isGear?'block':'none';
+const x=Math.min(ev.clientX,innerWidth-140);const y=Math.min(ev.clientY,innerHeight-60);
+ctxMenu.style.left=x+'px';ctxMenu.style.top=y+'px';ctxMenu.style.display='block';};
+// Left-click quick equip for gear, use for skill items
 el.onclick=()=>{
-// Check itemDB for gear with unique stats
+// Check itemDB for gear
 if(itemUID&&typeof itemDB!=='undefined'&&itemDB[itemUID]&&itemDB[itemUID].slot){
 const u=itemDB[itemUID];const old=equipped[u.slot];
 equipped[u.slot]={name:u.name,atk:u.atk,def:u.def,str:u.str};
@@ -692,9 +752,11 @@ inventory.splice(i,1);
 if(old&&old.name!=='None')inventory.push({name:old.name,uid:null});
 log('Equipped '+sl.name+' [ATK+'+sl.atk+' DEF+'+sl.def+' STR+'+sl.str+']','#0ff');hideTooltip();updateInvUI();updateEqUI();return}
 if(typeof skillItems!=='undefined'&&skillItems[itemName]){const sk=skillItems[itemName];inventory.splice(i,1);
+// If food item with heal, restore HP
+if(sk.heal&&player.hp<player.maxHp){player.hp=Math.min(player.hp+sk.heal,player.maxHp);hitFX(player.x,player.y+6,player.z,0x44cc44);log('Ate '+itemName+' +'+sk.heal+' HP','#4c4');}
 skills[sk.skill].xp+=sk.xp;const lv=Math.max(skills[sk.skill].lvl,Math.floor(1+Math.sqrt(skills[sk.skill].xp/50)));
 if(lv>skills[sk.skill].lvl){skills[sk.skill].lvl=lv;log(sk.skill+' level up! Lv '+lv,'#ff0')}
-log('Used '+itemName+': '+sk.skill+' +'+sk.xp+'xp','#cc4');hideTooltip();updateInvUI();if(typeof updateSkillUI==='function')updateSkillUI();updateXpBar();return}
+log('Used '+itemName+': '+sk.skill+' +'+sk.xp+'xp'+(sk.heal?' +'+sk.heal+'HP':''),'#cc4');hideTooltip();updateInvUI();if(typeof updateSkillUI==='function')updateSkillUI();updateXpBar();return}
 }}}}
 
 // === TAB SWITCHING ===
@@ -757,6 +819,7 @@ const allAbilities=[
 {id:'bones2ban',name:'Bones to Bananas',ico:'🍌',cat:'Magic',desc:'Convert bones to food',key:''},
 {id:'enchant1',name:'Enchant Lv1',ico:'💎',cat:'Magic',desc:'Enchant sapphire jewelry',key:''},
 {id:'spec_atk',name:'Special Attack',ico:'⚡',cat:'Combat',desc:'Weapon special attack',key:''},
+{id:'shoot',name:'Shoot Arrow',ico:'🏹',cat:'Combat',desc:'Fire arrow at cursor',key:'4'},
 {id:'protect_melee',name:'Protect Melee',ico:'⚔',cat:'Prayer',desc:'50% melee reduction',key:''},
 {id:'protect_magic',name:'Protect Magic',ico:'🔮',cat:'Prayer',desc:'50% magic reduction',key:''},
 {id:'protect_range',name:'Protect Range',ico:'🏹',cat:'Prayer',desc:'50% range reduction',key:''},
@@ -776,6 +839,8 @@ const abCategories=['All','Combat','Magic','Prayer','Skilling','Utility'];
 // Action bar slot assignments (customizable)
 const abSlots=document.querySelectorAll('#ab-wrap .ab-slot');
 let abAssign=[];abSlots.forEach(s=>abAssign.push(s.dataset.action));
+// Update slot 4 to shoot for ranger or if shoot ability is available
+abAssign[3]='shoot';
 // Build ability browser
 const abBrowser=document.getElementById('ability-browser');
 const abCatsEl=document.getElementById('ab-cats');
@@ -844,12 +909,78 @@ else if(id==='jump'){if(typeof player!=='undefined'&&player.grounded&&player.sta
 else if(id==='teleport')document.dispatchEvent(new KeyboardEvent('keydown',{key:'t'}));
 else if(id==='autoloot')document.dispatchEvent(new KeyboardEvent('keydown',{key:'l'}));
 else if(id==='spec_atk'){if(typeof player!=='undefined'&&!player._specCD){log('Special Attack!','#ff0');player._specCD=120}}
+else if(id==='shoot'){if(typeof player!=='undefined'&&!player._shootCD){player._shootCD=40;shootProjectile('arrow',12+skills.Ranged.lvl);log('Shot arrow!','#8a4');}}
 else if(id.indexOf('protect_')===0||id==='smite'||id==='piety'||id==='rigour'||id==='augury'){log('Activated: '+id.replace(/_/g,' '),'#4cf')}
-else if(id.indexOf('strike')>=0||id.indexOf('bolt')>=0||id.indexOf('blast')>=0){
-if(typeof lockOn!=='undefined'&&lockOn){const dmg=10+Math.floor(Math.random()*15);lockOn.hp-=dmg;log('Cast spell for '+dmg+' dmg!','#48f')}
-else log('No target for spell','#f44')}
-else if(id==='low_alch'||id==='high_alch'){const gold=id==='high_alch'?'60':'30';log('Alchemy: +'+gold+' gold','#ff0')}
+else if(id.indexOf('strike')>=0||id.indexOf('bolt')>=0||id.indexOf('blast')>=0||id.indexOf('wave')>=0||id.indexOf('surge')>=0){
+// Magic combat spells - fire projectile toward cursor
+const spellCol=id.indexOf('wind')>=0?0x88aabb:id.indexOf('water')>=0?0x2288ff:id.indexOf('earth')>=0?0x664422:id.indexOf('fire')>=0?0xff4400:0x6644ff;
+const baseDmg=id.indexOf('strike')>=0?12:id.indexOf('bolt')>=0?20:id.indexOf('blast')>=0?28:id.indexOf('wave')>=0?36:45;
+shootProjectile('spell',baseDmg+skills.Magic.lvl,spellCol);
+log('Cast '+id.replace(/_/g,' ')+'!','#48f');}
+else if(id==='low_alch'||id==='high_alch'){const gold=id==='high_alch'?'60':'30';log('Alchemy: +'+gold+' gold','#ff0');skills.Magic.xp+=25;updateXpBar();}
+else if(id==='confuse'||id==='weaken'||id==='curse'){shootProjectile('spell',5,0x6644aa);if(typeof lockOn!=='undefined'&&lockOn){lockOn.poi=Math.max(0,lockOn.poi-20);log('Cast '+id+'! Enemy weakened','#48f');skills.Magic.xp+=20;updateXpBar();}}
+else if(id==='bind'||id==='snare'||id==='entangle'){shootProjectile('spell',5,0x00aa44);if(typeof lockOn!=='undefined'&&lockOn){lockOn.staggered=true;lockOn.staggerT=60;log('Cast '+id+'! Enemy immobilized','#48f');skills.Magic.xp+=30;updateXpBar();}}
+else if(id==='telegrab'){shootProjectile('spell',0,0xaa44ff);log('Telegrab spell cast','#48f');skills.Magic.xp+=15;updateXpBar();}
+else if(id==='superheat'){shootProjectile('spell',0,0xff8800);log('Superheat spell cast','#ff0');skills.Magic.xp+=35;updateXpBar();}
+else if(id==='bones2ban'){shootProjectile('spell',0,0xffdd44);log('Bones converted to bananas!','#ff0');skills.Magic.xp+=20;updateXpBar();}
 else log('Used ability: '+id,'#aa9')}
+// === SHOOT PROJECTILE (Arrow or Spell) ===
+function shootProjectile(type='arrow',dmg=15,col=0xccaa88){
+if(!cam||!scene)return;
+// Check for ammo if shooting arrow (Ranger class has unlimited arrows)
+if(type==='arrow'&&playerClass!=='ranger'){
+let hasAmmo=false;
+for(let i=0;i<inventory.length;i++){
+const raw=inventory[i];const itemName=typeof raw==='string'?raw:raw.name;
+if(itemName.toLowerCase().includes('arrow')){
+hasAmmo=true;inventory.splice(i,1);updateInvUI();break;}}
+if(!hasAmmo){log('No arrows! Craft or retrieve arrows.','#f44');return;}}
+// Ranger gets infinite arrows - no ammo check needed
+// Calculate aim direction from camera through mouse cursor
+const rc=new THREE.Raycaster();
+rc.setFromCamera({x:mouse.x,y:mouse.y},cam);
+// Find ground intersection point
+const planeY=meshTerrainH(player.x,player.z);
+const plane=new THREE.Plane(new THREE.Vector3(0,1,0),-planeY);
+const target=new THREE.Vector3();
+rc.ray.intersectPlane(plane,target);
+if(!target)return;
+// Calculate direction and angle
+const dx=target.x-player.x;const dz=target.z-player.z;
+const dist=Math.hypot(dx,dz);
+if(dist<1)return;
+// Create projectile (arrow or spell orb)
+let proj;
+if(type==='arrow'){
+// Arrow shaft + fletching
+const arrowGrp=new THREE.Group();
+const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,2.2,4),new MS({color:0xaa8855,roughness:.8}));shaft.position.y=1.1;shaft.rotation.x=Math.PI/2;arrowGrp.add(shaft);
+const tip=new THREE.Mesh(new THREE.ConeGeometry(.06,.3,4),new MS({color:0x666666,roughness:.4,metalness:.8}));tip.position.set(0,0,2.2);tip.rotation.x=Math.PI/2;arrowGrp.add(tip);
+const fletch=new THREE.Mesh(new THREE.BoxGeometry(.12,.02,.3),new MS({color:0xaa2222,roughness:.9}));fletch.position.set(0,0,.2);arrowGrp.add(fletch);
+proj=arrowGrp;
+}else{
+// Spell orb
+proj=new THREE.Mesh(new THREE.SphereGeometry(.4,8,8),new MS({color:col,emissive:col,emissiveIntensity:2,transparent:true,opacity:.8}));
+}
+// Position at player
+const startH=meshTerrainH(player.x,player.z);
+proj.position.set(player.x,startH+8,player.z);
+// Calculate velocity toward target with arc
+const angle=Math.atan2(dx,dz);
+const speed=0.8;const arcHeight=dist*0.15;
+proj.userData={vx:Math.sin(angle)*speed,vz:Math.cos(angle)*speed,vy:arcHeight*0.02,life:80,dmg:dmg,type:type,gravity:0.015};
+// Orient arrow to face target
+if(type==='arrow'){proj.rotation.y=angle;proj.rotation.z=-.3;}
+// Add trail effect
+if(type!=='arrow'){
+for(let i=0;i<5;i++){const tr=new THREE.Mesh(new THREE.SphereGeometry(.15,4,4),new MS({color:col,emissive:col,emissiveIntensity:1,transparent:true,opacity:.5}));tr.position.copy(proj.position);tr.userData={trail:true,idx:i,life:20};scene.add(tr);particles.push(tr);}}
+scene.add(proj);
+particles.push(proj);
+// Animation
+playerGroup.userData.animState='attack';
+setTimeout(()=>{if(playerGroup)playerGroup.userData.animState='idle';},300);
+// Ranged XP
+if(type==='arrow'){skills.Ranged.xp+=12;updateXpBar();}else{skills.Magic.xp+=15;updateXpBar();}}
 // Override action bar click to use execAbility
 abSlots.forEach((slot,idx)=>{slot.onclick=()=>execAbility(abAssign[idx])});
 // === GAMEPAD DUAL-BUTTON COMBOS ===
@@ -984,18 +1115,32 @@ const mapCastles=[{x:900,z:-800,n:'Eastern Fortress'},{x:-2000,z:-500,n:'Western
 function drawWorldMap(){
 const W=900,H=700;wmCtx.fillStyle='#0a0805';wmCtx.fillRect(0,0,W,H);
 const scale=W/16000,ox=W/2,oy=H/2;
-// Draw regions as colored zones
-regions.forEach(r=>{
+// Filter to show only major regions (larger areas) and wilderness zones
+const majorRegions=regions.filter(r=>r.r>=150);// Only show regions with radius >=150
+const wildernessRegions=regions.filter(r=>r.n.toLowerCase().includes('wilderness')||r.n.toLowerCase().includes('deep')||r.lv>=50);
+// Draw wilderness/RNG areas first (as larger background zones)
+wildernessRegions.forEach(r=>{
 const rx=r.x*scale+ox,ry=r.z*scale+oy;
-const rr=r.r*scale;
+const rr=Math.max(r.r*scale,15);
 const cr=(r.fog>>16)/255,cg=((r.fog>>8)&0xff)/255,cb=(r.fog&0xff)/255;
-wmCtx.fillStyle=`rgba(${~~(cr*255)},${~~(cg*255)},${~~(cb*255)},0.45)`;
-wmCtx.beginPath();wmCtx.arc(rx,ry,Math.max(rr,8),0,Math.PI*2);wmCtx.fill();
-wmCtx.strokeStyle='#5a4a32';wmCtx.lineWidth=1;wmCtx.stroke();
-wmCtx.fillStyle='#c8a96e';wmCtx.font='bold 9px sans-serif';wmCtx.textAlign='center';
-wmCtx.fillText(r.n,rx,ry-rr-3);
-wmCtx.fillStyle='#776';wmCtx.font='7px sans-serif';
-wmCtx.fillText('Lv '+r.lv+'+',rx,ry+3)});
+wmCtx.fillStyle=`rgba(${~~(cr*255)},${~~(cg*255)},${~~(cb*255)},0.25)`;
+wmCtx.beginPath();wmCtx.arc(rx,ry,rr*1.2,0,Math.PI*2);wmCtx.fill();
+wmCtx.strokeStyle='rgba(90,74,50,0.3)';wmCtx.lineWidth=1;wmCtx.stroke();});
+// Draw major regions as colored zones
+majorRegions.forEach(r=>{
+const rx=r.x*scale+ox,ry=r.z*scale+oy;
+const rr=Math.max(r.r*scale,10);
+const cr=(r.fog>>16)/255,cg=((r.fog>>8)&0xff)/255,cb=(r.fog&0xff)/255;
+wmCtx.fillStyle=`rgba(${~~(cr*255)},${~~(cg*255)},${~~(cb*255)},0.5)`;
+wmCtx.beginPath();wmCtx.arc(rx,ry,rr,0,Math.PI*2);wmCtx.fill();
+wmCtx.strokeStyle='#5a4a32';wmCtx.lineWidth=1.5;wmCtx.stroke();
+wmCtx.fillStyle='#c8a96e';wmCtx.font='bold 10px sans-serif';wmCtx.textAlign='center';
+// Only show name if radius is large enough to avoid clutter
+if(r.r>=200){
+wmCtx.fillText(r.n,rx,ry-rr-5);
+wmCtx.fillStyle='#aa8866';wmCtx.font='8px sans-serif';
+wmCtx.fillText('Lv '+r.lv,rx,ry+4);}
+else{wmCtx.fillStyle='#aa8866';wmCtx.font='8px sans-serif';wmCtx.fillText(r.n,rx,ry+4);}});
 // Draw cities as walled circles
 wmCtx.strokeStyle='#aa9060';wmCtx.lineWidth=2;
 mapCities.forEach(c=>{const cx=c.x*scale+ox,cy=c.z*scale+oy,cr=c.r*scale;
@@ -1099,7 +1244,14 @@ const skillItems={
 'Aturenay Uneray':{skill:'Runecraft',xp:20},'Eathday Uneray':{skill:'Runecraft',xp:35},'Oodblay Uneray':{skill:'Runecraft',xp:50},'Oulsay Uneray x3':{skill:'Runecraft',xp:60},'Aoscay Uneray x5':{skill:'Runecraft',xp:40},'Irefay Uneray x20':{skill:'Runecraft',xp:30},'Awlay Uneray x3':{skill:'Runecraft',xp:45},'Indmay Uneray x15':{skill:'Runecraft',xp:25},'Athwray Uneray x5':{skill:'Runecraft',xp:70},
 'Erbhay':{skill:'Herblore',xp:25},'Arlicgay':{skill:'Herblore',xp:10},'Antidoteway':{skill:'Herblore',xp:30},'Antipoisonway':{skill:'Herblore',xp:20},'Ayerpray Otionpay':{skill:'Herblore',xp:40},
 'Ockpicklay':{skill:'Thieving',xp:30},'Iderspay Ilksay':{skill:'Crafting',xp:15},'Owhidecay':{skill:'Crafting',xp:10},'Akesnay Inskay':{skill:'Crafting',xp:20},'Izardlay Inskay':{skill:'Crafting',xp:25},'Agondray Idehay':{skill:'Crafting',xp:60},'Ackblay Agondray Idehay':{skill:'Crafting',xp:80},'Ydrahay Eatherlay':{skill:'Crafting',xp:70},
-'Ironway Oreay':{skill:'Mining',xp:20},'Oldgay Oreay':{skill:'Mining',xp:40},'Elementalway Oreay':{skill:'Mining',xp:50},'Uniteray Oreay':{skill:'Mining',xp:80},'Anitegray x3':{skill:'Mining',xp:45}
+'Ironway Oreay':{skill:'Mining',xp:20},'Oldgay Oreay':{skill:'Mining',xp:40},'Elementalway Oreay':{skill:'Mining',xp:50},'Uniteray Oreay':{skill:'Mining',xp:80},'Anitegray x3':{skill:'Mining',xp:45},
+// Farming - harvestable fruits and crops
+'Apple':{skill:'Farming',xp:12,heal:5},'Redberry':{skill:'Farming',xp:8,heal:2},'Dwellberry':{skill:'Farming',xp:15,heal:6},'Jangerberry':{skill:'Farming',xp:18,heal:8},'Wildberry':{skill:'Farming',xp:6,heal:2},
+'Banana':{skill:'Farming',xp:10,heal:4},'Orange':{skill:'Farming',xp:14,heal:6},'Lemon':{skill:'Farming',xp:12,heal:4},'Pineapple':{skill:'Farming',xp:25,heal:10},
+'Cabbage':{skill:'Farming',xp:10,heal:4},'Potato':{skill:'Farming',xp:8,heal:3},'Onion':{skill:'Farming',xp:9,heal:3},'Grain':{skill:'Farming',xp:5,heal:1},
+// Arrows - can be retrieved from ground or crafted
+'Eelstay Arrowway x15':{skill:'Ranged',xp:20},'Ironway Arrowway x5':{skill:'Ranged',xp:15},'Agondray Arrowway x15':{skill:'Ranged',xp:35},'Arkday Arrowway x10':{skill:'Ranged',xp:25},
+'Single Arrow':{skill:'Ranged',xp:2}
 };
 const PLAYER_R=2.2;
 function addSolid(mesh){solidMeshes.push(mesh)}
@@ -1723,6 +1875,40 @@ const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.12,.1,10,6),mt.wd);shaft.
 const orb=new THREE.Mesh(new THREE.SphereGeometry(.5,8,8),new MS({color:0x6644cc,emissive:0x4422aa,emissiveIntensity:.8,roughness:.3}));orb.position.set(0,-4,6.8);rArm.add(orb);
 const orbRing=new THREE.Mesh(new THREE.TorusGeometry(.55,.06,6,12),mt.gold);orbRing.position.set(0,-4,6.8);rArm.add(orbRing);
 }
+function addBow(rArm){
+// Bow held in right hand (arrows drawn from back)
+const bowCurve=new THREE.Mesh(new THREE.TorusGeometry(1.2,.08,6,16,Math.PI),new MS({color:0x8a5a3a,roughness:.85}));bowCurve.position.set(0,-6,1);bowCurve.rotation.set(Math.PI/2,0,0);rArm.add(bowCurve);
+const bowString=new THREE.Mesh(new THREE.CylinderGeometry(.015,.015,2.4,4),new MS({color:0xdddddd,roughness:.9}));bowString.position.set(0,-6,.85);bowString.rotation.x=Math.PI/2;rArm.add(bowString);
+const bowGrip=new THREE.Mesh(new THREE.CylinderGeometry(.1,.12,.8,6),new MS({color:0x5a3a2a,roughness:.9}));bowGrip.position.set(0,-6,.2);bowGrip.rotation.x=Math.PI/2;rArm.add(bowGrip);
+}
+function addCrossbow(rArm){
+// Crossbow - compact, can be dual wielded
+const stock=new THREE.Mesh(new THREE.BoxGeometry(.5,.4,3),new MS({color:0x5a3a2a,roughness:.85}));stock.position.set(0,-6,1);stock.rotation.x=Math.PI/2;rArm.add(stock);
+const prod=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,2.2,4),new MS({color:0x666666,roughness:.5}));prod.position.set(0,-6,2.2);prod.rotation.z=Math.PI/2;rArm.add(prod);
+const stringV=new THREE.Mesh(new THREE.CylinderGeometry(.015,.015,.8,4),new MS({color:0xdddddd,roughness:.9}));stringV.position.set(-.9,-6,2.2);stringV.rotation.x=Math.PI/2;rArm.add(stringV);
+const stringH=new THREE.Mesh(new THREE.CylinderGeometry(.015,.015,.8,4),new MS({color:0xdddddd,roughness:.9}));stringH.position.set(.9,-6,2.2);stringH.rotation.x=Math.PI/2;rArm.add(stringH);
+}
+function addSwordLeft(lArm){
+// Left hand sword (shorter for dual wielding)
+const blade=new THREE.Mesh(new THREE.BoxGeometry(.18,.16,5.5),mt.swordBlade);blade.position.set(0,-7,2.8);blade.rotation.x=.06;lArm.add(blade);
+const fuller=new THREE.Mesh(new THREE.BoxGeometry(.05,.08,4),new MS({color:0x556,roughness:.15,metalness:.9}));fuller.position.set(0,-6.9,2.8);fuller.rotation.x=.06;lArm.add(fuller);
+const xguard=new THREE.Mesh(new THREE.BoxGeometry(1.2,.2,.2),mt.swordHilt);xguard.position.set(0,-7,.1);lArm.add(xguard);
+const hilt=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,1.2,6),mt.leather);hilt.position.set(0,-7,-.3);hilt.rotation.x=Math.PI/2;lArm.add(hilt);
+const pommel=new THREE.Mesh(new THREE.SphereGeometry(.18,6,6),mt.gold);pommel.position.set(0,-7,-.9);lArm.add(pommel);
+}
+function addDaggerLeft(lArm){
+// Left hand dagger for dual wield
+const blade=new THREE.Mesh(new THREE.ConeGeometry(.12,.8,4),mt.swordBlade);blade.position.set(0,-6.8,.4);blade.rotation.x=-Math.PI/2;lArm.add(blade);
+const guard=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.1,6),mt.swordHilt);guard.position.set(0,-6.8,-.1);lArm.add(guard);
+const hilt=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.6,6),mt.leather);hilt.position.set(0,-6.8,-.45);hilt.rotation.x=Math.PI/2;lArm.add(hilt);
+const pommel=new THREE.Mesh(new THREE.SphereGeometry(.15,6,6),mt.gold);pommel.position.set(0,-6.8,-.8);lArm.add(pommel);
+}
+function addQuiver(back){
+// Quiver with arrows on back
+const quiver=new THREE.Mesh(new THREE.CylinderGeometry(.25,.3,1.8,6),new MS({color:0x5a3a2a,roughness:.9}));quiver.position.set(0,-1,-.8);quiver.rotation.x=-.3;back.add(quiver);
+// Arrow fletchings visible
+for(let i=0;i<4;i++){const fletch=new THREE.Mesh(new THREE.BoxGeometry(.15,.02,.25),new MS({color:0xaa2222,roughness:.8}));fletch.position.set((Math.random()-.5)*.3,.6+i*.15,-.8);fletch.rotation.x=-.3;back.add(fletch);}
+}
 function addPauldrons_Knight(lArm,rArm){
 [lArm,rArm].forEach(arm=>{
 const paul=new THREE.Mesh(new THREE.SphereGeometry(1.3,10,8),mt.armorLt);paul.scale.set(1.1,.8,.95);arm.add(paul);
@@ -1756,41 +1942,68 @@ const hasBoots=eq&&eq.Boots&&eq.Boots.name!=='None';
 const hasGloves=eq&&eq.Gloves&&eq.Gloves.name!=='None';
 const hasWeapon=eq&&eq.Weapon&&eq.Weapon.name!=='None';
 const hasShield=eq&&eq.Shield&&eq.Shield.name!=='None';
-
+const hasOffHand=eq&&eq.OffHand&&eq.OffHand.name!=='None';
+// Determine weapon types for dual wield logic
+const weaponName=hasWeapon?eq.Weapon.name.toLowerCase():'';
+const offHandName=hasOffHand?eq.OffHand.name.toLowerCase():'';
+const isCrossbow=weaponName.includes('crossbow')||weaponName.includes('xbow');
+const isLongBow=weaponName.includes('longbow')||weaponName.includes('shortbow');
+const isBow=weaponName.includes('bow')&&!isCrossbow;
+const isSword=weaponName.includes('sword')||weaponName.includes('blade')||weaponName.includes('scimitar')||weaponName.includes('dagger');
+const offIsSword=offHandName.includes('sword')||offHandName.includes('blade')||offHandName.includes('scimitar')||offHandName.includes('dagger');
+const offIsCrossbow=offHandName.includes('crossbow')||offHandName.includes('xbow');
+// Dual wield rules: can dual wield swords OR crossbows, but NOT long/short bows
+const canDualWield=!isLongBow;// Crossbows and swords can dual wield
+const isDualWielding=hasOffHand&&canDualWield&&(!isBow||isCrossbow);
 if(cls==='knight'){
-// Knight: full plate armor default + equipment overrides
-// Armor attaches to animated groups so it moves with the body
-if(hasHelm)addHelm_Knight(headGroup);else{addHelm_Knight(headGroup);}
-if(hasChest)addChest_Knight(bodyCenter);else{addChest_Knight(bodyCenter);}
-if(hasLegs)addLegs_Knight(lLeg,rLeg,bodyCenter);else{addLegs_Knight(lLeg,rLeg,bodyCenter);}
-if(hasBoots)addBoots_Knight(lKnee,rKnee);else{addBoots_Knight(lKnee,rKnee);}
-addPauldrons_Knight(lArm,rArm);
-if(hasGloves)addGloves_Knight(lArm,rArm);else{addGloves_Knight(lArm,rArm);}
-if(hasWeapon)addSword(rArm);else{addSword(rArm);}
-if(hasShield)addShield(lArm);else{addShield(lArm);}
-addCape(bodyCenter);
+// Knight: only shows armor when equipped, base character otherwise
+// Base hair (visible when no helm)
+const hair=new THREE.Mesh(new THREE.SphereGeometry(1.3,8,8),mt_hairDk);hair.position.y=.4;hair.scale.set(1.05,.5,1.05);headGroup.add(hair);
+// Armor only if equipped
+if(hasHelm)addHelm_Knight(headGroup);
+if(hasChest)addChest_Knight(bodyCenter);
+if(hasLegs)addLegs_Knight(lLeg,rLeg,bodyCenter);
+if(hasBoots)addBoots_Knight(lKnee,rKnee);
+if(hasGloves||hasChest||hasWeapon)addPauldrons_Knight(lArm,rArm);
+if(hasGloves)addGloves_Knight(lArm,rArm);
+// Right hand weapon
+if(hasWeapon){
+if(isCrossbow)addCrossbow(rArm);
+else if(isBow)addBow(rArm);
+else addSword(rArm);}
+// Left hand: shield OR off-hand weapon (sword/dagger/crossbow) for dual wield
+if(hasShield&&!isDualWielding)addShield(lArm);
+else if(isDualWielding){
+if(offIsCrossbow)addCrossbow(lArm);
+else if(offHandName.includes('dagger'))addDaggerLeft(lArm);
+else addSwordLeft(lArm);}
+if(hasCape!==false)addCape(bodyCenter);
 }else if(cls==='warrior'){
-// Warrior: chainmail torso, leather arms, medium armor, no closed helm
+// Warrior: only shows armor when equipped
 // Head: open face with hair - attaches to headGroup
 const hair=new THREE.Mesh(new THREE.SphereGeometry(1.35,8,8),mt_hairDk);hair.position.y=.4;hair.scale.set(1.05,.55,1.05);headGroup.add(hair);
-// Chainmail chest - attaches to bodyCenter for breathing animation
-const chainTorso=new THREE.Mesh(new THREE.BoxGeometry(3.5,4.2,2.1),mt_warChain);chainTorso.position.y=.6;bodyCenter.add(chainTorso);
-const belt=new THREE.Mesh(new THREE.BoxGeometry(3.7,.55,2.2),mt.leather);belt.position.y=-1.3;bodyCenter.add(belt);
-const buckle=new THREE.Mesh(new THREE.BoxGeometry(.65,.45,.3),mt.gold);buckle.position.set(0,-1.3,1.15);bodyCenter.add(buckle);
 if(hasHelm){// Warrior helm: open-face iron helm - attaches to headGroup
 const wHelm=new THREE.Mesh(new THREE.SphereGeometry(1.45,10,10),mt.armorWorn);wHelm.position.y=.1;wHelm.scale.set(1.02,1.08,.92);headGroup.add(wHelm);
 const noseguard=new THREE.Mesh(new THREE.BoxGeometry(.18,1.6,.25),mt.armorLt);noseguard.position.set(0,-.25,.32);headGroup.add(noseguard);
 }
-// Leather shoulders - attach to animated arms
+// Chainmail chest - only if equipped
+if(hasChest){
+const chainTorso=new THREE.Mesh(new THREE.BoxGeometry(3.5,4.2,2.1),mt_warChain);chainTorso.position.y=.6;bodyCenter.add(chainTorso);
+const belt=new THREE.Mesh(new THREE.BoxGeometry(3.7,.55,2.2),mt.leather);belt.position.y=-1.3;bodyCenter.add(belt);
+const buckle=new THREE.Mesh(new THREE.BoxGeometry(.65,.45,.3),mt.gold);buckle.position.set(0,-1.3,1.15);bodyCenter.add(buckle);
+}
+// Leather shoulders - only if chest or gloves equipped
+if(hasChest||hasGloves){
 [lArm,rArm].forEach(arm=>{
 const paul=new THREE.Mesh(new THREE.SphereGeometry(1.05,8,6),mt_warLeather);paul.scale.set(1.05,.75,.92);arm.add(paul);
 const ua=new THREE.Mesh(new THREE.CylinderGeometry(.48,.44,3.2,8),mt_warLeather);ua.position.y=-2.3;arm.add(ua);
 const elb=new THREE.Mesh(new THREE.SphereGeometry(.5,8,6),mt_warLeather);elb.position.y=-4;arm.add(elb);
 const fa=new THREE.Mesh(new THREE.CylinderGeometry(.44,.38,2.9,8),mt_warChain);fa.position.y=-5.2;arm.add(fa);
-const glv=new THREE.Mesh(new THREE.BoxGeometry(.7,.5,.85),mt_warLeather);glv.position.y=-6.7;arm.add(glv);
+if(hasGloves){const glv=new THREE.Mesh(new THREE.BoxGeometry(.7,.5,.85),mt_warLeather);glv.position.y=-6.7;arm.add(glv);}
 });
-// Warrior legs: leather + chain - attach to animated legs
-if(hasLegs||true){
+}
+// Warrior legs: leather + chain - only if legs equipped
+if(hasLegs){
 const addWarriorLeg=(leg)=>{
 const cuisse=new THREE.Mesh(new THREE.CylinderGeometry(.58,.52,3.1,8),mt_warChain);cuisse.position.y=-1.5;leg.add(cuisse);
 const poleyn=new THREE.Mesh(new THREE.SphereGeometry(.55,8,6),mt_warLeather);poleyn.position.y=-3;leg.add(poleyn);
@@ -1798,19 +2011,25 @@ const shin=new THREE.Mesh(new THREE.CylinderGeometry(.5,.42,2.9,8),mt_warLeather
 };
 addWarriorLeg(lLeg);addWarriorLeg(rLeg);
 }
-// Boots: leather - attach to knee groups
-if(hasBoots||true){
+// Boots: leather - only if boots equipped
+if(hasBoots){
 const addWarriorBoot=(knee)=>{
 const boot=new THREE.Mesh(new THREE.BoxGeometry(.95,.75,1.6),mt_warLeather);boot.position.set(0,-.4,.1);knee.add(boot);
 const toe=new THREE.Mesh(new THREE.BoxGeometry(.75,.3,.6),mt_warLeather);toe.position.set(0,-.55,.75);knee.add(toe);
 };
 addWarriorBoot(lKnee);addWarriorBoot(rKnee);
 }
-if(hasWeapon)addSword(rArm);else{addSword(rArm);}
-if(hasShield){addShield(lArm);}else{// Warrior default: round wooden shield
-const rshield=new THREE.Mesh(new THREE.CylinderGeometry(2,2,.2,12),mt.wd);rshield.position.set(-.5,-4,.4);rshield.rotation.z=Math.PI/2;lArm.add(rshield);
-const boss=new THREE.Mesh(new THREE.SphereGeometry(.4,8,8),mt.armorLt);boss.position.set(-.7,-4,.5);lArm.add(boss);
-}
+// Right hand weapon
+if(hasWeapon){
+if(isCrossbow)addCrossbow(rArm);
+else if(isBow)addBow(rArm);
+else addSword(rArm);}
+// Left hand: shield OR off-hand weapon for dual wield
+if(hasShield&&!isDualWielding)addShield(lArm);
+else if(isDualWielding){
+if(offIsCrossbow)addCrossbow(lArm);
+else if(offHandName.includes('dagger'))addDaggerLeft(lArm);
+else addSwordLeft(lArm);}
 }else if(cls==='sorcerer'){
 // Sorcerer: flowing robes, hood, staff
 // Hood - attaches to headGroup for head movement
@@ -1835,11 +2054,61 @@ const cuff=new THREE.Mesh(new THREE.TorusGeometry(.78,.07,6,10),mt_robeGold);cuf
 });
 // Sash/belt - attaches to bodyCenter
 const sash=new THREE.Mesh(new THREE.BoxGeometry(3.65,.45,2.15),mt_robeGold);sash.position.y=-1.6;bodyCenter.add(sash);
-// Staff instead of sword
-addStaff(rArm);
-// Magic book in left hand
+// Staff only if weapon equipped
+if(hasWeapon)addStaff(rArm);
+// Left hand: magic book or off-hand weapon for dual wield
+if(isDualWielding){
+if(offIsCrossbow)addCrossbow(lArm);
+else if(offHandName.includes('dagger'))addDaggerLeft(lArm);
+else addSwordLeft(lArm);}
+else{
+// Magic book in left hand (default for sorcerer)
 const book=new THREE.Mesh(new THREE.BoxGeometry(.8,1,.5),new MS({color:0x3a1a0a,roughness:.8}));book.position.set(0,-6.5,.5);lArm.add(book);
-const pages=new THREE.Mesh(new THREE.BoxGeometry(.75,.85,.1),new MS({color:0xeeddaa,roughness:.9}));pages.position.set(0,-6.5,.78);lArm.add(pages);
+const pages=new THREE.Mesh(new THREE.BoxGeometry(.75,.85,.1),new MS({color:0xeeddaa,roughness:.9}));pages.position.set(0,-6.5,.78);lArm.add(pages);}
+}else if(cls==='ranger'){
+// Ranger: leather armor, hood, bow & quiver
+// Hood - attaches to headGroup for head movement
+const hood=new THREE.Mesh(new THREE.SphereGeometry(1.4,10,10),mt_robeHood);hood.position.y=.1;hood.scale.set(1.02,1.1,.97);headGroup.add(hood);
+// Leather tunic - attaches to bodyCenter for breathing animation
+const tunic=new THREE.Mesh(new THREE.BoxGeometry(3.2,4,1.8),mt_warLeather);tunic.position.y=.6;bodyCenter.add(tunic);
+const belt=new THREE.Mesh(new THREE.BoxGeometry(3.4,.4,1.9),new MS({color:0x3a2a1a,roughness:.9}));belt.position.y=-1.4;bodyCenter.add(belt);
+// Leather vambraces - attach to animated arms
+[lArm,rArm].forEach(arm=>{
+const vam=new THREE.Mesh(new THREE.SphereGeometry(1.0,8,6),mt_warLeather);vam.scale.set(1.05,.75,.92);arm.add(vam);
+const ua=new THREE.Mesh(new THREE.CylinderGeometry(.45,.42,3.2,8),mt_warLeather);ua.position.y=-2.3;arm.add(ua);
+const glv=new THREE.Mesh(new THREE.BoxGeometry(.65,.45,.8),mt_warLeather);glv.position.y=-6.7;arm.add(glv);
+});
+// Ranger legs: leather - attach to animated legs
+if(hasLegs||true){
+const addRangerLeg=(leg)=>{
+const cuisse=new THREE.Mesh(new THREE.CylinderGeometry(.55,.5,3.1,8),mt_warLeather);cuisse.position.y=-1.5;leg.add(cuisse);
+const poleyn=new THREE.Mesh(new THREE.SphereGeometry(.52,8,6),mt_warLeather);poleyn.position.y=-3;leg.add(poleyn);
+const shin=new THREE.Mesh(new THREE.CylinderGeometry(.48,.42,2.9,8),mt_warLeather);shin.position.y=-1.45;leg.userData.knee.add(shin);
+};
+addRangerLeg(lLeg);addRangerLeg(rLeg);
+}
+// Boots: leather
+if(hasBoots||true){
+const addRangerBoot=(knee)=>{
+const boot=new THREE.Mesh(new THREE.BoxGeometry(.9,.7,1.5),mt_warLeather);boot.position.set(0,-.4,.1);knee.add(boot);
+const toe=new THREE.Mesh(new THREE.BoxGeometry(.7,.28,.55),mt_warLeather);toe.position.set(0,-.52,.72);knee.add(toe);
+};
+addRangerBoot(lKnee);addRangerBoot(rKnee);
+}
+// Bow/crossbow with dual wield logic
+// Rangers CANNOT dual wield long/short bows, but CAN dual wield crossbows
+if(hasWeapon){
+if(isCrossbow)addCrossbow(rArm);
+else if(isBow)addBow(rArm);
+else addSword(rArm);}
+else addBow(rArm);// Default bow for ranger
+addQuiver(bodyCenter);
+// Left hand: shield OR off-hand weapon for dual wield (crossbow only for ranger)
+if(hasShield&&!isDualWielding)addShield(lArm);
+else if(isDualWielding&&offIsCrossbow)addCrossbow(lArm);
+else if(isDualWielding){
+if(offHandName.includes('dagger'))addDaggerLeft(lArm);
+else addSwordLeft(lArm);}
 }else if(cls==='deprived'){
 // Deprived: bare skin, loincloth only
 // Hair (messy) - attaches to headGroup
@@ -1850,15 +2119,21 @@ const loin=new THREE.Mesh(new THREE.BoxGeometry(2.6,1.3,1.9),mt_cloth);loin.posi
 [lArm,rArm].forEach(arm=>{
 const wrap=new THREE.Mesh(new THREE.CylinderGeometry(.36,.32,1.3,6),mt_cloth);wrap.position.y=-5.4;arm.add(wrap);
 });
-// Club (basic weapon)
-if(hasWeapon){addSword(rArm);}else{
-const club=new THREE.Mesh(new THREE.CylinderGeometry(.16,.26,5.2,6),mt.wd);club.position.set(0,-6,2.5);club.rotation.x=.1;rArm.add(club);
-}
+// Right hand weapon
+if(hasWeapon){
+if(isCrossbow)addCrossbow(rArm);
+else if(isBow)addBow(rArm);
+else addSword(rArm);}
+// Left hand: shield OR off-hand weapon for dual wield
+if(hasShield&&!isDualWielding)addShield(lArm);
+else if(isDualWielding){
+if(offIsCrossbow)addCrossbow(lArm);
+else if(offHandName.includes('dagger'))addDaggerLeft(lArm);
+else addSwordLeft(lArm);}
 // Bare feet by default
 // If gear is equipped, add it visually to animated groups
 if(hasHelm){const headband=new THREE.Mesh(new THREE.TorusGeometry(1.32,.12,6,12),mt_cloth);headband.position.y=-.05;headband.rotation.x=Math.PI/2;headGroup.add(headband);}
 if(hasChest){const vest=new THREE.Mesh(new THREE.BoxGeometry(3.4,3.6,2),mt_warLeather);vest.position.y=.7;vest.material=vest.material.clone();vest.material.transparent=true;vest.material.opacity=.8;bodyCenter.add(vest);}
-if(hasShield){addShield(lArm);}
 }
 body.traverse(c=>{if(c.isMesh)c.castShadow=true});
 g.add(body);
@@ -3071,6 +3346,60 @@ gr.makeRotationY(Math.random()*Math.PI);gm.makeTranslation(gx,gh+1.5,gz);gm.mult
 gr.makeRotationY(Math.random()*Math.PI+Math.PI/2);gm.makeTranslation(gx,gh+1.5,gz);gm.multiply(gr);grassInst.setMatrixAt(gi++,gm)}
 grassInst.count=gi;grassInst.instanceMatrix.needsUpdate=true;scene.add(grassInst)}
 
+// === HARVESTABLE VEGETATION - Fruit Trees & Berry Bushes ===
+// These spawn harvestable food items when player interacts with them
+const harvestablePlants=[];// Store positions for gather interaction
+function createAppleTree(x,z){const h=meshTerrainH(x,z);const g=new THREE.Group();
+// Trunk
+const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.4,.7,5,6),new MS({color:0x5a4a3a,roughness:.9}));trunk.position.y=2.5;trunk.castShadow=true;g.add(trunk);
+// Leaves canopy (rounded)
+const canopy=new THREE.Mesh(new THREE.SphereGeometry(2.5,8,6),new MS({color:0x3a6a2a,roughness:.85}));canopy.position.y=5.5;canopy.scale.y=0.8;canopy.castShadow=true;g.add(canopy);
+// Apples (red spheres in tree)
+const appleMat=new MS({color:0xaa2020,roughness:.4});
+for(let i=0;i<5;i++){const a=new THREE.Mesh(new THREE.SphereGeometry(.25,6,6),appleMat);const ang=i/5*Math.PI*2;a.position.set(Math.cos(ang)*1.5,4.5+Math.random()*2,Math.sin(ang)*1.5);g.add(a);}
+g.position.set(x,h,z);scene.add(g);
+harvestablePlants.push({x:x,z:z,y:h,type:'apple',mesh:g,item:'Apple',respawn:300});}
+function createBerryBush(x,z,berryType='redberry'){const h=meshTerrainH(x,z);const g=new THREE.Group();
+// Bush shape - multiple spheres
+const bushMat=new MS({color:berryType==='redberry'?0x4a2a3a:berryType==='dwellberry'?0x3a2a4a:0x2a4a3a,roughness:.9});
+for(let i=0;i<4;i++){const b=new THREE.Mesh(new THREE.SphereGeometry(.6+.3*Math.random(),6,6),bushMat);b.position.set((Math.random()-.5)*1.5,.6,(Math.random()-.5)*1.5);g.add(b);}
+// Berries (small colored spheres)
+const berryColor=berryType==='redberry'?0xcc1010:berryType==='dwellberry'?0x4422aa:berryType==='jangerberry'?0xff8800:0xaa2040;
+const berryMat=new MS({color:berryColor,roughness:.3});
+for(let i=0;i<8;i++){const b=new THREE.Mesh(new THREE.SphereGeometry(.12,5,5),berryMat);b.position.set((Math.random()-.5)*1.2,.8+Math.random()*.5,(Math.random()-.5)*1.2);g.add(b);}
+g.position.set(x,h,z);g.scale.setScalar(1.2);scene.add(g);
+const itemName=berryType==='redberry'?'Redberry':berryType==='dwellberry'?'Dwellberry':berryType==='jangerberry'?'Jangerberry':'Wildberry';
+harvestablePlants.push({x:x,z:z,y:h,type:berryType,mesh:g,item:itemName,respawn:200});}
+function createCropPatch(x,z,cropType='cabbage'){const h=meshTerrainH(x,z);const g=new THREE.Group();
+// Crop rows
+const cropMat=new MS({color:cropType==='cabbage'?0x4a6a3a:cropType==='potato'?0x5a5a40:cropType==='onion'?0x8a9a6a:0x6a5a3a,roughness:.9});
+for(let row=0;row<3;row++){for(let col=0;col<3;col++){const c=new THREE.Mesh(new THREE.SphereGeometry(.25+.15*Math.random(),5,5),cropMat);c.position.set((col-1)*.6,.3,(row-1)*.6);c.scale.y=0.6;g.add(c);}}
+g.position.set(x,h,z);scene.add(g);
+const itemName=cropType==='cabbage'?'Cabbage':cropType==='potato'?'Potato':cropType==='onion'?'Onion':'Grain';
+harvestablePlants.push({x:x,z:z,y:h,type:cropType,mesh:g,item:itemName,respawn:150});}
+// Scatter harvestable vegetation across the world
+{const plantLocs=[];
+// Apple orchards near Lumbridge and cities
+for(let i=0;i<80;i++){const ang=Math.random()*Math.PI*2;const dist=30+Math.random()*60;const ax=Math.cos(ang)*dist,az=Math.sin(ang)*dist;plantLocs.push({x:ax,z:az,type:'apple'});}
+// Berry bushes NEAR SPAWN (Firelink Shrine area) for starting players
+for(let i=0;i<15;i++){const ang=Math.random()*Math.PI*2;const dist=20+Math.random()*80;const bx=Math.cos(ang)*dist,bz=Math.sin(ang)*dist;plantLocs.push({x:bx,z:bz,type:'redberry'});}
+for(let i=0;i<10;i++){const ang=Math.random()*Math.PI*2;const dist=30+Math.random()*100;const bx=Math.cos(ang)*dist,bz=Math.sin(ang)*dist;plantLocs.push({x:bx,z:bz,type:'dwellberry'});}
+// More berry bushes in forests (distant)
+for(let i=0;i<60;i++){const bx=(Math.random()-.5)*4000,bz=(Math.random()-.5)*4000;if(getReg(bx,bz).n==='Wilderness')continue;plantLocs.push({x:bx,z:bz,type:'redberry'});}
+for(let i=0;i<40;i++){const bx=(Math.random()-.5)*3000,bz=(Math.random()-.5)*3000;if(getReg(bx,bz).n==='Wilderness')continue;plantLocs.push({x:bx,z:bz,type:'dwellberry'});}
+for(let i=0;i<30;i++){const bx=(Math.random()-.5)*5000,bz=(Math.random()-.5)*5000;plantLocs.push({x:bx,z:bz,type:'jangerberry'});}
+// Crop patches NEAR SPAWN
+for(let i=0;i<12;i++){const ang=Math.random()*Math.PI*2;const dist=25+Math.random()*70;const cx=Math.cos(ang)*dist,cz=Math.sin(ang)*dist;plantLocs.push({x:cx,z:cz,type:'cabbage'});}
+for(let i=0;i<8;i++){const ang=Math.random()*Math.PI*2;const dist=40+Math.random()*90;const cx=Math.cos(ang)*dist,cz=Math.sin(ang)*dist;plantLocs.push({x:cx,z:cz,type:'potato'});}
+// More crop patches near farms (distant)
+for(let i=0;i<50;i++){const cx=-200+Math.random()*400,cz=200+Math.random()*400;plantLocs.push({x:cx,z:cz,type:'cabbage'});}
+for(let i=0;i<40;i++){const cx=-300+Math.random()*600,cz=-400+Math.random()*800;plantLocs.push({x:cx,z:cz,type:'potato'});}
+// Create all plants
+for(const p of plantLocs){if(isInLake(p.x,p.z))continue;const h=meshTerrainH(p.x,p.z);if(h>60||h<2)continue;
+if(p.type==='apple')createAppleTree(p.x,p.z);
+else if(p.type==='redberry'||p.type==='dwellberry'||p.type==='jangerberry')createBerryBush(p.x,p.z,p.type);
+else createCropPatch(p.x,p.z,p.type);}}
+
 // === GPU INSTANCED BUILDING ELEMENTS (reduces draw calls from thousands to ~10) ===
 // These are populated during building generation instead of individual meshes
 // _buildingInstancers is initialized in initBuildingInstancers()
@@ -3618,6 +3947,12 @@ const specialLoot=[
 {name:'Agondray Awsclay',atk:52,def:5,str:42,slot:'Weapon',rarity:'rare'},
 {name:'Elderway Aulmay',atk:58,def:0,str:60,slot:'Weapon',rarity:'legendary'},
 {name:'Arytezay Ossbowcray',atk:80,def:0,str:55,slot:'Weapon',rarity:'mythic'},
+{name:'Aplemay Owbay',atk:20,def:0,str:15,slot:'Weapon',rarity:'common'},
+{name:'Oakway Owbay',atk:12,def:0,str:8,slot:'Weapon',rarity:'common'},
+{name:'Wilowway Owbay',atk:18,def:0,str:12,slot:'Weapon',rarity:'uncommon'},
+{name:'Apablemay Owbay',atk:35,def:0,str:25,slot:'Weapon',rarity:'rare'},
+{name:'Iverway Owbay',atk:55,def:0,str:40,slot:'Weapon',rarity:'rare'},
+{name:'Agicmay Ilfay Ossbowlay',atk:65,def:0,str:50,slot:'Weapon',rarity:'rare'},
 {name:'Umekentay Adowshay',atk:95,def:0,str:75,slot:'Weapon',rarity:'mythic'},
 {name:'Uneray Imitarscay',atk:42,def:2,str:25,slot:'Weapon',rarity:'rare'},
 {name:'Ithrilmay Alberdahay',atk:35,def:4,str:22,slot:'Weapon',rarity:'rare'},
@@ -3727,7 +4062,25 @@ const specialLoot=[
 {name:'Oridanchlay Ingray',atk:0,def:30,str:0,slot:'Ring',rarity:'legendary'},
 {name:'Ingray ofway Eel Andinglay',atk:5,def:5,str:5,slot:'Ring',rarity:'rare'},
 {name:'Eoway Ingray',atk:10,def:10,str:10,slot:'Ring',rarity:'rare'},
-{name:'Olfway Ingray',atk:18,def:0,str:20,slot:'Ring',rarity:'legendary'}
+{name:'Olfway Ingray',atk:18,def:0,str:20,slot:'Ring',rarity:'legendary'},
+// ===== OFFHAND — DUAL WIELD =====
+// Off-hand daggers for dual wield
+{name:'Off-ay Aggerday',atk:15,def:0,str:12,slot:'OffHand',rarity:'common'},
+{name:'Off-ay Onedgeday',atk:22,def:0,str:18,slot:'OffHand',rarity:'uncommon'},
+{name:'Off-ay Orpoisepay',atk:35,def:0,str:28,slot:'OffHand',rarity:'rare'},
+{name:'Off-ay Aserbay Daggerlay',atk:48,def:0,str:38,slot:'OffHand',rarity:'rare'},
+{name:'Off-ay Alemorianchay Daggerlay',atk:55,def:0,str:45,slot:'OffHand',rarity:'legendary'},
+{name:'Off-ay Azilithclay Ipwhay',atk:62,def:0,str:50,slot:'OffHand',rarity:'legendary'},
+// Off-hand swords for dual wield
+{name:'Off-ay Ongswordlay',atk:25,def:3,str:20,slot:'OffHand',rarity:'uncommon'},
+{name:'Off-ay Impscimitarstay',atk:32,def:2,str:26,slot:'OffHand',rarity:'rare'},
+{name:'Off-ay Addonray Ongswordlay',atk:42,def:5,str:35,slot:'OffHand',rarity:'rare'},
+{name:'Off-ay Uneray Ongswordlay',atk:50,def:4,str:42,slot:'OffHand',rarity:'rare'},
+// Off-hand crossbows for dual wield
+{name:'Off-ay Crossbowway',atk:30,def:0,str:25,slot:'OffHand',rarity:'uncommon'},
+{name:'Oenixpay Crossbowway',atk:45,def:0,str:38,slot:'OffHand',rarity:'rare'},
+{name:'Off-ay Zarytezay Ossbowcray',atk:65,def:0,str:50,slot:'OffHand',rarity:'mythic'},
+{name:'Off-ay Onyxway Ossbowcray',atk:55,def:0,str:42,slot:'OffHand',rarity:'legendary'}
 ];
 
 function genDungeon(entranceX,entranceZ,depth,theme,bossType){
@@ -4084,10 +4437,10 @@ if(dx*dx+dz*dz>SD)c.castShadow=false;else c.castShadow=true}});};
 
 // === GEAR SYSTEM ===
 const gear={atk:10,def:5,str:8,name:'Starter'};
-const gearSlots=['Helm','Chest','Legs','Weapon','Shield','Boots','Gloves','Ring'];
+const gearSlots=['Helm','Chest','Legs','Weapon','Shield','Boots','Gloves','Ring','OffHand'];
 const equipped={};gearSlots.forEach(s=>equipped[s]={name:'None',atk:1,def:1,str:1});
 equipped.Weapon={name:'Arterstay Ordssway',atk:10,def:0,str:5};equipped.Shield={name:'Arterstay Ieldshay',atk:0,def:5,str:0};
-function totalGear(){let a=0,d=0,s=0;gearSlots.forEach(sl=>{a+=equipped[sl].atk;d+=equipped[sl].def;s+=equipped[sl].str});return{atk:a,def:d,str:s}}
+function totalGear(){let a=0,d=0,s=0;gearSlots.forEach(sl=>{if(equipped[sl]){a+=equipped[sl].atk;d+=equipped[sl].def;s+=equipped[sl].str}});return{atk:a,def:d,str:s}}
 
 function buildEnemy(type,lv){
 const g=new THREE.Group();const col=eCol[type]||0x888888;const mat=new MS({color:col,roughness:.7});const matD=new MS({color:col,roughness:.55,metalness:.2});const matLt=new MS({color:col,roughness:.6,metalness:.1});
@@ -4167,10 +4520,33 @@ if(s===1)g.userData.rArm=armGrp;
 else g.userData.lArm=armGrp;
 });
 } else {
-// Beast legs (4 legs)
-[[-1,1.5],[1,1.5],[-1,-1.5],[1,-1.5]].forEach(([sx,sz])=>{
-const leg=new THREE.Mesh(new THREE.CylinderGeometry(.3,.25,3,5),mat);leg.position.set(sx,1.5,sz);leg.castShadow=true;g.add(leg);
-const paw=new THREE.Mesh(new THREE.SphereGeometry(.3,5,5),matD);paw.position.set(sx,0,sz);g.add(paw)});
+// Beast legs - 4 animated legs for wolf/bear/spider
+const beastLegs=[];
+[[-1,1.5],[1,1.5],[-1,-1.5],[1,-1.5]].forEach(([sx,sz],idx)=>{
+const legGrp=new THREE.Group();legGrp.position.set(sx,1.5,sz);
+const upperLeg=new THREE.Mesh(new THREE.CylinderGeometry(.3,.25,1.5,5),mat);upperLeg.position.y=-.75;upperLeg.castShadow=true;legGrp.add(upperLeg);
+const kneeGrp=new THREE.Group();kneeGrp.position.y=-1.5;legGrp.add(kneeGrp);
+const lowerLeg=new THREE.Mesh(new THREE.CylinderGeometry(.25,.2,1.5,5),mat);lowerLeg.position.y=-.75;lowerLeg.castShadow=true;kneeGrp.add(lowerLeg);
+const paw=new THREE.Mesh(new THREE.SphereGeometry(.3,5,5),matD);paw.position.y=-1.5;kneeGrp.add(paw);
+g.add(legGrp);
+legGrp.userData.knee=kneeGrp;
+beastLegs.push(legGrp);
+});
+// Store leg references for animation (front left, front right, back left, back right)
+g.userData.lArm=beastLegs[0];// Front left leg treated as "left arm"
+g.userData.rArm=beastLegs[1];// Front right leg treated as "right arm"
+g.userData.lLeg=beastLegs[2];// Back left leg treated as "left leg"
+g.userData.rLeg=beastLegs[3];// Back right leg treated as "right leg"
+g.userData.lKnee=beastLegs[2].userData.knee;
+g.userData.rKnee=beastLegs[3].userData.knee;
+// Body center for breathing animation
+const bodyCenter=new THREE.Group();bodyCenter.position.y=3.5;g.add(bodyCenter);
+g.userData.bodyCenter=bodyCenter;
+// Head group for animation
+const headGroup=new THREE.Group();headGroup.position.set(0,4.5,2.5);g.add(headGroup);
+g.userData.headGroup=headGroup;
+// Animation state init
+g.userData.animState='idle';g.userData.animTime=0;
 }
 // === LEGS (humanoids) - Animated groups for walk/run cycles ===
 if(!isBeast){
@@ -4700,7 +5076,7 @@ if(lockOn.poi<=0){lockOn.hp-=Math.round(pDmg*.5);lockOn.poi=30;log('POISE BREAK!
 else{for(let i=enemies.length-1;i>=0;i--){let e=enemies[i],edx=e.mesh.position.x-player.x,edz=e.mesh.position.z-player.z;
 if(Math.hypot(edx,edz)<6){const eAng=Math.atan2(edx,edz);let ad=eAng-player.ang;while(ad>Math.PI)ad-=Math.PI*2;while(ad<-Math.PI)ad+=Math.PI*2;
 if(Math.abs(ad)<1.2&&calcHit(player,e)){e.hp-=pDmg;hitFX(e.mesh.position.x,e.mesh.position.y+6,e.mesh.position.z);log('Hit '+e.type+' for '+pDmg,'#ff8')}}}}}
-player.atkCD=Math.max(0,player.atkCD-1);if(player._parryCD)player._parryCD--;if(player._estusCD)player._estusCD--;
+player.atkCD=Math.max(0,player.atkCD-1);if(player._parryCD)player._parryCD--;if(player._estusCD)player._estusCD--;if(player._shootCD)player._shootCD--;
 // Update parry/block system
 updateParrySystem()
 
@@ -4759,13 +5135,55 @@ else{lootPromptEl.classList.remove('active')}
 
 for(let i=particles.length-1;i>=0;i--){let p=particles[i];
 // Enemy projectiles move straight (no gravity) and check player hit
-if(p.userData.dmg){p.position.x+=p.userData.vx;p.position.z+=p.userData.vz;p.userData.life--;
+if(p.userData.dmg&&!p.userData.type){
+p.position.x+=p.userData.vx;p.position.z+=p.userData.vz;p.userData.life--;
 const pd=Math.hypot(p.position.x-player.x,p.position.z-player.z);
 if(pd<4&&!player.rolling){const gd=totalGear();let blockMult=player.blocking?.65:.3;const blocked=Math.floor(gd.def*blockMult);const realDmg=Math.max(1,p.userData.dmg-blocked);
 player.hp-=realDmg;hitFX(player.x,player.y+8,player.z,0x8844ff);
 if(player.blocking)log(`BLOCKED projectile! -${realDmg}`,'#48f');else log(`Hit by projectile! -${realDmg}`,'#f44');
 p.userData.life=0}
 if(p.userData.life<=0){scene.remove(p);particles.splice(i,1)}}
+// Player projectiles (arrows and spells) with gravity and enemy collision
+else if(p.userData.type==='arrow'||p.userData.type==='spell'){
+// Move with velocity and gravity
+p.position.x+=p.userData.vx;p.position.z+=p.userData.vz;
+p.position.y+=p.userData.vy;p.userData.vy-=p.userData.gravity;
+// Orient arrow to face direction
+if(p.userData.type==='arrow'){
+const speed=Math.hypot(p.userData.vx,p.userData.vz);
+if(speed>0.01){p.rotation.z=-Math.atan2(p.userData.vy,speed);}}
+p.userData.life--;
+// Ground collision
+const groundH=meshTerrainH(p.position.x,p.position.z);
+if(p.position.y<=groundH+0.5){
+// Hit ground - stick for a moment then disappear
+if(p.userData.type==='arrow'){
+// Chance to retrieve arrow (50%)
+if(Math.random()<0.5&&p.userData.life>5){
+// Spawn retrievable arrow
+const arrowLoot=makeLootMesh(0xaa8855,0.4);
+arrowLoot.position.copy(p.position);arrowLoot.position.y=groundH+1;
+arrowLoot.userData={item:'Single Arrow',life:3000,settled:true,uid:null};
+scene.add(arrowLoot);lootArr.push(arrowLoot);}
+p.userData.life=Math.min(p.userData.life,15);p.position.y=groundH+0.3;}
+else{p.userData.life=0;}}
+// Enemy collision check
+for(const e of enemies){
+const ex=e.mesh.position.x,ey=e.mesh.position.y+6,ez=e.mesh.position.z;
+const dist=Math.hypot(p.position.x-ex,p.position.y-ey,p.position.z-ez);
+if(dist<4&&e.hp>0){
+// Hit enemy
+const dmg=p.userData.dmg||15;
+e.hp-=dmg;e.poi-=10;hitFX(ex,ey,ez,0xff4400);
+log((p.userData.type==='arrow'?'Arrow':'Spell')+' hit '+e.type+'! -'+dmg,'#8a4');
+p.userData.life=0;break;}}
+// Remove if life expired
+if(p.userData.life<=0){scene.remove(p);particles.splice(i,1);}}
+// Trail particles for spells
+else if(p.userData.trail){
+p.userData.life--;
+if(p.userData.life<=0){scene.remove(p);particles.splice(i,1);}}
+// Physics particles
 else{p.position.x+=p.userData.vx*.14;p.position.y+=p.userData.vy*.14;p.position.z+=p.userData.vz*.14;p.userData.vy-=.5;p.userData.life--;p.scale.setScalar(Math.max(0,p.userData.life/22));if(p.userData.life<=0){scene.remove(p);particles.splice(i,1)}}}
 
 // Animate torch meshes + assign 8 nearest PointLights
@@ -4784,17 +5202,35 @@ else if(nR){skills.Fishing.xp+=22;hitFX(player.x,player.y+8,player.z,0x2288ff);l
 // XP bar update function (for immediate updates)
 // Uses proper OSRS-style combat level formula
 function updateXpBar(){
-// Calculate current combat level using OSRS formula base
-const baseLvl=Math.floor((skills.Attack.lvl+skills.Strength.lvl+skills.Defence.lvl+skills.Hitpoints.lvl+skills.Prayer.lvl+skills.Magic.lvl+skills.Ranged.lvl)/4);
-// XP needed for each individual level: Lv = 1 + sqrt(XP/50)
-// So XP needed for level L = (L-1)^2 * 50
-// For combat level, we need the sum of all combat skill XP
+// Check if combat skills need to level up (when XP exceeds threshold)
+const cmbSkills=['Attack','Strength','Defence','Hitpoints','Prayer','Magic','Ranged'];
+let leveledUp=false;
+let combatLeveledUp=false;
+// Store old combat level before checking individual skills
+const oldBaseLvl=Math.floor((skills.Attack.lvl+skills.Strength.lvl+skills.Defence.lvl+skills.Hitpoints.lvl+skills.Prayer.lvl+skills.Magic.lvl+skills.Ranged.lvl)/4);
+for(const skName of cmbSkills){
+const sk=skills[skName];
+// Calculate the actual level this skill should be at based on its XP
+// Formula: Level = 1 + sqrt(XP/50)
+const calculatedLvl=Math.min(99,Math.floor(1+Math.sqrt(sk.xp/50)));
+if(calculatedLvl>sk.lvl){
+const oldLvl=sk.lvl;
+sk.lvl=calculatedLvl;
+leveledUp=true;
+log(skName+' leveled up to '+sk.lvl+'!','#ff0');
+}
+}
+// Check if combat level increased
+const newBaseLvl=Math.floor((skills.Attack.lvl+skills.Strength.lvl+skills.Defence.lvl+skills.Hitpoints.lvl+skills.Prayer.lvl+skills.Magic.lvl+skills.Ranged.lvl)/4);
+if(newBaseLvl>oldBaseLvl){
+combatLeveledUp=true;
+log('Combat Level Up! Now Lv '+newBaseLvl,'#ffd700');
+}
+if(leveledUp||combatLeveledUp)updateSkillUI();
+// Total combat XP is sum of all combat skill XP
 const totalCmbXp=skills.Attack.xp+skills.Strength.xp+skills.Defence.xp+skills.Hitpoints.xp+skills.Prayer.xp+skills.Magic.xp+skills.Ranged.xp;
-// XP needed for current combat level (approximate based on sum of skill XP)
-// Combat level CL requires average skill level of CL*4/7
-// So each skill needs to be about (CL*4/7) which requires XP = ((CL*4/7)-1)^2 * 50
-// Total XP for 7 skills = 7 * ((CL*4/7)-1)^2 * 50
-const curCL=Math.max(1,baseLvl);
+// XP needed for current combat level
+const curCL=Math.max(1,newBaseLvl);
 const curAvgSkill=(curCL*4)/7;
 const curSkillXpNeeded=Math.pow(Math.max(1,curAvgSkill-1),2)*50;
 const curTotalXpNeeded=curSkillXpNeeded*7;
@@ -4803,16 +5239,19 @@ const nxtCL=curCL+1;
 const nxtAvgSkill=(nxtCL*4)/7;
 const nxtSkillXpNeeded=Math.pow(Math.max(1,nxtAvgSkill-1),2)*50;
 const nxtTotalXpNeeded=nxtSkillXpNeeded*7;
-// Calculate progress
-const xpInCurrentLevel=Math.max(0,totalCmbXp-curTotalXpNeeded);
-const xpNeededForNext=Math.max(1,nxtTotalXpNeeded-curTotalXpNeeded);
-const pct=Math.min(100,Math.max(0,xpInCurrentLevel/xpNeededForNext*100));
+// Calculate progress to next level
+let xpInCurrentLevel=Math.max(0,totalCmbXp-curTotalXpNeeded);
+let xpNeededForNext=Math.max(1,nxtTotalXpNeeded-curTotalXpNeeded);
+// Calculate percentage
+let pct=Math.min(100,Math.max(0,xpInCurrentLevel/xpNeededForNext*100));
+// If we're at 100% or more, force level up check for next iteration
+if(pct>=99.9&&curCL<99){pct=100;}
 // Update display
 const xpFill=document.getElementById('xp-bar-fill');const xpText=document.getElementById('xp-bar-text');
 if(xpFill)xpFill.style.width=pct+'%';
 if(xpText){const displayHave=Math.floor(xpInCurrentLevel);const displayNeed=Math.floor(xpNeededForNext);xpText.textContent='Combat Lv '+curCL+' ('+Math.floor(pct)+'%) - '+displayHave+'/'+displayNeed+' XP'}}
 
-skillDefs.forEach(s=>{const sk=skills[s];const newLvl=Math.min(99,Math.max(1,Math.floor(1+Math.sqrt(sk.xp/50))));if(newLvl>sk.lvl){sk.lvl=newLvl;log(`${s} leveled up to ${newLvl}!`,'#ff0')}});
+// Periodic UI updates (no level checks - handled in updateXpBar)
 if(time*60%30<1){updateSkillUI();updateEqUI();
 document.getElementById('orb-hp').textContent=Math.max(0,~~player.hp);
 document.getElementById('orb-pray').textContent=skills.Prayer.lvl;
@@ -4829,6 +5268,7 @@ if(a==='attack')cd=player.atkCD>0;
 else if(a==='heal')cd=player._estusCD>0;
 else if(a==='parry')cd=player._parryCD>0;
 else if(a==='roll')cd=player.rolling;
+else if(a==='shoot')cd=player._shootCD>0;
 if(cd)s.classList.add('on-cd');else s.classList.remove('on-cd')});
 drawMinimap()}
 
@@ -4852,17 +5292,19 @@ if(k==='f'&&gameStarted){e.preventDefault();toggleLock()}
 if(k==='i'){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));document.querySelector('[data-tab="inventory"]').classList.add('active');document.getElementById('tp-inventory').classList.add('active')}
 if(k==='k'){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));document.querySelector('[data-tab="skills"]').classList.add('active');document.getElementById('tp-skills').classList.add('active')}
 if(k==='f5'){e.preventDefault();if(gameStarted)saveGame()}
-if(k==='2'&&!player._parryCD){doParry()}
-if(k==='3'&&!player._estusCD){const heal=Math.round(player.maxHp*.3);player.hp=Math.min(player.hp+heal,player.maxHp);log('Used Estus Flask: +'+heal+' HP','#0f0');player._estusCD=90}
-if(k==='4'){// Use first skill item from inventory
-let usedItem=false;
-for(let si=0;si<inventory.length;si++){const raw=inventory[si];const itm=typeof raw==='string'?raw:raw.name;if(skillItems[itm]){const sk=skillItems[itm];
-inventory.splice(si,1);updateInvUI();
-skills[sk.skill].xp+=sk.xp;
-const oldLv=skills[sk.skill].lvl;const newLv=Math.max(oldLv,Math.floor(sk.xp>0?1+Math.sqrt(skills[sk.skill].xp/50):1));
-if(newLv>oldLv){skills[sk.skill].lvl=newLv;log(sk.skill+' level up! Now '+newLv,'#ff0')}
-log('Used '+itm+': '+sk.skill+' +'+sk.xp+'xp','#cc4');updateSkillUI();updateXpBar();usedItem=true;break}}
-if(!usedItem)log('No usable skill items in inventory','#887')}
+// Action bar hotkeys 1-5 - execute assigned abilities
+if(k==='1'||k==='2'||k==='3'||k==='4'||k==='5'){
+const slotIdx=parseInt(k)-1;// Convert '1' to slot 0, '2' to slot 1, etc.
+if(typeof abAssign!=='undefined'&&abAssign[slotIdx]){
+const abilityId=abAssign[slotIdx];
+if(abilityId&&typeof execAbility==='function'){execAbility(abilityId);}}}
+// Legacy hardcoded keys for backwards compatibility (only if slot not assigned)
+if(k==='2'&&!player._parryCD&&(!abAssign[1]||abAssign[1]==='parry')){doParry()}
+if(k==='3'&&!player._estusCD&&(!abAssign[2]||abAssign[2]==='heal')){const heal=Math.round(player.maxHp*.3);player.hp=Math.min(player.hp+heal,player.maxHp);log('Used Estus Flask: +'+heal+' HP','#0f0');player._estusCD=90}
+// Key 4 now defaults to shoot if not assigned
+if(k==='4'&&(!abAssign[3]||abAssign[3]==='bones')){
+if(typeof player!=='undefined'&&!player._shootCD){player._shootCD=40;shootProjectile('arrow',12+skills.Ranged.lvl);log('Shot arrow!','#8a4');}
+else if(player._shootCD){log('Arrow on cooldown','#887');}}
 if(k==='l'){autoLoot=!autoLoot;log('Auto-Loot: '+(autoLoot?'ON — items picked up automatically':'OFF — press E near items to pick up'),'#ffd700')}
 if(k==='q'){e.preventDefault();document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));document.querySelector('[data-tab="prayer"]').classList.add('active');document.getElementById('tp-prayer').classList.add('active')}
 if(k==='t'&&gameStarted){e.preventDefault();showTeleport=!showTeleport;
@@ -4891,10 +5333,25 @@ const tp=document.getElementById('teleport-menu');if(tp&&showTeleport){showTelep
 const em=document.getElementById('esc-menu');em.classList.toggle('active');
 if(em.classList.contains('active'))e.preventDefault()}
 if(k==='g'&&gameStarted){e.preventDefault();const nT=Math.hypot(player.x+100,player.z-50)<50;const nR=Math.hypot(player.x+70,player.z+80)<40;const nM=Math.hypot(player.x-300,player.z+100)<60;
+// Check for nearby harvestable plants first
+let harvested=false;
+if(typeof harvestablePlants!=='undefined'){
+for(const p of harvestablePlants){if(Math.hypot(player.x-p.x,player.z-p.z)<10){
+// Harvest the plant
+if(inventory.length<28){inventory.push({name:p.item,uid:null});updateInvUI();}
+const sk=skillItems[p.item]||{skill:'Farming',xp:10};
+skills.Farming.xp+=sk.xp;updateXpBar();
+hitFX(player.x,player.y+8,player.z,0x44aa22);
+log('Harvested '+p.item+' +'+sk.xp+' Farming XP','#6a4');
+// Remove plant temporarily (will respawn)
+if(p.mesh){p.mesh.visible=false;}
+setTimeout(()=>{if(p.mesh)p.mesh.visible=true;},p.respawn*1000);
+harvested=true;break;}}}
+if(!harvested){
 if(nT){skills.Woodcutting.xp+=18;updateXpBar();log('Woodcutting +18xp','#6a4')}
 else if(nR){skills.Fishing.xp+=22;updateXpBar();log('Fishing +22xp','#48f')}
 else if(nM){skills.Mining.xp+=20;updateXpBar();log('Mining +20xp','#a86')}
-else log('Nothing to gather here','#887')}
+else log('Nothing to gather here','#887')}}
 });
 // === ESC MENU LOGIC ===
 {
@@ -5016,7 +5473,7 @@ setInterval(()=>{if(gameStarted&&!player.dead)saveGame()},30000);
 
 // === MENU & OPTIONS LOGIC ===
 const gameOpts={blood:true,particles:true,flipy:1,flipx:1,sens:5,bloom:true,bright:1.15};
-const classStats={warrior:{hp:160,sta:110,poi:60},knight:{hp:180,sta:90,poi:68},sorcerer:{hp:100,sta:80,poi:140},deprived:{hp:80,sta:80,poi:80}};
+const classStats={warrior:{hp:160,sta:110,poi:60},knight:{hp:180,sta:90,poi:68},sorcerer:{hp:100,sta:80,poi:140},deprived:{hp:80,sta:80,poi:80},ranger:{hp:120,sta:100,poi:90}};
 let gameStarted=false;
 
 function startGame(isLoad){
@@ -5055,7 +5512,7 @@ const cls=el.dataset.c,s=classStats[cls];
 playerClass=cls;
 player.hp=s.hp;player.maxHp=s.hp;player.sta=s.sta;player.maxSta=s.sta;player.poi=s.poi;player.maxPoi=s.poi;
 document.getElementById('hpT').textContent=s.hp+'/'+s.hp;document.getElementById('stT').textContent=s.sta+'/'+s.sta;document.getElementById('poT').textContent=s.poi+'/'+s.poi;
-const classIcons={warrior:'\u2694',knight:'\u2694',sorcerer:'\u2728',deprived:'\uD83D\uDC64'};
+const classIcons={warrior:'\u2694',knight:'\u2694',sorcerer:'\u2728',deprived:'\uD83D\uDC64',ranger:'\uD83C\uDFF9'};
 document.getElementById('pf-name').textContent=cls.charAt(0).toUpperCase()+cls.slice(1);
 document.getElementById('pf-portrait').textContent=classIcons[cls]||'\u2694';
 // Set starting equipment per class
@@ -5077,6 +5534,11 @@ equipped.Gloves=none;equipped.Shield=none;
 equipped.Weapon={name:'Staff of Air',atk:12,def:3,str:0};equipped.Ring=none;
 }else if(cls==='deprived'){
 gearSlots.forEach(s=>equipped[s]=none);
+}else if(cls==='ranger'){
+equipped.Helm=none;equipped.Chest={name:'Leather Body',atk:0,def:6,str:1};
+equipped.Legs={name:'Leather Chaps',atk:0,def:5,str:1};equipped.Boots={name:'Leather Boots',atk:0,def:2,str:0};
+equipped.Gloves={name:'Leather Vambraces',atk:2,def:2,str:1};equipped.Shield=none;
+equipped.Weapon={name:'Maple Shortbow',atk:15,def:0,str:0};equipped.Ring=none;
 }
 setTimeout(()=>{startGame(false)},500)}));
 
