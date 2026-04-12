@@ -416,7 +416,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div id="ability-browser"><div id="ab-header"><h3>ABILITIES &amp; ACTIONS</h3><span id="ab-close">&times;</span></div><div id="ab-cats"></div><div id="ab-list"></div><div id="ab-hint">Drag an ability onto an action bar slot to assign it. Press P to close.</div></div>
 
 <!-- === SPELL BOOK === -->
-<div id="spell-book"><div id="sb-header"><h3>SPELL BOOK</h3><span id="sb-close">&times;</span></div><div id="sb-cats"></div><div id="sb-list"></div><div id="sb-hint">Drag a spell onto an action bar slot to assign it. Press S to close.</div></div>
+<div id="spell-book"><div id="sb-header"><h3>SPELL BOOK</h3><span id="sb-close">&times;</span></div><div id="sb-cats"></div><div id="sb-list"></div><div id="sb-hint">Drag a spell onto an action bar slot to assign it. Press F1 to close.</div></div>
 
 <!-- === ESC PAUSE / OPTIONS MENU === -->
 <div id="esc-menu">
@@ -468,7 +468,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="ctrl-entry"><span class="ctrl-desc">Teleport Menu</span><span class="ctrl-key">T</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Dungeon / Gauntlet</span><span class="ctrl-key">U</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Ability Browser</span><span class="ctrl-key">P</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Spell Book</span><span class="ctrl-key">S</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Spell Book</span><span class="ctrl-key">F1</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Options Menu</span><span class="ctrl-key">ESC</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Quick Save</span><span class="ctrl-key">F5</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Prayer</span><span class="ctrl-key">5</span></div>
@@ -2054,6 +2054,29 @@ const tDH=new THREE.Mesh(new THREE.SphereGeometry(.2*s,5,5),mt.gold);tDH.positio
 for(let bi=0;bi<2;bi++){const bb=new THREE.Mesh(new THREE.BoxGeometry(tDoorW-.3*s,.2*s,.35*s),mt.armorDk);bb.position.set(tDoorW/2,tDoorH*.25+bi*tDoorH*.35,0);tDoorPivot.add(bb)}
 g.add(tDoorPivot);
 doors.push({pivot:tDoorPivot,x:x,z:z+tR,openAng:-Math.PI/2,cur:0})}
+// INTERIOR: Hollow space and spiral stairs
+const innerR=topR*0.6; // Interior radius
+const floorY=4*s;
+// Ground floor
+const floor0=new THREE.Mesh(new THREE.CylinderGeometry(innerR,innerR,.5*s,nSides),new MS({color:0x4a3a2a,roughness:.9}));floor0.position.y=floorY;g.add(floor0);
+// Upper floors every 10 units
+const nFloors=Math.floor(bodyH/10);
+for(let fl=1;fl<nFloors;fl++){
+const flY=floorY+fl*10*s;
+const flMesh=new THREE.Mesh(new THREE.CylinderGeometry(innerR*.9,innerR*.9,.5*s,nSides),new MS({color:0x4a3a2a,roughness:.9}));flMesh.position.y=flY;g.add(flMesh);
+// Floor hole in center for stairs
+const hole=new THREE.Mesh(new THREE.CylinderGeometry(innerR*.3,innerR*.3,.6*s,nSides),new MS({color:0x2a1a0a,roughness:1}));hole.position.y=flY;g.add(hole)}
+// Spiral staircase
+const stairR=innerR*.7;const nSteps=Math.floor(bodyH/2);
+for(let i=0;i<nSteps;i++){
+const ang=i*0.5;const sy=floorY+i*2*s;
+const step=new THREE.Mesh(new THREE.BoxGeometry(2*s,.4*s,1*s),new MS({color:0x5a4a3a,roughness:.85}));
+step.position.set(Math.cos(ang)*stairR,sy,Math.sin(ang)*stairR);step.rotation.y=ang;g.add(step);
+// Step support
+const sup=new THREE.Mesh(new THREE.BoxGeometry(.3*s,sy,.3*s),new MS({color:0x4a3a2a,roughness:.9}));
+sup.position.set(Math.cos(ang)*stairR,sy/2,Math.sin(ang)*stairR);g.add(sup)}
+// Central stair pole
+const pole=new THREE.Mesh(new THREE.CylinderGeometry(.3*s,.3*s,bodyH,nSides),new MS({color:0x3a2a1a,roughness:.9}));pole.position.y=bodyH/2+floorY;g.add(pole)
 // Torch
 const fm=new THREE.Mesh(new THREE.SphereGeometry(1.2,6,6),mt.fl);fm.position.y=bodyH*.8;g.add(fm);
 g.position.set(x,h,z);scene.add(g);
@@ -2249,29 +2272,29 @@ function markPlace(bx,bz,rad){cityFootprints.push({x:bx,z:bz,r:rad})}
 
 // ========== LUMBRIDGE (0,0) — minimal hand-placed, procCity handles bulk ==========
 gothicArch(0,10,0,1.2);markPlace(0,10,12);bonfire(0,5);
-cathedral(120,80,-.3,.8);markPlace(120,80,60);grandStairs(120,110,-.3,8,8,.8);
+cathedral(120,80,-.3,.8);markPlace(120,80,60);makeEnterable(120,80,'cathedral','Lumbridge Cathedral');
 torch(30,20);torch(55,35);torch(0,-40);
 
 // ========== VARROCK (550,50) ==========
-cathedral(555,50,0,1.2);markPlace(555,50,70);grandStairs(555,82,0,10,12,1);bonfire(555,50);
+cathedral(555,50,0,1.2);markPlace(555,50,70);bonfire(555,50);makeEnterable(555,50,'cathedral','Varrock Cathedral');
 torch(490,90);torch(620,10);
 
 // ========== WILDERNESS (0,-650) ==========
 for(let i=0;i<5;i++){const rx=(Math.random()-.5)*300,rz=-550-Math.random()*200;if(canPlace(rx,rz,20)){ruin(rx,rz);markPlace(rx,rz,20)}}
 for(let i=0;i<3;i++){const lx=(Math.random()-.5)*200,lz=-600-Math.random()*150;const lv=new THREE.Mesh(new THREE.CircleGeometry(6+Math.random()*8,8),mt.lava);lv.rotation.x=-Math.PI/2;lv.position.set(lx,meshTerrainH(lx,lz)+.5,lz);scene.add(lv);torchPositions.push({x:lx,y:meshTerrainH(lx,lz)+4,z:lz,mesh:lv,ph:Math.random()*6.28,big:true,col:0xff4400})}
-tower(-45,-580,1.5);markPlace(-45,-580,28);tower(55,-580,1.5);markPlace(55,-580,28);
+tower(-45,-580,1.5);markPlace(-45,-580,28);makeEnterable(-45,-580,'tower','Wilderness Tower');tower(55,-580,1.5);markPlace(55,-580,28);makeEnterable(55,-580,'tower','Wilderness Tower');
 
 // ========== AL KHARID (580,400) ==========
-tower(525,350,1.2);markPlace(525,350,28);tower(640,450,1.2);markPlace(640,450,28);bonfire(580,400);
+tower(525,350,1.2);markPlace(525,350,28);makeEnterable(525,350,'tower','Al Kharid Tower');tower(640,450,1.2);markPlace(640,450,28);makeEnterable(640,450,'tower','Al Kharid Tower');bonfire(580,400);
 
 // ========== FALADOR (-480,280) ==========
-cathedral(-480,280,Math.PI/2,1);markPlace(-480,280,60);grandStairs(-480,310,0,8,10,.9);bonfire(-480,260);
+cathedral(-480,280,Math.PI/2,1);markPlace(-480,280,60);bonfire(-480,260);makeEnterable(-480,280,'cathedral','Falador Cathedral');
 
 // ========== BARBARIAN VILLAGE (280,-250) ==========
 hut(260,-240,.3,1.2);markPlace(260,-240,24);hut(300,-260,-.5,1);markPlace(300,-260,20);bonfire(280,-250);
 
 // ========== DRAYNOR (-300,-150) ==========
-hut(-320,-160,1,.8);markPlace(-320,-160,20);hut(-280,-180,-.5,.9);markPlace(-280,-180,20);tower(-315,-100,1.2);markPlace(-315,-100,28);bonfire(-300,-150);
+hut(-320,-160,1,.8);markPlace(-320,-160,20);hut(-280,-180,-.5,.9);markPlace(-280,-180,20);tower(-315,-100,1.2);markPlace(-315,-100,28);makeEnterable(-315,-100,'tower','Draynor Tower');bonfire(-300,-150);
 
 // ========== PORT SARIM (-160,480) ==========
 hut(-190,460,.5,1);markPlace(-190,460,20);hut(-150,470,.8,1);markPlace(-150,470,20);bridge(-160,420,0,40);
@@ -2288,41 +2311,41 @@ hut(-520,-390,.3,.9);markPlace(-520,-390,20);hut(-505,-395,-.5,.9);markPlace(-50
 cathedral(-1200,100,0,1);markPlace(-1200,100,60);bonfire(-1200,100);torch(-1250,100);torch(-1150,100);
 
 // ========== CANIFIS (1300,-200) ==========
-hut(1270,-210,.3,.8);markPlace(1270,-210,20);hut(1330,-205,-.4,.8);markPlace(1330,-205,20);tower(1340,-180,1.2);markPlace(1340,-180,28);bonfire(1300,-200);
+hut(1270,-210,.3,.8);markPlace(1270,-210,20);hut(1330,-205,-.4,.8);markPlace(1330,-205,20);tower(1340,-180,1.2);markPlace(1340,-180,28);makeEnterable(1340,-180,'tower','Canifis Tower');bonfire(1300,-200);
 
 // ========== MORYTANIA (1600,-400) ==========
 for(let i=0;i<3;i++){const rx=1550+Math.random()*100,rz=-450+Math.random()*80;if(canPlace(rx,rz,20)){ruin(rx,rz);markPlace(rx,rz,20)}}
-tower(1600,-400,1.5);markPlace(1600,-400,28);bonfire(1600,-400);
+tower(1600,-400,1.5);markPlace(1600,-400,28);makeEnterable(1600,-400,'tower','Morytania Tower');bonfire(1600,-400);
 
 // ========== KARAMJA (-200,1800) ==========
 hut(-230,1790,.3,1);markPlace(-230,1790,20);hut(-170,1810,-.5,1);markPlace(-170,1810,20);bonfire(-200,1800);
 
 // ========== TROLLHEIM (-200,-3500) ==========
 for(let i=0;i<3;i++){const rx=-250+Math.random()*100,rz=-3530+Math.random()*60;if(canPlace(rx,rz,20)){ruin(rx,rz);markPlace(rx,rz,20)}}
-tower(-200,-3480,1.5);markPlace(-200,-3480,28);bonfire(-200,-3500);
+tower(-200,-3480,1.5);markPlace(-200,-3480,28);makeEnterable(-200,-3480,'tower','Trollheim Tower');bonfire(-200,-3500);
 
 // ========== GOD WARS (0,-4500) ==========
 for(let i=0;i<4;i++){const rx=-100+Math.random()*200,rz=-4550+Math.random()*100;if(canPlace(rx,rz,20)){ruin(rx,rz);markPlace(rx,rz,20)}}
-tower(-50,-4500,2.5);markPlace(-50,-4500,36);tower(50,-4500,2.5);markPlace(50,-4500,36);
+tower(-50,-4500,2.5);markPlace(-50,-4500,36);makeEnterable(-50,-4500,'tower','God Wars Tower (Saradomin)');tower(50,-4500,2.5);markPlace(50,-4500,36);makeEnterable(50,-4500,'tower','God Wars Tower (Zamorak)');
 
 // ========== DEEP WILDERNESS (0,-1800) ==========
 for(let i=0;i<5;i++){const rx=-200+Math.random()*400,rz=-1900+Math.random()*200;if(canPlace(rx,rz,20)){ruin(rx,rz);markPlace(rx,rz,20)}}
 
 // ========== SEERS VILLAGE (-800,-100) ==========
-hut(-840,-110,.3,1);markPlace(-840,-110,20);hut(-770,-100,-.5,1);markPlace(-770,-100,20);tower(-820,-80,1.2);markPlace(-820,-80,28);bonfire(-800,-100);
+hut(-840,-110,.3,1);markPlace(-840,-110,20);hut(-770,-100,-.5,1);markPlace(-770,-100,20);tower(-820,-80,1.2);markPlace(-820,-80,28);makeEnterable(-820,-80,'tower','Seers Tower');bonfire(-800,-100);
 
 // ========== RELLEKKA (-400,-3800) ==========
 hut(-440,-3810,.3,1.2);markPlace(-440,-3810,24);hut(-370,-3800,-.5,1.2);markPlace(-370,-3800,24);bonfire(-400,-3800);
 
 // ========== KELDAGRIM (-800,-3200) ==========
-tower(-855,-3230,2);markPlace(-855,-3230,36);tower(-740,-3230,2);markPlace(-740,-3230,36);bonfire(-800,-3200);cave(-820,-3250,.2);
+tower(-855,-3230,2);markPlace(-855,-3230,36);makeEnterable(-855,-3230,'tower','Keldagrim East Tower');tower(-740,-3230,2);markPlace(-740,-3230,36);makeEnterable(-740,-3230,'tower','Keldagrim West Tower');bonfire(-800,-3200);cave(-820,-3250,.2);
 
 // ========== PRIFDDINAS (-4000,-300) ==========
-cathedral(-4000,-300,0,1.5);markPlace(-4000,-300,70);grandStairs(-4000,-262,0,14,14,1.2);bonfire(-4000,-300);
+cathedral(-4000,-300,0,1.5);markPlace(-4000,-300,70);bonfire(-4000,-300);makeEnterable(-4000,-300,'cathedral','Prifddinas Cathedral');
 
 // ========== TZHAAR CITY (1800,1200) ==========
 for(let i=0;i<3;i++){const lx=1760+Math.random()*80,lz=1160+Math.random()*80;const lv=new THREE.Mesh(new THREE.CircleGeometry(5,8),mt.lava);lv.rotation.x=-Math.PI/2;lv.position.set(lx,meshTerrainH(lx,lz)+.5,lz);scene.add(lv);torchPositions.push({x:lx,y:meshTerrainH(lx,lz)+3,z:lz,mesh:lv,ph:Math.random()*6.28,big:true,col:0xff3300})}
-tower(1800,1200,1.8);markPlace(1800,1200,32);cave(1810,1180,.2);bonfire(1800,1200);
+tower(1800,1200,1.8);markPlace(1800,1200,32);makeEnterable(1800,1200,'tower','TzHaar Tower');cave(1810,1180,.2);bonfire(1800,1200);
 
 // === BRIDGES over rivers ===
 bridge(220,0,Math.PI/2,32);bridge(220,100,Math.PI/2,32);bridge(220,-100,Math.PI/2,32);
@@ -2496,26 +2519,69 @@ const m2=m1.clone();m2.position.z=-keepD/2;g.add(m2)}
 for(let i=0;i<8;i++){const bz=-keepD/2+i*keepD/7;
 const m1=new THREE.Mesh(new THREE.BoxGeometry(3*sc,5*sc,3*sc),mt.stD);m1.position.set(keepW/2,keepH+4.5*sc,bz);g.add(m1);
 const m2=m1.clone();m2.position.x=-keepW/2;g.add(m2)}
+// Keep interior - floors and spiral stairs
+const keepInnerW=keepW*.6,keepInnerD=keepD*.6;
+for(let kl=1;kl<4;kl++){
+const kflY=kl*20*sc;
+const kFloor=new THREE.Mesh(new THREE.BoxGeometry(keepInnerW,1*sc,keepInnerD),new MS({color:0x4a3a2a,roughness:.9}));
+kFloor.position.set(0,kflY,0);g.add(kFloor);
+// Floor hole for stairs
+const kHole=new THREE.Mesh(new THREE.BoxGeometry(keepInnerW*.3,1.2*sc,keepInnerD*.3),new MS({color:0x2a1a0a,roughness:1}));
+kHole.position.set(0,kflY,0);g.add(kHole)}
+// Spiral stairs in keep
+const kStairR=Math.min(keepInnerW,keepInnerD)*.35;
+const kNSteps=Math.floor(keepH/3);
+for(let ks=0;ks<kNSteps;ks++){
+const kang=ks*0.4;const ksy=5*sc+ks*3*sc;
+const kstep=new THREE.Mesh(new THREE.BoxGeometry(2*sc,.5*sc,1*sc),new MS({color:0x5a4a3a,roughness:.85}));
+kstep.position.set(Math.cos(kang)*kStairR,ksy,Math.sin(kang)*kStairR);kstep.rotation.y=kang;g.add(kstep)}
 // Keep windows (rows of tall gothic windows)
 for(let lv=0;lv<3;lv++){for(let i=0;i<6;i++){const wx=-keepW/2+keepW/(6+1)*(i+1);
 const win=new THREE.Mesh(new THREE.BoxGeometry(2*sc,8*sc,.5),new MS({color:0x1a2a4a,emissive:0x0a1a3a,emissiveIntensity:.6,transparent:true,opacity:.5}));
 win.position.set(wx,20*sc+lv*22*sc,keepD/2+.5);g.add(win);
 const wFrame=new THREE.Mesh(new THREE.BoxGeometry(3*sc,9*sc,.3),mt.stD);wFrame.position.set(wx,20*sc+lv*22*sc,keepD/2+.7);g.add(wFrame)}}
-// --- GATEHOUSE (front entrance with portcullis) ---
+// --- GATEHOUSE (front entrance with working portcullis) ---
 const ghW=20*sc,ghH=35*sc,ghD=14*sc;
 const ghL=new THREE.Mesh(new THREE.BoxGeometry(ghW/2-3*sc,ghH,ghD),mt.stGoth);ghL.position.set(-ghW/4-1.5*sc,ghH/2,wallR);ghL.castShadow=true;g.add(ghL);
 const ghR=ghL.clone();ghR.position.x=ghW/4+1.5*sc;g.add(ghR);
 // Portcullis arch
 const ghArch=new THREE.Mesh(new THREE.BoxGeometry(7*sc,4*sc,ghD),mt.stD);ghArch.position.set(0,ghH-2*sc,wallR);g.add(ghArch);
+// Working portcullis (iron gate that can be opened)
+const portW=6*sc,portH=10*sc;
+const portcullis=new THREE.Group();portcullis.position.set(0,portH/2,wallR);
+// Portcullis grid
+for(let pi=0;pi<5;pi++){
+const vBar=new THREE.Mesh(new THREE.BoxGeometry(.3*sc,portH,.3*sc),mt.iron);vBar.position.set((pi-2)*1.2*sc,0,0);portcullis.add(vBar);
+const hBar=new THREE.Mesh(new THREE.BoxGeometry(portW,.3*sc,.3*sc),mt.iron);hBar.position.set(0,(pi-2)*2*sc-portH*.2,0);portcullis.add(hBar)}
+// Portcullis frame
+const pFrame=new THREE.Mesh(new THREE.BoxGeometry(portW+.5*sc,.5*sc,.5*sc),mt.iron);pFrame.position.set(0,portH/2+.2*sc,0);portcullis.add(pFrame);
+g.add(portcullis);
+// Door entry for interaction
+const cDoorW=5*sc,cDoorH=8*sc;
+const cDoorPivot=new THREE.Group();cDoorPivot.position.set(-cDoorW/2,0,wallR);
+const cDoorPanel=new THREE.Mesh(new THREE.BoxGeometry(cDoorW,cDoorH,.3*s),new MS({color:0x3a2818,roughness:.85}));cDoorPanel.position.set(cDoorW/2,cDoorH/2,0);cDoorPanel.castShadow=true;cDoorPivot.add(cDoorPanel);
+g.add(cDoorPivot);
+doors.push({pivot:cDoorPivot,x:cx,z:cz+wallR,openAng:-Math.PI/2,cur:0});
 // Gatehouse towers
 [-1,1].forEach(s=>{const gt=new THREE.Mesh(new THREE.CylinderGeometry(7*sc,8*sc,ghH+10*sc,10),mt.stGoth);
 gt.position.set(s*12*sc,(ghH+10*sc)/2,wallR);gt.castShadow=true;g.add(gt);
 const gtRoof=new THREE.Mesh(new THREE.ConeGeometry(9*sc,14*sc,10),mt.rfSlate);gtRoof.position.set(s*12*sc,ghH+12*sc,wallR);g.add(gtRoof)});
 // --- INNER COURTYARD FEATURES ---
-// Great hall
+// Great hall with interior
 const hallW=36*sc,hallH=30*sc,hallD=60*sc;
 const hall=new THREE.Mesh(new THREE.BoxGeometry(hallW,hallH,hallD),mt.stD);hall.position.set(0,hallH/2,-30*sc);hall.castShadow=true;g.add(hall);
 const hallRoof=new THREE.Mesh(new THREE.BoxGeometry(hallW+4*sc,3*sc,hallD+4*sc),mt.rfSlate);hallRoof.position.set(0,hallH+1.5*sc,-30*sc);g.add(hallRoof);
+// Hall door
+const hDoorW=6*sc,hDoorH=8*sc;
+const hDoorPivot=new THREE.Group();hDoorPivot.position.set(-hDoorW/2,0,-.5);
+const hDoorPanel=new THREE.Mesh(new THREE.BoxGeometry(hDoorW,hDoorH,.3*s),new MS({color:0x3a2818,roughness:.85}));hDoorPanel.position.set(hDoorW/2,hDoorH/2,0);hDoorPanel.castShadow=true;hDoorPivot.add(hDoorPanel);
+hall.add(hDoorPivot);
+doors.push({pivot:hDoorPivot,x:cx,z:cz-0.5,openAng:-Math.PI/2,cur:0});
+// Hall interior floors
+for(let hl=1;hl<3;hl++){
+const hflY=hl*10*sc;
+const hFloor=new THREE.Mesh(new THREE.BoxGeometry(hallW*.7,1*sc,hallD*.7),new MS({color:0x4a3a2a,roughness:.9}));
+hFloor.position.set(0,hflY-hallH/2,0);hall.add(hFloor)}
 // Chapel spire
 const chapel=new THREE.Mesh(new THREE.BoxGeometry(16*sc,25*sc,20*sc),mt.st);chapel.position.set(40*sc,12.5*sc,-20*sc);chapel.castShadow=true;g.add(chapel);
 const chapelSpire=new THREE.Mesh(new THREE.ConeGeometry(6*sc,30*sc,6),mt.rfSlate);chapelSpire.position.set(40*sc,40*sc,-20*sc);chapelSpire.castShadow=true;g.add(chapelSpire);
@@ -2540,10 +2606,15 @@ procCity(-1200,100,70,1,'medieval');    // Ardougne
 
 // === MASSIVE CASTLES ===
 castle(900,-800,1.2,0);       // Eastern Fortress
+makeEnterable(900,-800,'castle','Eastern Fortress');
 castle(-2000,-500,1.5,.5);    // Western Stronghold
+makeEnterable(-2000,-500,'castle','Western Stronghold');
 castle(0,-1800,1.8,Math.PI/6);// Wilderness Castle (huge)
+makeEnterable(0,-1800,'castle','Wilderness Castle');
 castle(-800,600,1,-.3);       // Southern Keep
+makeEnterable(-800,600,'castle','Southern Keep');
 castle(1500,400,1.3,.8);      // Desert Citadel
+makeEnterable(1500,400,'castle','Desert Citadel');
 
 // === MINAS TIRITH CLIFFSIDE CASTLE ===
 function minasTirith(cx,cz,sc){
@@ -3047,8 +3118,10 @@ genDungeon(150,-400,3,'fire','cerberus');genDungeon(2500,-1400,4,'cave','vorkath
 genDungeon(0,-4600,5,'fire','nex');genDungeon(1850,1250,4,'fire','jad');genDungeon(1900,1300,5,'fire','zuk');
 
 // === ENTERABLE BUILDINGS ===
-function makeEnterable(x,z,type,name){
-enterableBuildings.push({x,z,type,name,r:8});
+function makeEnterable(x,z,type,name,r){
+// Larger radius for castles and towers
+const radius=r||(type==='castle'?50:type==='cathedral'?40:type==='tower'?30:20);
+enterableBuildings.push({x,z,type,name,r:radius});
 // Door marker (glowing)
 const doorGlow=new THREE.Mesh(new THREE.BoxGeometry(2.5,4,.1),new MS({color:0xffcc44,emissive:0xffaa22,emissiveIntensity:1.5,transparent:true,opacity:.4}));
 doorGlow.position.set(x,meshTerrainH(x,z)+2.5,z);scene.add(doorGlow)}
@@ -3789,7 +3862,7 @@ closeBtn.textContent='Close (T)';closeBtn.onclick=()=>{showTeleport=false;tp.sty
 document.body.appendChild(tp)}
 else{tp.style.display=showTeleport?'block':'none'}}
 if(k==='p'){const ab=document.getElementById('ability-browser');ab.classList.toggle('active')}
-if(k==='s'){const sb=document.getElementById('spell-book');sb.classList.toggle('active')}
+if(k==='f1'){const sb=document.getElementById('spell-book');sb.classList.toggle('active')}
 if(k==='m'){const wm=document.getElementById('world-map');if(wm.classList.contains('active')){wm.classList.remove('active')}else{wm.classList.add('active');drawWorldMap()}}
 if(k==='escape'){
 const wm=document.getElementById('world-map');if(wm.classList.contains('active')){wm.classList.remove('active');return}
@@ -3991,7 +4064,7 @@ setTimeout(()=>{startGame(false)},500)}));
 // ============================================================
 // === CORRUPTED GAUNTLET — Complete Dungeon System ============
 // ============================================================
-const GAU_X=5000,GAU_Z=5000; // World anchor (off-map, invisible)
+const GAU_X=-2000,GAU_Z=-2000; // Surface location in wilderness (behind walls)
 let gau=null; // active gauntlet state
 
 // --- Gauntlet HUD elements (created once) ---
@@ -4160,8 +4233,8 @@ const arena=_buildGauntletArena();
 scene.add(arena);
 const nodes=_buildGauntletResources(arena);
 const {startX,startZ,bcx,bcz,bowlPos}=arena.userData;
-// Teleport player in
-player.x=startX;player.z=startZ;player.y=2;
+// Teleport player in at surface level
+player.x=startX;player.z=startZ;player.y=meshTerrainH(startX,startZ)+2;
 // Init state
 gau={
 active:true,arena,nodes,
@@ -4214,27 +4287,35 @@ setTimeout(cycle,3000);}
 function _gauSpawnWeakMonsters(){
 if(!gau)return;
 const {CELL,COLS,ROWS,offX,offZ}=gau.arena.userData;
+// Scale enemy level to player combat level
+const playerLv=player.level||1;
 for(let i=0;i<8;i++){
 const col=2+Math.floor(Math.random()*(COLS-2)),row=Math.floor(Math.random()*ROWS);
 // SAFE ZONE: Don't spawn near player start (0,0), bowl (3,3), or edges
 if((col<2&&row<2)||(col===3&&row===3)||col<1||col>=COLS-1)continue;
 const cx=offX+col*CELL+CELL/2+(Math.random()-.5)*8;
 const cz=offZ+row*CELL+CELL/2+(Math.random()-.5)*8;
-// Lower level enemies (1-3 instead of 8-13)
-const e=spawnE('bat',cx,cz,1+Math.floor(Math.random()*3));
-if(e){e._gauWeak=true;e._gauDrops=true;e.aggro=20;gau.weakEnemies.push(e)}}}
+const cy=meshTerrainH(cx,cz)+1;
+// Scale enemy level: player level ±2 (min 1)
+const enemyLv=Math.max(1,playerLv-2+Math.floor(Math.random()*5));
+const e=spawnE('bat',cx,cz,enemyLv);
+if(e){e.mesh.position.y=cy;e._gauWeak=true;e._gauDrops=true;e.aggro=20;gau.weakEnemies.push(e)}}}
 
 function _gauSpawnDemiBosses(){
 if(!gau)return;
 const {CELL,COLS,ROWS,offX,offZ}=gau.arena.userData;
 // Move demi-bosses away from safe zone at (0,0)
 const positions=[[COLS-2,0],[COLS-1,ROWS-2],[COLS-2,ROWS-2]];
+// Scale demi-boss levels to player (player level + 5 to +10)
+const playerLv=player.level||1;
 GAU_DEMIBOSS.forEach((db,i)=>{
 const [col,row]=positions[i];
 const cx=offX+col*CELL+CELL/2,cz=offZ+row*CELL+CELL/2;
-// Lower demi-boss levels (10-15 instead of 40-50)
-const e=spawnE('golem',cx,cz,10+i*3);
-if(e){e._gauDemi=db;e._gauDemiKilled=false;e.aggro=30;gau.demiBossEnemies.push(e)}});}
+const cy=meshTerrainH(cx,cz)+1;
+// Scale enemy level: player level + 5-10
+const enemyLv=Math.max(5,playerLv+5+i*3);
+const e=spawnE('golem',cx,cz,enemyLv);
+if(e){e.mesh.position.y=cy;e._gauDemi=db;e._gauDemiKilled=false;e.aggro=30;gau.demiBossEnemies.push(e)}});}
 
 // Called from main game loop enemy death handler
 function onGauEnemyDeath(e){
@@ -4523,7 +4604,7 @@ gau.tornados.forEach(t=>{if(t.mesh)scene.remove(t.mesh)});
 gau.floorTiles.forEach(t=>{if(t.mesh)scene.remove(t.mesh)});
 if(gau.hunllefMesh)scene.remove(gau.hunllefMesh);
 // Return player to world
-player.x=0;player.z=0;player.y=2;
+player.x=GAU_X;player.z=GAU_Z+60;player.y=meshTerrainH(GAU_X,GAU_Z+60)+2;
 gau={active:false};gauHud.style.display='none';
 log('You leave the Corrupted Gauntlet.','#cc88ff');}
 
