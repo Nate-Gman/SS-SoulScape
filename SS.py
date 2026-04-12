@@ -47,6 +47,30 @@ canvas{display:block}
 .ab-name{font-size:6px;color:#aa9;white-space:nowrap;overflow:hidden;pointer-events:none;margin-top:1px}
 .ab-cd{position:absolute;inset:0;background:rgba(0,0,0,.6);border-radius:3px;display:none;align-items:center;justify-content:center;font-size:14px;color:#ff8;font-weight:700}
 .ab-slot.on-cd .ab-cd{display:flex}
+.ab-slot.ab-assign{border-color:#ff8844;animation:abPulse 1s infinite}
+@keyframes abPulse{0%,100%{box-shadow:0 0 4px rgba(255,136,68,.3)}50%{box-shadow:0 0 12px rgba(255,136,68,.7)}}
+#ab-bar2{display:none}
+#ab-bar2.active{display:flex}
+#ability-book{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:900;display:none;background:rgba(12,10,6,.96);border:2px solid #c8a96e;border-radius:8px;width:480px;max-height:80vh;overflow-y:auto;padding:0;font-family:'Times New Roman',serif}
+#ability-book.active{display:block}
+#ability-book::-webkit-scrollbar{width:6px}#ability-book::-webkit-scrollbar-thumb{background:#6a5a42;border-radius:3px}
+.abk-header{background:linear-gradient(180deg,#2e2418,#1e1610);padding:10px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #4a3a28;position:sticky;top:0;z-index:1}
+.abk-title{font-size:18px;color:#c8a96e;letter-spacing:3px}
+.abk-close{font-size:20px;color:#887;cursor:pointer;padding:4px 8px}
+.abk-close:hover{color:#ffd700}
+.abk-tabs{display:flex;gap:0;background:#1a1610;border-bottom:1px solid #3a2a1a;position:sticky;top:42px;z-index:1}
+.abk-tab{flex:1;padding:6px 4px;text-align:center;font-size:11px;color:#887;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.abk-tab:hover{color:#c8a96e;background:rgba(200,169,110,.06)}
+.abk-tab.active{color:#ffd700;border-bottom-color:#ffd700;background:rgba(200,169,110,.1)}
+.abk-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:10px}
+.abk-item{background:linear-gradient(180deg,#2a2418,#1e1810);border:2px solid #3a2a1a;border-radius:4px;padding:6px 4px;text-align:center;cursor:pointer;transition:all .15s}
+.abk-item:hover{border-color:#c8a96e;background:linear-gradient(180deg,#3a3020,#2a2418);box-shadow:0 0 8px rgba(200,169,110,.2)}
+.abk-item.selected{border-color:#ff8844;background:linear-gradient(180deg,#3a2810,#2a1c08)}
+.abk-item .abk-ico{font-size:24px;display:block;line-height:1.2}
+.abk-item .abk-name{font-size:8px;color:#cca;display:block;margin-top:2px;white-space:nowrap;overflow:hidden}
+.abk-item .abk-desc{display:none}
+.abk-item:hover .abk-desc{display:block;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:rgba(10,8,4,.95);border:1px solid #5a4a32;border-radius:4px;padding:6px 8px;min-width:120px;font-size:9px;color:#aa9;z-index:10;white-space:normal;text-align:left;pointer-events:none}
+.abk-item{position:relative}
 /* === XP BAR === */
 #xp-bar-wrap{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);z-index:350;width:540px;display:none}
 #xp-bar-wrap.active{display:block}
@@ -82,8 +106,16 @@ canvas{display:block}
 .sk-total{text-align:center;padding:6px;font-size:12px;color:#ffcc44;background:linear-gradient(180deg,#2e2418,#221c12);border:1px solid #5a4a32;margin-top:4px;font-weight:700;border-radius:3px;text-shadow:0 1px 2px rgba(0,0,0,.5)}
 /* Inventory tab */
 .inv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px}
-.inv-slot{width:52px;height:52px;background:linear-gradient(180deg,#2e2418,#1e1810);border:2px solid #3a2a1a;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:8px;color:#aa9;text-align:center;line-height:1.1;cursor:pointer;transition:all .15s}
+.inv-slot{width:52px;height:52px;background:linear-gradient(180deg,#2e2418,#1e1810);border:2px solid #3a2a1a;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:7px;color:#aa9;text-align:center;line-height:1.1;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.inv-slot .inv-ico{font-size:20px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.inv-slot .inv-name{font-size:6px;color:#cca;white-space:nowrap;overflow:hidden;max-width:48px;margin-top:1px}
+.inv-slot.rarity-common{border-color:#3a2a1a}.inv-slot.rarity-uncommon{border-color:#1a8a1a}.inv-slot.rarity-rare{border-color:#1a4acc}.inv-slot.rarity-epic{border-color:#8a1acc}.inv-slot.rarity-legendary{border-color:#cc8a1a}.inv-slot.rarity-gear{border-color:#cc9944}
 .inv-slot:hover{border-color:#c8a96e;background:linear-gradient(180deg,#3a3020,#2a2418);box-shadow:0 0 6px rgba(200,169,110,.2)}
+#inv-tooltip{position:fixed;z-index:9999;background:rgba(15,12,8,.95);border:2px solid #c8a96e;border-radius:6px;padding:8px 12px;pointer-events:none;display:none;min-width:140px;max-width:220px;font-family:'Times New Roman',serif;box-shadow:0 4px 16px rgba(0,0,0,.7)}
+#inv-tooltip .tt-name{font-size:14px;font-weight:700;margin-bottom:4px}
+#inv-tooltip .tt-stats{font-size:11px;color:#aa9;line-height:1.4}
+#inv-tooltip .tt-desc{font-size:10px;color:#776;margin-top:4px;font-style:italic}
+#inv-tooltip .tt-use{font-size:10px;color:#4a8;margin-top:3px}
 /* Equipment tab */
 .eq-grid{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px}
 .eq-row{display:flex;gap:4px}
@@ -137,6 +169,11 @@ canvas{display:block}
 #wm-canvas{border:3px solid #5a4a32;cursor:crosshair}
 #wm-close{position:absolute;top:16px;right:24px;font-size:24px;color:#887;cursor:pointer}#wm-close:hover{color:#e8d4a8}
 #wm-coords{font-size:11px;color:#887;margin-top:8px;letter-spacing:1px}
+#loot-prompt{position:fixed;bottom:180px;left:50%;transform:translateX(-50%);z-index:300;display:none;flex-direction:column;align-items:center;pointer-events:none;font-family:'Times New Roman',serif}
+#loot-prompt.active{display:flex}
+#loot-prompt .lp-title{font-size:18px;color:#ffd700;text-shadow:0 0 12px rgba(255,215,0,.6),0 2px 4px rgba(0,0,0,.8);letter-spacing:2px;margin-bottom:4px}
+#loot-prompt .lp-key{font-size:13px;color:#c8a96e;text-shadow:0 1px 3px #000;letter-spacing:1px;opacity:.8}
+#loot-label-canvas{position:fixed;inset:0;z-index:200;pointer-events:none}
 #death-overlay{position:absolute;inset:0;background:rgba(0,0,0,0);z-index:500;display:flex;align-items:center;justify-content:center;pointer-events:none;transition:background .8s}
 #death-overlay.active{background:rgba(0,0,0,.85)}
 #death-text{font-size:52px;color:#8b0000;font-family:'Times New Roman',serif;letter-spacing:12px;opacity:0;transition:opacity 1s;text-shadow:0 0 30px rgba(139,0,0,.6)}
@@ -225,7 +262,20 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="ab-slot" data-action="inv" title="Inventory (I)"><span class="ab-ico">&#127890;</span><span class="ab-name">Bag</span><span class="ab-key">I</span><div class="ab-cd"></div></div>
 <div class="ab-slot" data-action="skills" title="Skills (K)"><span class="ab-ico">&#9733;</span><span class="ab-name">Skills</span><span class="ab-key">K</span><div class="ab-cd"></div></div>
 <div class="ab-slot" data-action="save" title="Quick Save"><span class="ab-ico">&#128190;</span><span class="ab-name">Save</span><span class="ab-key">F5</span><div class="ab-cd"></div></div>
-</div></div>
+</div>
+<div id="ab-bar2"><div id="ab-wrap2" style="background:linear-gradient(180deg,rgba(40,32,20,.9),rgba(25,20,12,.95));border:2px solid #4a3a28;border-radius:6px;padding:4px 6px;display:flex;gap:3px;margin-top:3px;box-shadow:0 -2px 10px rgba(0,0,0,.4)"></div></div>
+</div>
+<div id="ability-book">
+<div class="abk-header"><span class="abk-title">ABILITY BOOK</span><span class="abk-close">&times;</span></div>
+<div class="abk-tabs">
+<div class="abk-tab active" data-cat="combat">Combat</div>
+<div class="abk-tab" data-cat="magic">Magic</div>
+<div class="abk-tab" data-cat="utility">Utility</div>
+<div class="abk-tab" data-cat="emotes">Emotes</div>
+</div>
+<div class="abk-grid" id="abk-grid"></div>
+<div style="padding:6px 12px 10px;font-size:9px;color:#665;text-align:center">Click an ability, then click an action bar slot to assign it.</div>
+</div>
 <!-- XP BAR -->
 <div id="xp-bar-wrap"><div id="xp-bar-bg"><div id="xp-bar-fill"></div></div><div id="xp-bar-text">Combat XP: 0</div></div>
 <!-- OSRS RIGHT PANEL -->
@@ -306,7 +356,17 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="spell-slot" title="High Alchemy">&#129689;<span class="sp-name">High Alch</span></div>
 <div class="spell-slot" title="Fire Blast">&#9762;<span class="sp-name">Fire Blast</span></div>
 </div></div>
-<div class="tab-page" id="tp-settings"><div style="padding:8px;font-size:10px;color:#aa9"><b style="color:#cc9944">Controls</b><br><br><b style="color:#cc9944">Mouse:</b><br>LClick - Attack / Target<br>RClick - Block / Parry<br>MClick+Drag - Camera<br>Scroll - Zoom<br><br><b style="color:#cc9944">Keys:</b><br>WASD - Move<br>Space - Roll<br>Tab - Cycle Lock-on<br>1 - Attack<br>2 - Parry<br>3 - Heal (Estus)<br>4 - Bury Bones<br>Q - Prayer Tab<br>F - Gather/Skill<br>M - World Map<br>Esc - Deselect / Close Map<br>I - Inventory<br>K - Skills<br>F5 - Save<br><br><b style="color:#cc9944">Gamepad (Dark Souls):</b><br>LStick - Move<br>RStick - Camera<br>RT - Light Attack<br>RB - Parry / Heavy<br>LT - Block / Guard<br>B/○ - Roll<br>A/✕ - Heal (Estus)<br>X/□ - Use Item<br>Y/△ - Two-Hand<br>LS Click - Lock-on<br>Start - Inventory<br>Back - Skills</div></div>
+<div class="tab-page" id="tp-settings"><div style="padding:8px;font-size:10px;color:#aa9">
+<b style="color:#cc9944">Action Bar</b><br>
+<div style="margin:4px 0 8px"><span style="cursor:pointer;padding:3px 10px;background:#2a2418;border:1px solid #5a4a32;border-radius:4px;color:#cc9944;font-size:11px" id="btn-bar2">Toggle 2nd Bar (~)</span>
+<span style="cursor:pointer;padding:3px 10px;background:#2a2418;border:1px solid #5a4a32;border-radius:4px;color:#cc9944;font-size:11px;margin-left:4px" id="btn-abilbook">Ability Book (V)</span>
+<span style="cursor:pointer;padding:3px 10px;background:#2a2418;border:1px solid #5a4a32;border-radius:4px;color:#cc9944;font-size:11px;margin-left:4px" id="btn-resetbar">Reset Bars</span></div>
+<span style="font-size:9px;color:#665">Right-click any bar slot to reassign. Pick from Ability Book.</span><br><br>
+<b style="color:#cc9944">Mouse:</b><br>LClick - Attack / Target<br>RClick - Block / Parry<br>MClick+Drag - Camera<br>Scroll - Zoom<br><br>
+<b style="color:#cc9944">Keys:</b><br>WASD - Move<br>Space - Jump<br>Shift - Dodge Roll<br>Tab - Cycle Lock-on<br>1-4 - Bar Slots 1-4<br>Q - Prayer<br>F - Gather<br>V - Ability Book<br>~ - Toggle 2nd Bar<br>Ctrl+1-4 - 2nd Bar Slots<br>M - World Map<br>L - Auto-Loot<br>E - Pickup<br>I/K - Inventory/Skills<br>F5 - Save<br><br>
+<b style="color:#cc9944">Gamepad (Dark Souls):</b><br>LStick - Move<br>RStick - Camera<br>RT - Light Attack<br>RB - Parry / Heavy<br>LT - Block / Guard<br>B/&#9675; - Roll<br>A/&#10005; - Jump<br>X/&#9633; - Use Item<br>Y/&#9651; - Ability Book<br>LS Click - Lock-on<br>Start - Inventory<br>Back - Skills<br><br>
+<b style="color:#cc9944">Gamepad Combos (2nd Bar):</b><br>LB+A/B/X/Y - Bar2 Slots 1-4<br>RB+A/B/X/Y - Bar2 Slots 5-8<br>LB+RB - Bar2 Slot 9<br>LB+DUp/DDown - Bar2 Slots 10-11<br>RB+DUp - Bar2 Slot 12
+</div></div>
 </div>
 </div>
 <!-- CHAT BOX -->
@@ -320,9 +380,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="chat-tab">Clan</div>
 </div>
 </div>
-<div id="controls">WASD Move &#183; Scroll Zoom &#183; LMB Attack/Target &#183; RMB Block &#183; MMB Camera &#183; Space Roll &#183; Tab Lock &#183; 1 Atk &#183; 2 Parry &#183; 3 Heal &#183; 4 Bones &#183; Q Prayer &#183; F Gather &#183; M Map &#183; Esc Deselect</div>
+<div id="controls">WASD Move &#183; Space Jump &#183; Shift Roll &#183; LMB Atk &#183; RMB Block &#183; Tab Lock &#183; V Abilities &#183; ~ 2nd Bar &#183; Ctrl+# Bar2 &#183; E Pickup &#183; L Loot &#183; M Map &#183; RClick Slot = Reassign</div>
 <div id="target-frame"><div id="tf-icon">👹</div><div id="tf-info"><div><span id="tf-name">Enemy</span><span id="tf-lv">Lv 1</span></div><div id="tf-hp-bg"><div id="tf-hp-fill" style="width:100%"></div></div><div id="tf-hp-text">100/100</div></div></div>
 <div id="world-map"><div id="wm-title">WORLD MAP</div><canvas id="wm-canvas" width="900" height="700"></canvas><div id="wm-coords">Player: 0, 0</div><div id="wm-close">&times;</div></div>
+<div id="inv-tooltip"><div class="tt-name"></div><div class="tt-stats"></div><div class="tt-desc"></div><div class="tt-use"></div></div>
+<canvas id="loot-label-canvas"></canvas>
+<div id="loot-prompt"><span class="lp-title">—</span><span class="lp-key">Press E to pick up</span></div>
 <div id="death-overlay"><span id="death-text">YOU DIED</span></div>
 </div>
 <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.158.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.158.0/examples/jsm/"}}</script>
@@ -386,23 +449,112 @@ skillDefs.forEach(s=>{const d=document.createElement('div');d.className='sk-cell
 const invEl=document.getElementById('inv-grid');
 for(let i=0;i<28;i++){const d=document.createElement('div');d.className='inv-slot';d.id='inv-'+i;invEl.appendChild(d)}
 const inventory=[];
-// Map common item names to gear slots for equip-from-inventory
 const itemSlotMap={};
-function updateInvUI(){for(let i=0;i<28;i++){const el=document.getElementById('inv-'+i);el.textContent=inventory[i]||'';
-el.onclick=null;
-if(inventory[i]){const item=inventory[i];
+// Item icon + metadata database — keyword matching
+const itemIcons={
+// Weapons
+sword:'\u2694\ufe0f',ordssway:'\u2694\ufe0f',blade:'\u2694\ufe0f',cutlass:'\u2694\ufe0f',utlasscay:'\u2694\ufe0f',scimitar:'\u2694\ufe0f',dagger:'\ud83d\udde1\ufe0f',aggerdey:'\ud83d\udde1\ufe0f',
+axe:'\ud83e\ude93',ickaxepay:'\ud83e\ude93',atchethay:'\ud83e\ude93',
+bow:'\ud83c\udff9',owbay:'\ud83c\udff9',arrow:'\ud83c\udff9',arrowway:'\ud83c\udff9',
+staff:'\ud83e\ude84',affstay:'\ud83e\ude84',wand:'\ud83e\ude84',andway:'\ud83e\ude84',
+hammer:'\ud83d\udd28',ammerhay:'\ud83d\udd28',mace:'\ud83d\udd28',acemay:'\ud83d\udd28',
+spear:'\ud83d\udd31',earspay:'\ud83d\udd31',halberd:'\ud83d\udd31',
+// Armor
+helm:'\u26d1\ufe0f',elmhay:'\u26d1\ufe0f',helmet:'\u26d1\ufe0f',hood:'\u26d1\ufe0f',
+chest:'\ud83e\uddus',ainbodychay:'\ud83e\uddus',plate:'\ud83e\uddus',body:'\ud83e\uddus',
+shield:'\ud83d\udee1\ufe0f',ieldshay:'\ud83d\udee1\ufe0f',
+legs:'\ud83d\udc56',egslays:'\ud83d\udc56',platelegs:'\ud83d\udc56',skirt:'\ud83d\udc56',
+boots:'\ud83d\udc62',ootsbay:'\ud83d\udc62',greaves:'\ud83d\udc62',
+gloves:'\ud83e\udde4',ovesglay:'\ud83e\udde4',gauntlet:'\ud83e\udde4',bracelet:'\ud83e\udde4',
+ring:'\ud83d\udc8d',ingray:'\ud83d\udc8d',amulet:'\ud83d\udcff',
+cape:'\ud83e\udde3',apecay:'\ud83e\udde3',cloak:'\ud83e\udde3',
+// Food & potions
+beef:'\ud83e\udd69',eefbay:'\ud83e\udd69',meat:'\ud83c\udf56',eatmay:'\ud83c\udf56',chicken:'\ud83c\udf57',ickenchay:'\ud83c\udf57',fish:'\ud83d\udc1f',ishfay:'\ud83d\udc1f',
+bread:'\ud83c\udf5e',eadbray:'\ud83c\udf5e',cake:'\ud83c\udf70',akecay:'\ud83c\udf70',pie:'\ud83e\udd67',iepay:'\ud83e\udd67',
+potion:'\ud83e\uddea',otionpay:'\ud83e\uddea',flask:'\ud83e\uddea',brew:'\ud83e\uddea',ewbray:'\ud83e\uddea',
+wine:'\ud83c\udf77',ineway:'\ud83c\udf77',rum:'\ud83e\udd43',umray:'\ud83e\udd43',ale:'\ud83c\udf7a',
+egg:'\ud83e\udd5a',eggway:'\ud83e\udd5a',milk:'\ud83e\udd5b',ilkmay:'\ud83e\udd5b',
+// Resources
+log:'\ud83e\udeb5',oglay:'\ud83e\udeb5',wood:'\ud83e\udeb5',oodway:'\ud83e\udeb5',plank:'\ud83e\udeb5',
+ore:'\u26cf\ufe0f',oreway:'\u26cf\ufe0f',bar:'\ud83e\uddf1',arbay:'\ud83e\uddf1',
+bone:'\ud83e\uddb4',onesbay:'\ud83e\uddb4',skull:'\ud83d\udc80',ullskay:'\ud83d\udc80',
+gem:'\ud83d\udc8e',emgay:'\ud83d\udc8e',sapphire:'\ud83d\udc8e',ruby:'\ud83d\udc8e',diamond:'\ud83d\udc8e',emerald:'\ud83d\udc8e',onyx:'\ud83d\udc8e',
+coin:'\ud83e\ude99',oinscay:'\ud83e\ude99',gold:'\ud83e\ude99',oldgay:'\ud83e\ude99',
+feather:'\ud83e\udeb6',eathersfay:'\ud83e\udeb6',
+hide:'\ud83e\uddf6',owhidecay:'\ud83e\uddf6',leather:'\ud83e\uddf6',eatherllay:'\ud83e\uddf6',
+herb:'\ud83c\udf3f',erbhay:'\ud83c\udf3f',seed:'\ud83c\udf31',eedsay:'\ud83c\udf31',
+rune:'\u2728',uneray:'\u2728',talisman:'\u2728',
+key:'\ud83d\udd11',eykay:'\ud83d\udd11',
+map:'\ud83d\uddfa\ufe0f',apmay:'\ud83d\uddfa\ufe0f',
+book:'\ud83d\udcd6',ookbay:'\ud83d\udcd6',scroll:'\ud83d\udcdc',ollscray:'\ud83d\udcdc',
+horn:'\ud83d\udcef',ornhay:'\ud83d\udcef',
+cannon:'\ud83d\udca3',annoncay:'\ud83d\udca3',
+rod:'\ud83c\udfa3',odray:'\ud83c\udfa3',ishingfay:'\ud83c\udfa3',
+net:'\ud83e\udd4d',etnay:'\ud83e\udd4d',
+hat:'\ud83c\udfa9',athay:'\ud83c\udfa9',
+patch:'\ud83c\udff4\u200d\u2620\ufe0f',atchpay:'\ud83c\udff4\u200d\u2620\ufe0f',eyeway:'\ud83c\udff4\u200d\u2620\ufe0f',
+mail:'\ud83d\udce7',ailmay:'\u26d3\ufe0f',
+journal:'\ud83d\udcd3',ournaljay:'\ud83d\udcd3',
+fragment:'\ud83e\udea8',agmentfray:'\ud83e\udea8'
+};
+function getItemIcon(name){if(!name)return'';const low=name.toLowerCase();for(const[kw,ico]of Object.entries(itemIcons)){if(low.includes(kw))return ico}return'\ud83d\udce6'}
+function getItemRarity(name){
+if(!name)return'common';
+const sl=typeof specialLoot!=='undefined'?specialLoot.find(l=>l.name===name):null;
+if(sl)return sl.rarity||'rare';
+const low=name.toLowerCase();
+if(low.includes('dragon')||low.includes('agondray')||low.includes('bandos')||low.includes('andosbay')||low.includes('godsword'))return'legendary';
+if(low.includes('rune')||low.includes('uneray')||low.includes('barrows')||low.includes('arrowsbay'))return'epic';
+if(low.includes('adamant')||low.includes('mithril')||low.includes('ithrilmay'))return'rare';
+if(low.includes('steel')||low.includes('eelstay')||low.includes('iron')||low.includes('ironway'))return'uncommon';
+return'common'}
+function getItemColor(r){return{common:'#aa9',uncommon:'#2a2',rare:'#44f',epic:'#a2f',legendary:'#fa2',gear:'#cc9944'}[r]||'#aa9'}
+function getItemDesc(name){
+if(!name)return'';const low=name.toLowerCase();
+if(low.includes('sword')||low.includes('ordssway'))return'A sharp blade for melee combat.';
+if(low.includes('shield')||low.includes('ieldshay'))return'Blocks incoming damage when equipped.';
+if(low.includes('helm')||low.includes('elmhay'))return'Head armor. Reduces damage taken.';
+if(low.includes('bone')||low.includes('onesbay'))return'Bury for Prayer XP.';
+if(low.includes('coin')||low.includes('oinscay'))return'Currency. Used for trading.';
+if(low.includes('potion')||low.includes('otionpay'))return'Drink to restore stats.';
+if(low.includes('ore')||low.includes('oreway'))return'Mine and smelt into bars.';
+if(low.includes('log')||low.includes('oglay'))return'Chop trees. Use for Firemaking or Fletching.';
+if(low.includes('fish')||low.includes('ishfay'))return'Cook and eat to heal HP.';
+if(low.includes('rune')||low.includes('uneray'))return'Magical essence for casting spells.';
+if(low.includes('arrow')||low.includes('arrowway'))return'Ammunition for ranged combat.';
+if(low.includes('herb')||low.includes('erbhay'))return'Identify and use in Herblore.';
+return'An item from the world of SoulScape.'}
+const tooltip=document.getElementById('inv-tooltip');
+function showTooltip(el,item){
+const r=getItemRarity(item);const c=getItemColor(r);
+tooltip.querySelector('.tt-name').textContent=item;tooltip.querySelector('.tt-name').style.color=c;
+const sl=typeof specialLoot!=='undefined'?specialLoot.find(l=>l.name===item):null;
+const gear=sl?'ATK: '+sl.atk+' DEF: '+sl.def+' STR: '+sl.str+' ['+sl.slot+']':'';
+const ski=typeof skillItems!=='undefined'&&skillItems[item]?skillItems[item]:null;
+tooltip.querySelector('.tt-stats').textContent=gear;
+tooltip.querySelector('.tt-desc').textContent=getItemDesc(item);
+tooltip.querySelector('.tt-use').textContent=sl?'Click to equip':ski?'Click to use: '+ski.skill+' +'+ski.xp+'xp':'';
+tooltip.style.display='block';
+const rect=el.getBoundingClientRect();
+tooltip.style.left=Math.min(rect.right+6,innerWidth-230)+'px';
+tooltip.style.top=Math.max(0,rect.top-10)+'px'}
+function hideTooltip(){tooltip.style.display='none'}
+function updateInvUI(){for(let i=0;i<28;i++){const el=document.getElementById('inv-'+i);
+el.innerHTML='';el.className='inv-slot';el.onclick=null;el.onmouseenter=null;el.onmouseleave=null;
+if(inventory[i]){const item=inventory[i];const r=getItemRarity(item);
+el.className='inv-slot rarity-'+r;
+el.innerHTML='<span class="inv-ico">'+getItemIcon(item)+'</span><span class="inv-name">'+item+'</span>';
+el.onmouseenter=()=>showTooltip(el,item);el.onmouseleave=hideTooltip;
 el.onclick=()=>{
-// Check if item is equippable by matching specialLoot or common gear names
 const sl=typeof specialLoot!=='undefined'?specialLoot.find(l=>l.name===item):null;
 if(sl){const old=equipped[sl.slot];equipped[sl.slot]={name:sl.name,atk:sl.atk,def:sl.def,str:sl.str};
 const idx=inventory.indexOf(item);if(idx>=0)inventory.splice(idx,1);
 if(old&&old.name!=='None')inventory.push(old.name);
-log('Equipped '+sl.name+' [ATK+'+sl.atk+' DEF+'+sl.def+' STR+'+sl.str+']','#0ff');updateInvUI();updateEqUI();return}
-// Check if it's a skill item — use it
+log('Equipped '+sl.name+' [ATK+'+sl.atk+' DEF+'+sl.def+' STR+'+sl.str+']','#0ff');updateInvUI();updateEqUI();hideTooltip();return}
 if(typeof skillItems!=='undefined'&&skillItems[item]){const sk=skillItems[item];const idx=inventory.indexOf(item);if(idx>=0)inventory.splice(idx,1);
 skills[sk.skill].xp+=sk.xp;const lv=Math.max(skills[sk.skill].lvl,Math.floor(1+Math.sqrt(skills[sk.skill].xp/50)));
 if(lv>skills[sk.skill].lvl){skills[sk.skill].lvl=lv;log(sk.skill+' level up! Lv '+lv,'#ff0')}
-log('Used '+item+': '+sk.skill+' +'+sk.xp+'xp','#cc4');updateInvUI();if(typeof updateSkillUI==='function')updateSkillUI();return}
+log('Used '+item+': '+sk.skill+' +'+sk.xp+'xp','#cc4');updateInvUI();hideTooltip();if(typeof updateSkillUI==='function')updateSkillUI();return}
 }}}}
 
 // === TAB SWITCHING ===
@@ -412,23 +564,178 @@ document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
 btn.classList.add('active');
 const tp=document.getElementById('tp-'+btn.dataset.tab);if(tp)tp.classList.add('active')}));
 
-// === ACTION BAR CLICKS ===
+// === MASTER ABILITY REGISTRY ===
 function switchTab(tabName){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));const btn=document.querySelector('[data-tab="'+tabName+'"]');if(btn)btn.classList.add('active');const tp=document.getElementById('tp-'+tabName);if(tp)tp.classList.add('active')}
-document.querySelectorAll('.ab-slot').forEach(slot=>slot.addEventListener('click',()=>{
-const a=slot.dataset.action;
-if(a==='attack')document.dispatchEvent(new KeyboardEvent('keydown',{key:'1'}));
-else if(a==='parry')document.dispatchEvent(new KeyboardEvent('keydown',{key:'2'}));
-else if(a==='heal')document.dispatchEvent(new KeyboardEvent('keydown',{key:'3'}));
-else if(a==='bones')document.dispatchEvent(new KeyboardEvent('keydown',{key:'4'}));
-else if(a==='prayer')switchTab('prayer');
-else if(a==='gather')document.dispatchEvent(new KeyboardEvent('keydown',{key:'f'}));
-else if(a==='roll')document.dispatchEvent(new KeyboardEvent('keydown',{key:' '}));
-else if(a==='lock')document.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab'}));
-else if(a==='map')document.dispatchEvent(new KeyboardEvent('keydown',{key:'m'}));
-else if(a==='inv')switchTab('inventory');
-else if(a==='skills')switchTab('skills');
-else if(a==='save')document.dispatchEvent(new KeyboardEvent('keydown',{key:'F5'}));
-}));
+const allAbilities=[
+// Combat
+{id:'attack',cat:'combat',ico:'\u2694\ufe0f',name:'Attack',desc:'Melee attack your target.',key:'1',fn:()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'1'}))},
+{id:'parry',cat:'combat',ico:'\ud83d\udee1\ufe0f',name:'Parry',desc:'Parry incoming attacks for a riposte.',key:'2',fn:()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'2'}))},
+{id:'heal',cat:'combat',ico:'\ud83c\udf77',name:'Heal',desc:'Drink Estus Flask to restore HP.',key:'3',fn:()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'3'}))},
+{id:'bones',cat:'combat',ico:'\ud83e\uddb4',name:'Bury Bones',desc:'Bury bones for Prayer XP.',key:'4',fn:()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'4'}))},
+{id:'roll',cat:'combat',ico:'\ud83d\udca8',name:'Roll',desc:'Dodge roll with i-frames. Costs stamina.',key:'Shift',fn:()=>{keys['shift']=true;setTimeout(()=>{keys['shift']=false},100)}},
+{id:'jump',cat:'combat',ico:'\u2b06\ufe0f',name:'Jump',desc:'Jump into the air.',key:'Space',fn:()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:' '}))},
+{id:'lock',cat:'combat',ico:'\ud83c\udfaf',name:'Lock On',desc:'Cycle lock-on target.',key:'Tab',fn:()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab'}))},
+{id:'strongatk',cat:'combat',ico:'\ud83d\udde1\ufe0f',name:'Strong Attack',desc:'Heavy melee hit. 2x damage, uses stamina.',key:'',fn:()=>{if(typeof doStrongAttack==='function')doStrongAttack();else log('Strong Attack not yet unlocked','#887')}},
+{id:'kickstun',cat:'combat',ico:'\ud83e\uddb6',name:'Kick',desc:'Kick to break guard. Stuns briefly.',key:'',fn:()=>log('Kick!','#cc8')},
+{id:'warcry',cat:'combat',ico:'\ud83d\udce3',name:'War Cry',desc:'Boost ATK by 20% for 10s.',key:'',fn:()=>log('WAR CRY! ATK boosted!','#fa4')},
+{id:'berserk',cat:'combat',ico:'\ud83d\udd25',name:'Berserk',desc:'Double damage for 8s, take 50% more.',key:'',fn:()=>log('BERSERK MODE!','#f42')},
+{id:'counter',cat:'combat',ico:'\u21a9\ufe0f',name:'Counter',desc:'Counter after a successful parry.',key:'',fn:()=>log('Counter stance ready','#8cf')},
+// Magic
+{id:'fireball',cat:'magic',ico:'\ud83d\udd25',name:'Fireball',desc:'Hurl a ball of flame. Costs 5 Magic.',key:'',fn:()=>log('Fireball cast!','#f84')},
+{id:'icebolt',cat:'magic',ico:'\u2744\ufe0f',name:'Ice Bolt',desc:'Freeze target briefly. Costs 4 Magic.',key:'',fn:()=>log('Ice Bolt cast!','#8df')},
+{id:'lightning',cat:'magic',ico:'\u26a1',name:'Lightning',desc:'Chain lightning. Costs 8 Magic.',key:'',fn:()=>log('Lightning strikes!','#ff8')},
+{id:'teleport',cat:'magic',ico:'\ud83d\udcab',name:'Teleport',desc:'Open teleport menu.',key:'T',fn:()=>log('Open teleport...','#a8f')},
+{id:'enchant',cat:'magic',ico:'\u2728',name:'Enchant',desc:'Enchant equipped weapon. +15% dmg for 30s.',key:'',fn:()=>log('Weapon enchanted!','#af8')},
+{id:'curse',cat:'magic',ico:'\ud83d\udc80',name:'Curse',desc:'Lower target DEF by 10%. Costs 6 Magic.',key:'',fn:()=>log('Target cursed!','#c4a')},
+{id:'heal_spell',cat:'magic',ico:'\ud83d\udc9a',name:'Heal Spell',desc:'Restore 30 HP. Costs 8 Magic.',key:'',fn:()=>log('Healed via spell!','#4c4')},
+{id:'protect',cat:'magic',ico:'\ud83d\udee1\ufe0f',name:'Protect',desc:'Reduce damage by 40% for 15s.',key:'',fn:()=>log('Protection active!','#88f')},
+{id:'vengeance',cat:'magic',ico:'\ud83d\udca2',name:'Vengeance',desc:'Reflect 75% of next hit. Costs 10.',key:'',fn:()=>log('Vengeance is mine!','#f4a')},
+// Utility
+{id:'prayer',cat:'utility',ico:'\u271d\ufe0f',name:'Prayer',desc:'Open Prayer menu.',key:'Q',fn:()=>switchTab('prayer')},
+{id:'gather',cat:'utility',ico:'\u26cf\ufe0f',name:'Gather',desc:'Gather nearby resource.',key:'F',fn:()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'f'}))},
+{id:'map',cat:'utility',ico:'\ud83d\uddfa\ufe0f',name:'Map',desc:'Open world map.',key:'M',fn:()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'m'}))},
+{id:'inv',cat:'utility',ico:'\ud83c\udf92',name:'Inventory',desc:'Open inventory tab.',key:'I',fn:()=>switchTab('inventory')},
+{id:'skills_ab',cat:'utility',ico:'\u2b50',name:'Skills',desc:'Open skills tab.',key:'K',fn:()=>switchTab('skills')},
+{id:'save',cat:'utility',ico:'\ud83d\udcbe',name:'Save',desc:'Quick save game.',key:'F5',fn:()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'F5'}))},
+{id:'autoloot',cat:'utility',ico:'\ud83e\uddf2',name:'Auto-Loot',desc:'Toggle auto-loot on/off.',key:'L',fn:()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'l'}))},
+{id:'pickup',cat:'utility',ico:'\u270b',name:'Pickup',desc:'Pick up nearest loot.',key:'E',fn:()=>document.dispatchEvent(new KeyboardEvent('keydown',{key:'e'}))},
+{id:'abilbook',cat:'utility',ico:'\ud83d\udcd6',name:'Abilities',desc:'Open ability book.',key:'V',fn:()=>toggleAbilityBook()},
+// Emotes
+{id:'em_wave',cat:'emotes',ico:'\ud83d\udc4b',name:'Wave',desc:'Wave at players.',key:'',fn:()=>log('You wave.','#aa9')},
+{id:'em_bow',cat:'emotes',ico:'\ud83d\ude47',name:'Bow',desc:'Bow respectfully.',key:'',fn:()=>log('You bow.','#aa9')},
+{id:'em_dance',cat:'emotes',ico:'\ud83d\udc83',name:'Dance',desc:'Show off your moves.',key:'',fn:()=>log('You dance!','#aa9')},
+{id:'em_cheer',cat:'emotes',ico:'\ud83c\udf89',name:'Cheer',desc:'Cheer with enthusiasm.',key:'',fn:()=>log('You cheer!','#aa9')},
+{id:'em_cry',cat:'emotes',ico:'\ud83d\ude22',name:'Cry',desc:'Weep dramatically.',key:'',fn:()=>log('You cry.','#aa9')},
+{id:'em_laugh',cat:'emotes',ico:'\ud83d\ude02',name:'Laugh',desc:'Laugh heartily.',key:'',fn:()=>log('You laugh!','#aa9')},
+{id:'em_angry',cat:'emotes',ico:'\ud83d\ude21',name:'Angry',desc:'Show your fury.',key:'',fn:()=>log('You are angry!','#aa9')},
+{id:'em_think',cat:'emotes',ico:'\ud83e\udd14',name:'Think',desc:'Ponder the situation.',key:'',fn:()=>log('You think...','#aa9')},
+{id:'em_flex',cat:'emotes',ico:'\ud83d\udcaa',name:'Flex',desc:'Show off your muscles.',key:'',fn:()=>log('You flex!','#aa9')},
+{id:'em_point',cat:'emotes',ico:'\ud83d\udc49',name:'Point',desc:'Point at something.',key:'',fn:()=>log('You point.','#aa9')}
+];
+const abilMap={};allAbilities.forEach(a=>abilMap[a.id]=a);
+
+// === ACTION BAR STATE (customizable) ===
+const defaultBar1=['attack','parry','heal','bones','prayer','gather','roll','lock','map','inv','skills_ab','save'];
+const defaultBar2=['fireball','icebolt','lightning','strongatk','berserk','warcry','enchant','vengeance','protect','teleport','autoloot','abilbook'];
+let bar1Slots=[...defaultBar1];
+let bar2Slots=[...defaultBar2];
+const bar1Keys=['1','2','3','4','Q','F','Shift','Tab','M','I','K','F5'];
+const bar2Keys=['Ctrl+1','Ctrl+2','Ctrl+3','Ctrl+4','Ctrl+Q','Ctrl+F','Ctrl+E','Ctrl+R','Ctrl+T','Ctrl+Y','Ctrl+U','Ctrl+I'];
+let abAssignMode=null; // {bar:1|2,idx:number}|null
+let showBar2=false;
+
+function renderBar(barSlots,wrapId,keyArr){
+const wrap=document.getElementById(wrapId);if(!wrap)return;
+wrap.innerHTML='';
+barSlots.forEach((aid,i)=>{
+const ab=abilMap[aid];if(!ab)return;
+const d=document.createElement('div');d.className='ab-slot';d.dataset.action=aid;d.dataset.bar=wrapId==='ab-wrap'?'1':'2';d.dataset.idx=i;
+d.title=ab.name+(ab.desc?' — '+ab.desc:'');
+d.innerHTML='<span class="ab-ico">'+ab.ico+'</span><span class="ab-name">'+ab.name+'</span><span class="ab-key">'+(keyArr[i]||'')+'</span><div class="ab-cd"></div>';
+d.addEventListener('click',()=>{
+if(abAssignMode){
+const bar=abAssignMode.bar===1?bar1Slots:bar2Slots;
+bar[abAssignMode.idx]=abAssignMode.selectedAbil;
+renderBar(bar1Slots,'ab-wrap',bar1Keys);
+renderBar(bar2Slots,'ab-wrap2',bar2Keys);
+abAssignMode=null;
+document.querySelectorAll('.ab-slot').forEach(s=>s.classList.remove('ab-assign'));
+log('Ability assigned to bar!','#cc9944');
+return;
+}
+ab.fn();
+});
+d.addEventListener('contextmenu',ev=>{
+ev.preventDefault();
+abAssignMode={bar:wrapId==='ab-wrap'?1:2,idx:i,selectedAbil:null};
+document.querySelectorAll('.ab-slot').forEach(s=>s.classList.remove('ab-assign'));
+d.classList.add('ab-assign');
+toggleAbilityBook(true);
+log('Right-click: Pick an ability from the book','#cc9944');
+});
+wrap.appendChild(d);
+})}
+renderBar(bar1Slots,'ab-wrap',bar1Keys);
+renderBar(bar2Slots,'ab-wrap2',bar2Keys);
+
+// === ABILITY BOOK ===
+function toggleAbilityBook(forceOpen){
+const el=document.getElementById('ability-book');
+if(forceOpen)el.classList.add('active');
+else el.classList.toggle('active');
+if(el.classList.contains('active'))renderAbilityBook('combat');
+}
+document.querySelector('.abk-close').addEventListener('click',()=>{
+document.getElementById('ability-book').classList.remove('active');
+abAssignMode=null;document.querySelectorAll('.ab-slot').forEach(s=>s.classList.remove('ab-assign'));
+});
+document.querySelectorAll('.abk-tab').forEach(tab=>tab.addEventListener('click',()=>{
+document.querySelectorAll('.abk-tab').forEach(t=>t.classList.remove('active'));
+tab.classList.add('active');renderAbilityBook(tab.dataset.cat)}));
+
+function renderAbilityBook(cat){
+const grid=document.getElementById('abk-grid');grid.innerHTML='';
+allAbilities.filter(a=>a.cat===cat).forEach(ab=>{
+const d=document.createElement('div');d.className='abk-item';d.dataset.id=ab.id;
+d.innerHTML='<span class="abk-ico">'+ab.ico+'</span><span class="abk-name">'+ab.name+(ab.key?' ['+ab.key+']':'')+'</span><div class="abk-desc"><b>'+ab.name+'</b><br>'+ab.desc+(ab.key?'<br><span style="color:#cc9944">Key: '+ab.key+'</span>':'')+'</div>';
+d.addEventListener('click',()=>{
+if(abAssignMode){
+abAssignMode.selectedAbil=ab.id;
+const bar=abAssignMode.bar===1?bar1Slots:bar2Slots;
+bar[abAssignMode.idx]=ab.id;
+renderBar(bar1Slots,'ab-wrap',bar1Keys);
+renderBar(bar2Slots,'ab-wrap2',bar2Keys);
+abAssignMode=null;
+document.querySelectorAll('.ab-slot').forEach(s=>s.classList.remove('ab-assign'));
+document.getElementById('ability-book').classList.remove('active');
+log('Assigned: '+ab.name,'#cc9944');
+}else{
+ab.fn();
+}
+});
+grid.appendChild(d);
+})}
+
+// === SECOND BAR TOGGLE (settings integration) ===
+function toggleBar2(){showBar2=!showBar2;
+const b2=document.getElementById('ab-bar2');
+if(showBar2){b2.classList.add('active');log('Second action bar enabled','#cc9944');renderBar(bar2Slots,'ab-wrap2',bar2Keys)}
+else{b2.classList.remove('active');log('Second action bar disabled','#cc9944')}}
+
+// === GAMEPAD COMBO INPUT SYSTEM ===
+// Dual-button combos: pressing two buttons simultaneously triggers action bar 2 abilities
+// LB+A=slot0, LB+B=slot1, LB+X=slot2, LB+Y=slot3, RB+A=slot4, RB+B=slot5, RB+X=slot6, RB+Y=slot7, LB+RB=slot8, LB+DUp=slot9, LB+DDown=slot10, RB+DUp=slot11
+const gpComboMap=[
+{hold:4,press:0,slot:0},{hold:4,press:1,slot:1},{hold:4,press:2,slot:2},{hold:4,press:3,slot:3},
+{hold:5,press:0,slot:4},{hold:5,press:1,slot:5},{hold:5,press:2,slot:6},{hold:5,press:3,slot:7},
+{hold:4,press:5,slot:8},{hold:4,press:12,slot:9},{hold:4,press:13,slot:10},{hold:5,press:12,slot:11}
+];
+const gpComboNames={4:'LB',5:'RB',0:'A',1:'B',2:'X',3:'Y',12:'DUp',13:'DDown'};
+let gpComboCD={};
+function pollGpCombos(gp){
+if(!gp||!showBar2)return;
+for(const combo of gpComboMap){
+const hold=gp.buttons[combo.hold]?.pressed;
+const press=gp.buttons[combo.press]?.pressed;
+if(hold&&press&&!gpComboCD[combo.slot]){
+const aid=bar2Slots[combo.slot];const ab=abilMap[aid];
+if(ab){ab.fn();log('['+gpComboNames[combo.hold]+'+'+gpComboNames[combo.press]+'] '+ab.name,'#cc9944')}
+gpComboCD[combo.slot]=15;
+}}
+for(const k in gpComboCD){gpComboCD[k]--;if(gpComboCD[k]<=0)delete gpComboCD[k]}
+}
+// Also map DPad left/right to cycle bar2 quick-select when LB held
+let gpBar2Select=0;
+
+// Keyboard combos for bar2: Ctrl+number
+document.addEventListener('keydown',ev=>{
+if(ev.ctrlKey&&!ev.repeat){
+const num=parseInt(ev.key);
+if(num>=1&&num<=4){ev.preventDefault();const ab=abilMap[bar2Slots[num-1]];if(ab)ab.fn()}
+const ctrlMap={'q':4,'f':5,'e':6,'r':7,'t':8,'y':9,'u':10,'i':11};
+if(ctrlMap[ev.key]!==undefined){ev.preventDefault();const ab=abilMap[bar2Slots[ctrlMap[ev.key]]];if(ab)ab.fn()}
+}
+});
 
 // === LOG -> CHAT-LOG ===
 function log(msg,col){const el=document.getElementById('chat-log');if(!el)return;const d=document.createElement('div');d.style.color=col||'#887';d.textContent=msg;el.appendChild(d);el.scrollTop=el.scrollHeight}
@@ -497,9 +804,9 @@ function updateTargetFrame(){
 const tf=document.getElementById('target-frame');
 if(!lockOn||!lockOn.mesh){tf.classList.remove('active');if(targetRing)targetRing.visible=false;return}
 tf.classList.add('active');
-const icons={goblin:'\uD83D\uDC7A',cow:'\uD83D\uDC2E',chicken:'\uD83D\uDC14',guard:'\u2694',darkwiz:'\uD83E\uDDD9',revenant:'\uD83D\uDC7B',skeleton:'\uD83D\uDC80',demon:'\uD83D\uDC79',scorpion:'\uD83E\uDD82',warrior:'\u2694',whiteknight:'\u2694',dwarf:'\u26CF',barbarian:'\uD83E\uDE93',vampire:'\uD83E\uDDDB',zombie:'\uD83E\uDDDF',pirate:'\uD83C\uDFF4',mugger:'\uD83D\uDC64',troll:'\uD83E\uDDCC',ogre:'\uD83D\uDC79',drake:'\uD83D\uDC09',bear:'\uD83D\uDC3B',wolf:'\uD83D\uDC3A',spider:'\uD83D\uDD77',bat:'\uD83E\uDD87',ghost:'\uD83D\uDC7B',golem:'\uD83E\uDEA8',wyrm:'\uD83D\uDC32',shade:'\uD83D\uDC7E',hellhound:'\uD83D\uDD25',imp:'\uD83D\uDC7F',bandit:'\uD83D\uDDE1',rat:'\uD83D\uDC00',snake:'\uD83D\uDC0D',lizard:'\uD83E\uDD8E',elemental:'\uD83C\uDF0A',gargoyle:'\uD83E\uDEA8',knight:'\u2694',mage:'\uD83E\uDDD9',archer:'\uD83C\uDFF9',cultist:'\uD83D\uDD2E'};
+const icons={goblin:'\uD83D\uDC7A',cow:'\uD83D\uDC2E',chicken:'\uD83D\uDC14',guard:'\u2694',darkwiz:'\uD83E\uDDD9',revenant:'\uD83D\uDC7B',skeleton:'\uD83D\uDC80',demon:'\uD83D\uDC79',scorpion:'\uD83E\uDD82',warrior:'\u2694',whiteknight:'\u2694',dwarf:'\u26CF',barbarian:'\uD83E\uDE93',vampire:'\uD83E\uDDDB',zombie:'\uD83E\uDDDF',pirate:'\uD83C\uDFF4',mugger:'\uD83D\uDC64',troll:'\uD83E\uDDCC',ogre:'\uD83D\uDC79',drake:'\uD83D\uDC09',bear:'\uD83D\uDC3B',wolf:'\uD83D\uDC3A',spider:'\uD83D\uDD77',bat:'\uD83E\uDD87',ghost:'\uD83D\uDC7B',golem:'\uD83E\uDEA8',wyrm:'\uD83D\uDC32',shade:'\uD83D\uDC7E',hellhound:'\uD83D\uDD25',imp:'\uD83D\uDC7F',bandit:'\uD83D\uDDE1',rat:'\uD83D\uDC00',snake:'\uD83D\uDC0D',lizard:'\uD83E\uDD8E',elemental:'\uD83C\uDF0A',gargoyle:'\uD83E\uDEA8',knight:'\u2694',mage:'\uD83E\uDDD9',archer:'\uD83C\uDFF9',cultist:'\uD83D\uDD2E',dragon:'\uD83D\uDC09',blackdragon:'\uD83D\uDC32',hydra:'\uD83D\uDC32',kraken:'\uD83D\uDC19',cerberus:'\uD83D\uDD25',basilisk:'\uD83D\uDC0D',cockatrice:'\uD83D\uDC14',wyvern:'\uD83D\uDC32',abyssal:'\uD83D\uDC7E',dagannoth:'\uD83D\uDC1F',kalphite:'\uD83E\uDD82',jad:'\uD83D\uDD25',zuk:'\uD83C\uDF0B',nightmare:'\uD83D\uDC7E',vorkath:'\uD83D\uDC32',zilyana:'\u2694',graardor:'\uD83D\uDDE1',kreearra:'\uD83E\uDD85',kril:'\uD83D\uDC79',nex:'\uD83D\uDC7E',mimic:'\uD83D\uDCE6',bloodveld:'\uD83E\uDE78',kurask:'\uD83D\uDC7E',turoth:'\uD83D\uDC7E',nechryael:'\uD83D\uDC7E',abyssaldemon:'\uD83D\uDC79',darkbeast:'\uD83D\uDC3A',skeletalwyvern:'\uD83D\uDC80',brutalblue:'\uD83D\uDC32',brutalred:'\uD83D\uDC32',brutalblack:'\uD83D\uDC32',thief:'\uD83D\uDC64',tribesman:'\uD83D\uDDE1',mummy:'\uD83E\uDDDF',scarab:'\uD83E\uDEB2',elf:'\uD83E\uDDD9',fairy:'\uD83E\uDDF5',tzhaar:'\uD83C\uDF0B'};
 document.getElementById('tf-icon').textContent=icons[lockOn.type]||'\uD83D\uDC7E';
-document.getElementById('tf-name').textContent=lockOn.type.charAt(0).toUpperCase()+lockOn.type.slice(1);
+document.getElementById('tf-name').textContent=ePigName[lockOn.type]||lockOn.type.charAt(0).toUpperCase()+lockOn.type.slice(1);
 document.getElementById('tf-lv').textContent='Lv '+(lockOn.lv||1);
 const pct=Math.max(0,lockOn.hp/lockOn.maxHp*100);
 document.getElementById('tf-hp-fill').style.width=pct+'%';
@@ -519,32 +826,60 @@ if(closest){lockOn=closest;lockIdx=enemies.indexOf(closest);log('Targeted: '+clo
 
 // === WORLD MAP ===
 const wmCanvas=document.getElementById('wm-canvas');const wmCtx=wmCanvas.getContext('2d');
+// City/castle/dungeon markers for the world map
+const mapCities=[{x:0,z:0,n:'Lumbridge',r:80},{x:555,z:50,n:'Varrock',r:70},{x:-480,z:280,n:'Falador',r:65},{x:-1200,z:100,n:'Ardougne',r:70}];
+const mapCastles=[{x:900,z:-800,n:'Eastern Fortress'},{x:-2000,z:-500,n:'Western Stronghold'},{x:0,z:-1800,n:'Wilderness Castle'},{x:-800,z:600,n:'Southern Keep'},{x:1500,z:400,n:'Desert Citadel'}];
 function drawWorldMap(){
 const W=900,H=700;wmCtx.fillStyle='#0a0805';wmCtx.fillRect(0,0,W,H);
 const scale=W/16000,ox=W/2,oy=H/2;
-// Draw regions
+// Draw regions as colored zones
 regions.forEach(r=>{
 const rx=r.x*scale+ox,ry=r.z*scale+oy;
 const rr=r.r*scale;
 const cr=(r.fog>>16)/255,cg=((r.fog>>8)&0xff)/255,cb=(r.fog&0xff)/255;
-wmCtx.fillStyle=`rgba(${~~(cr*255)},${~~(cg*255)},${~~(cb*255)},0.5)`;
+wmCtx.fillStyle=`rgba(${~~(cr*255)},${~~(cg*255)},${~~(cb*255)},0.45)`;
 wmCtx.beginPath();wmCtx.arc(rx,ry,Math.max(rr,8),0,Math.PI*2);wmCtx.fill();
 wmCtx.strokeStyle='#5a4a32';wmCtx.lineWidth=1;wmCtx.stroke();
-wmCtx.fillStyle='#c8a96e';wmCtx.font='bold 10px sans-serif';wmCtx.textAlign='center';
-wmCtx.fillText(r.n,rx,ry-rr-4);
-wmCtx.fillStyle='#887';wmCtx.font='8px sans-serif';
-wmCtx.fillText('Lv '+r.lv+'+',rx,ry+4)});
-// Enemies as tiny dots
+wmCtx.fillStyle='#c8a96e';wmCtx.font='bold 9px sans-serif';wmCtx.textAlign='center';
+wmCtx.fillText(r.n,rx,ry-rr-3);
+wmCtx.fillStyle='#776';wmCtx.font='7px sans-serif';
+wmCtx.fillText('Lv '+r.lv+'+',rx,ry+3)});
+// Draw cities as walled circles
+wmCtx.strokeStyle='#aa9060';wmCtx.lineWidth=2;
+mapCities.forEach(c=>{const cx=c.x*scale+ox,cy=c.z*scale+oy,cr=c.r*scale;
+wmCtx.beginPath();wmCtx.arc(cx,cy,cr,0,Math.PI*2);wmCtx.stroke();
+wmCtx.fillStyle='rgba(180,160,100,.15)';wmCtx.fill();
+wmCtx.fillStyle='#e8d4a8';wmCtx.font='bold 10px serif';wmCtx.textAlign='center';
+wmCtx.fillText(c.n,cx,cy+3)});
+// Draw castles as squares with towers
+wmCtx.fillStyle='#8a7a5a';
+mapCastles.forEach(c=>{const cx=c.x*scale+ox,cy=c.z*scale+oy;
+wmCtx.fillRect(cx-6,cy-6,12,12);
+wmCtx.strokeStyle='#aa9060';wmCtx.lineWidth=1.5;wmCtx.strokeRect(cx-6,cy-6,12,12);
+// Corner tower dots
+[[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([sx,sz])=>{wmCtx.beginPath();wmCtx.arc(cx+sx*6,cy+sz*6,2,0,Math.PI*2);wmCtx.fill()});
+wmCtx.fillStyle='#e8c878';wmCtx.font='bold 8px serif';wmCtx.textAlign='center';
+wmCtx.fillText(c.n,cx,cy-10);wmCtx.fillStyle='#8a7a5a'});
+// Draw dungeons as cave icons
+wmCtx.fillStyle='#6a4a2a';
+dungeons.forEach(d=>{const dx=d.x*scale+ox,dy=d.z*scale+oy;
+wmCtx.beginPath();wmCtx.arc(dx,dy,3,0,Math.PI*2);wmCtx.fill();
+wmCtx.strokeStyle='#4a3a1a';wmCtx.lineWidth=1;wmCtx.stroke()});
+// Draw building footprints as dots
+wmCtx.fillStyle='rgba(160,140,100,.3)';
+cityFootprints.forEach(f=>{const fx=f.x*scale+ox,fy=f.z*scale+oy;
+wmCtx.fillRect(fx-1,fy-1,2,2)});
+// Enemies as red dots
 enemies.forEach(e=>{const ex=e.mesh.position.x*scale+ox,ey=e.mesh.position.z*scale+oy;
 wmCtx.fillStyle='#cc2020';wmCtx.fillRect(ex-1,ey-1,2,2)});
-// Player
+// Player marker
 const px=player.x*scale+ox,py=player.z*scale+oy;
 wmCtx.fillStyle='#fff';wmCtx.beginPath();wmCtx.arc(px,py,5,0,Math.PI*2);wmCtx.fill();
 wmCtx.strokeStyle='#ffcc44';wmCtx.lineWidth=2;wmCtx.stroke();
 wmCtx.fillStyle='#ffcc44';wmCtx.font='bold 11px sans-serif';wmCtx.textAlign='center';
 wmCtx.fillText('YOU',px,py-9);
 // Grid
-wmCtx.strokeStyle='rgba(90,74,50,.2)';wmCtx.lineWidth=.5;
+wmCtx.strokeStyle='rgba(90,74,50,.15)';wmCtx.lineWidth=.5;
 for(let gx=-8000;gx<=8000;gx+=1000){const sx=gx*scale+ox;wmCtx.beginPath();wmCtx.moveTo(sx,0);wmCtx.lineTo(sx,H);wmCtx.stroke()}
 for(let gz=-8000;gz<=8000;gz+=1000){const sy=gz*scale+oy;wmCtx.beginPath();wmCtx.moveTo(0,sy);wmCtx.lineTo(W,sy);wmCtx.stroke()}
 // Coords
@@ -555,11 +890,16 @@ document.getElementById('wm-close').onclick=()=>{document.getElementById('world-
 let scene,cam,renderer,composer,riverMesh,playerGroup;
 let playerClass='knight';
 let enemies=[],lootArr=[],particles=[],torchData=[];
+let autoLoot=true;
+const lootLabelCanvas=document.getElementById('loot-label-canvas');const lootLabelCtx=lootLabelCanvas.getContext('2d');
+function resizeLootCanvas(){lootLabelCanvas.width=innerWidth;lootLabelCanvas.height=innerHeight}
+window.addEventListener('resize',resizeLootCanvas);resizeLootCanvas();
 let dustPts,time=0;
 const lightPool=[];const MAX_LIGHTS=8;
 const torchPositions=[];
 const solidMeshes=[];
 const solidBoxes=[];
+const circleColliders=[];
 // Dungeon system globals (must be accessible from game loop)
 let inDungeon=null;let dungeonGroup=null;const dungeons=[];const dungeonObjs=[];const enterableBuildings=[];
 // Culling globals
@@ -593,38 +933,48 @@ const teleports=[
 let showTeleport=false;
 // Skill items: items that grant XP when used (F key near resource spots)
 const skillItems={
-'Bronze Pickaxe':{skill:'Mining',xp:15},'Iron Pickaxe':{skill:'Mining',xp:25},'Steel Pickaxe':{skill:'Mining',xp:40},'Rune Pickaxe':{skill:'Mining',xp:65},
-'Bronze Hatchet':{skill:'Woodcutting',xp:15},'Iron Hatchet':{skill:'Woodcutting',xp:25},'Steel Hatchet':{skill:'Woodcutting',xp:40},'Rune Hatchet':{skill:'Woodcutting',xp:65},
-'Fishing Rod':{skill:'Fishing',xp:30},'Fly Fishing Rod':{skill:'Fishing',xp:50},'Harpoon':{skill:'Fishing',xp:80},
-'Tinderbox':{skill:'Firemaking',xp:25},'Augmented Tinderbox':{skill:'Firemaking',xp:60},
-'Chisel':{skill:'Crafting',xp:20},'Needle':{skill:'Crafting',xp:30},
-'Hammer':{skill:'Smithing',xp:25},'Golden Hammer':{skill:'Smithing',xp:60},
-'Knife':{skill:'Cooking',xp:20},'Raw Beef':{skill:'Cooking',xp:15},'Raw Chicken':{skill:'Cooking',xp:10},'Raw Meat':{skill:'Cooking',xp:15},'Raw Salmon':{skill:'Cooking',xp:30},'Raw Swordfish':{skill:'Cooking',xp:50},'Raw Tuna':{skill:'Cooking',xp:40},'Raw Bear Meat':{skill:'Cooking',xp:25},'Raw Shark x5':{skill:'Cooking',xp:100},'Raw Chompy':{skill:'Cooking',xp:35},
-'Bones':{skill:'Prayer',xp:15},'Big Bones':{skill:'Prayer',xp:30},'Dragon Bones':{skill:'Prayer',xp:72},'Drake Bones':{skill:'Prayer',xp:50},'Wyrm Bones':{skill:'Prayer',xp:55},'Troll Bones':{skill:'Prayer',xp:40},'Wolf Bones':{skill:'Prayer',xp:25},'Wyvern Bones':{skill:'Prayer',xp:60},'Hydra Bones':{skill:'Prayer',xp:80},
-'Nature Rune':{skill:'Runecraft',xp:20},'Death Rune':{skill:'Runecraft',xp:35},'Blood Rune':{skill:'Runecraft',xp:50},'Soul Rune x3':{skill:'Runecraft',xp:60},'Chaos Rune x5':{skill:'Runecraft',xp:40},'Fire Rune x20':{skill:'Runecraft',xp:30},'Law Rune x3':{skill:'Runecraft',xp:45},'Mind Rune x15':{skill:'Runecraft',xp:25},'Wrath Rune x5':{skill:'Runecraft',xp:70},
-'Herb':{skill:'Herblore',xp:25},'Garlic':{skill:'Herblore',xp:10},'Antidote':{skill:'Herblore',xp:30},'Antipoison':{skill:'Herblore',xp:20},'Prayer Potion':{skill:'Herblore',xp:40},
-'Lockpick':{skill:'Thieving',xp:30},'Spider Silk':{skill:'Crafting',xp:15},'Cowhide':{skill:'Crafting',xp:10},'Snake Skin':{skill:'Crafting',xp:20},'Lizard Skin':{skill:'Crafting',xp:25},'Dragon Hide':{skill:'Crafting',xp:60},'Black Dragonhide':{skill:'Crafting',xp:80},'Hydra Leather':{skill:'Crafting',xp:70},
-'Iron Ore':{skill:'Mining',xp:20},'Gold Ore':{skill:'Mining',xp:40},'Elemental Ore':{skill:'Mining',xp:50},'Runite Ore':{skill:'Mining',xp:80},'Granite x3':{skill:'Mining',xp:45}
+'Onzebray Ickaxepay':{skill:'Mining',xp:15},'Ironway Ickaxepay':{skill:'Mining',xp:25},'Eelstay Ickaxepay':{skill:'Mining',xp:40},'Uneray Ickaxepay':{skill:'Mining',xp:65},
+'Onzebray Atchethay':{skill:'Woodcutting',xp:15},'Ironway Atchethay':{skill:'Woodcutting',xp:25},'Eelstay Atchethay':{skill:'Woodcutting',xp:40},'Uneray Atchethay':{skill:'Woodcutting',xp:65},
+'Ishingfay Odray':{skill:'Fishing',xp:30},'Yingflay Ishingfay Odray':{skill:'Fishing',xp:50},'Arpoonhay':{skill:'Fishing',xp:80},
+'Inderboxtay':{skill:'Firemaking',xp:25},'Augmentedway Inderboxtay':{skill:'Firemaking',xp:60},
+'Iselchay':{skill:'Crafting',xp:20},'Eedlenay':{skill:'Crafting',xp:30},
+'Ammerhay':{skill:'Smithing',xp:25},'Oldengay Ammerhay':{skill:'Smithing',xp:60},
+'Ifenay':{skill:'Cooking',xp:20},'Awray Eefbay':{skill:'Cooking',xp:15},'Awray Ickenchay':{skill:'Cooking',xp:10},'Awray Eatmay':{skill:'Cooking',xp:15},'Awray Almonsay':{skill:'Cooking',xp:30},'Awray Ordfishsway':{skill:'Cooking',xp:50},'Awray Unatay':{skill:'Cooking',xp:40},'Awray Earbay Eatmay':{skill:'Cooking',xp:25},'Awray Arkshay x5':{skill:'Cooking',xp:100},'Awray Ompychay':{skill:'Cooking',xp:35},
+'Onesbay':{skill:'Prayer',xp:15},'Igbay Onesbay':{skill:'Prayer',xp:30},'Agondray Onesbay':{skill:'Prayer',xp:72},'Akeday Onesbay':{skill:'Prayer',xp:50},'Yrmway Onesbay':{skill:'Prayer',xp:55},'Olltray Onesbay':{skill:'Prayer',xp:40},'Olfway Onesbay':{skill:'Prayer',xp:25},'Yvernway Onesbay':{skill:'Prayer',xp:60},'Ydrahay Onesbay':{skill:'Prayer',xp:80},
+'Aturenay Uneray':{skill:'Runecraft',xp:20},'Eathday Uneray':{skill:'Runecraft',xp:35},'Oodblay Uneray':{skill:'Runecraft',xp:50},'Oulsay Uneray x3':{skill:'Runecraft',xp:60},'Aoscay Uneray x5':{skill:'Runecraft',xp:40},'Irefay Uneray x20':{skill:'Runecraft',xp:30},'Awlay Uneray x3':{skill:'Runecraft',xp:45},'Indmay Uneray x15':{skill:'Runecraft',xp:25},'Athwray Uneray x5':{skill:'Runecraft',xp:70},
+'Erbhay':{skill:'Herblore',xp:25},'Arlicgay':{skill:'Herblore',xp:10},'Antidoteway':{skill:'Herblore',xp:30},'Antipoisonway':{skill:'Herblore',xp:20},'Ayerpray Otionpay':{skill:'Herblore',xp:40},
+'Ockpicklay':{skill:'Thieving',xp:30},'Iderspay Ilksay':{skill:'Crafting',xp:15},'Owhidecay':{skill:'Crafting',xp:10},'Akesnay Inskay':{skill:'Crafting',xp:20},'Izardlay Inskay':{skill:'Crafting',xp:25},'Agondray Idehay':{skill:'Crafting',xp:60},'Ackblay Agondray Idehay':{skill:'Crafting',xp:80},'Ydrahay Eatherlay':{skill:'Crafting',xp:70},
+'Ironway Oreay':{skill:'Mining',xp:20},'Oldgay Oreay':{skill:'Mining',xp:40},'Elementalway Oreay':{skill:'Mining',xp:50},'Uniteray Oreay':{skill:'Mining',xp:80},'Anitegray x3':{skill:'Mining',xp:45}
 };
 const PLAYER_R=2.2;
 function addSolid(mesh){solidMeshes.push(mesh)}
+// World-space circle collider (for towers, huts, round structures)
+function addCircleSolid(wx,wz,radius,minY,maxY){circleColliders.push({x:wx,z:wz,r:radius,minY:minY||0,maxY:maxY||999})}
 function buildColliders(){
 solidBoxes.length=0;
 for(const m of solidMeshes){m.updateMatrixWorld(true);
 const b=new THREE.Box3().setFromObject(m);solidBoxes.push(b)}
-log('Colliders: '+solidBoxes.length+' objects','#0f0')}
+log('Colliders: '+solidBoxes.length+' boxes, '+circleColliders.length+' circles','#0f0')}
 function pushOut(px,py,pz){
 let ox=px,oz=pz;
 const pr=PLAYER_R;
+// Box colliders (scene-level meshes only)
 for(let pass=0;pass<2;pass++){for(const b of solidBoxes){
 const minX=b.min.x-pr,maxX=b.max.x+pr,minZ=b.min.z-pr,maxZ=b.max.z+pr;
-// Skip if entity is on top of or above this solid (standing on it)
 if(py>=b.max.y-1)continue;
 if(ox>minX&&ox<maxX&&oz>minZ&&oz<maxZ&&py>b.min.y-6){
 const ovL=ox-minX,ovR=maxX-ox,ovB=oz-minZ,ovF=maxZ-oz;
 const m=Math.min(ovL,ovR,ovB,ovF);
 if(m===ovL)ox=minX;else if(m===ovR)ox=maxX;
 else if(m===ovB)oz=minZ;else oz=maxZ}}}
+// Circle colliders (towers, huts, walls)
+for(const c of circleColliders){
+if(py>=c.maxY-1||py<c.minY-6)continue;
+const dx=ox-c.x,dz=oz-c.z;
+const dist=Math.hypot(dx,dz);
+const minDist=c.r+pr;
+if(dist<minDist&&dist>0.01){const push=minDist-dist;
+ox+=dx/dist*push;oz+=dz/dist*push}}
 return{x:ox,z:oz}}
 // Surface height: terrain or top of any walkable solid below the entity
 function surfaceH(px,pz,py){
@@ -648,56 +998,56 @@ const h00=pos.getZ(j0*cols+i0),h10=pos.getZ(j0*cols+i0+1),h01=pos.getZ((j0+1)*co
 return h00*(1-fx)*(1-fz)+h10*fx*(1-fz)+h01*(1-fx)*fz+h11*fx*fz}
 let keys={},mouse={x:0,y:0,dx:0,dy:0,down:false,right:false,mid:false};
 let camYaw=0,camPitch=.35,camDist=60;
-let player={x:0,z:0,y:2,vx:0,vz:0,speed:.42,hp:142,maxHp:142,sta:100,maxSta:100,poi:68,maxPoi:68,ang:0,rolling:false,rollT:0,atkCD:0,dead:false,deadTimer:0,blocking:false};
+let player={x:0,z:0,y:2,vx:0,vz:0,vy:0,speed:.42,hp:142,maxHp:142,sta:100,maxSta:100,poi:68,maxPoi:68,ang:0,rolling:false,rollT:0,atkCD:0,dead:false,deadTimer:0,blocking:false,grounded:true};
 let lockOn=null,lockIdx=-1;
 let showSkills=false,showInv=false;
 let gpAxes=[0,0,0,0],gpButtons={};
 
-const drops={goblin:[{i:"Bronze Sword",c:.42},{i:"Coins x17",c:.68},{i:"Bones",c:1},{i:"Goblin Mail",c:.08},{i:"Bronze Pickaxe",c:.05},{i:"Nature Rune",c:.12},{i:"Chef Hat",c:.03},{i:"Goblin Book",c:.02}],
-cow:[{i:"Raw Beef",c:1},{i:"Cowhide",c:.85},{i:"Coins x5",c:.4},{i:"Bucket of Milk",c:.3},{i:"Cow Horn",c:.1}],
-chicken:[{i:"Raw Chicken",c:1},{i:"Feathers x12",c:.9},{i:"Bones",c:1},{i:"Egg",c:.4}],
-guard:[{i:"Iron Sword",c:.3},{i:"Coins x45",c:.8},{i:"Bread",c:.5},{i:"Steel Chainbody",c:.08},{i:"Iron Pickaxe",c:.04},{i:"Guard Journal",c:.02},{i:"Iron Hatchet",c:.06}],
-skeleton:[{i:"Bones",c:1},{i:"Iron Arrow x5",c:.6},{i:"Ancient Coin",c:.1},{i:"Skull Fragment",c:.15},{i:"Death Rune",c:.08},{i:"Skeletal Boots",c:.03}],
-pirate:[{i:"Coins x30",c:.7},{i:"Rum",c:.4},{i:"Eye Patch",c:.05},{i:"Cutlass",c:.1},{i:"Fishing Rod",c:.06},{i:"Raw Swordfish",c:.15},{i:"Treasure Map",c:.02},{i:"Cannon Ball x5",c:.08}],
-barbarian:[{i:"Raw Meat",c:.8},{i:"Coins x12",c:.6},{i:"Bear Fur",c:.3},{i:"Steel Hatchet",c:.08},{i:"Tinderbox",c:.1},{i:"Raw Salmon",c:.2},{i:"Barbarian Helm",c:.04}],
-vampire:[{i:"Blood Rune",c:.4},{i:"Coins x60",c:.5},{i:"Garlic",c:.2},{i:"Vampyre Dust",c:.7},{i:"Blood Shard",c:.03},{i:"Dark Bow",c:.02},{i:"Ruby Ring",c:.05}],
-demon:[{i:"Dragon Bones",c:.8},{i:"Rune Scimitar",c:.05},{i:"Coins x200",c:.9},{i:"Infernal Ash",c:.6},{i:"Fire Rune x20",c:.4},{i:"Dragon Dagger",c:.04},{i:"Obsidian Shard",c:.03},{i:"Infernal Cape Shard",c:.01}],
-scorpion:[{i:"Coins x8",c:.5},{i:"Poison Stinger",c:.3},{i:"Antidote",c:.1}],
-zombie:[{i:"Bones",c:1},{i:"Zombie Champion Scroll",c:.01},{i:"Rotten Food",c:.5},{i:"Iron Nails x8",c:.3}],
-wolf:[{i:"Wolf Bones",c:.8},{i:"Wolf Fur",c:.6},{i:"Raw Meat",c:.7},{i:"Claws",c:.1}],
-bear:[{i:"Bear Fur",c:.8},{i:"Raw Bear Meat",c:.7},{i:"Big Bones",c:.5},{i:"Bear Paw",c:.04}],
-spider:[{i:"Spider Silk",c:.6},{i:"Coins x3",c:.5},{i:"Red Spider Eggs",c:.2},{i:"Spider Fang",c:.08}],
-drake:[{i:"Drake Bones",c:.8},{i:"Dragon Scale",c:.15},{i:"Coins x80",c:.6},{i:"Drake Claw",c:.03},{i:"Wrath Rune x5",c:.1}],
-ghost:[{i:"Ghost Essence",c:.5},{i:"Coins x20",c:.4},{i:"Death Rune",c:.2},{i:"Ectoplasm",c:.3},{i:"Ghost Robe Top",c:.04}],
-shade:[{i:"Shade Robe",c:.1},{i:"Coins x40",c:.5},{i:"Death Rune x3",c:.15},{i:"Shadow Key",c:.02}],
-troll:[{i:"Troll Bones",c:.8},{i:"Granite x3",c:.5},{i:"Coins x35",c:.6},{i:"Throwing Rock x10",c:.3},{i:"Granite Maul",c:.02}],
-ogre:[{i:"Big Bones",c:.8},{i:"Coins x25",c:.6},{i:"Ogre Bow",c:.05},{i:"Raw Chompy",c:.3}],
-knight:[{i:"Steel Platebody",c:.1},{i:"Coins x55",c:.7},{i:"Steel Sword",c:.15},{i:"Steel Shield",c:.08}],
-mage:[{i:"Law Rune x3",c:.3},{i:"Coins x40",c:.6},{i:"Staff of Air",c:.06},{i:"Wizard Robe",c:.04},{i:"Mystic Gloves",c:.02}],
-thief:[{i:"Coins x35",c:.8},{i:"Lockpick",c:.2},{i:"Diamond",c:.04},{i:"Thieving Cape Shard",c:.01}],
-dwarf:[{i:"Coins x20",c:.7},{i:"Iron Ore",c:.5},{i:"Steel Pickaxe",c:.06},{i:"Dwarven Stout",c:.2},{i:"Gold Ore",c:.08}],
-whiteknight:[{i:"Mithril Sword",c:.1},{i:"Coins x65",c:.7},{i:"White Shield",c:.05},{i:"Prayer Potion",c:.08}],
-darkwiz:[{i:"Chaos Rune x5",c:.4},{i:"Coins x30",c:.6},{i:"Wizard Hat",c:.1},{i:"Mind Rune x15",c:.5},{i:"Mystic Robe Bottom",c:.03}],
-revenant:[{i:"Revenant Ether x10",c:.6},{i:"Coins x150",c:.5},{i:"Ancient Statuette",c:.02},{i:"Craw Bow",c:.01},{i:"Amulet of Avarice",c:.005}],
-hellhound:[{i:"Big Bones",c:.8},{i:"Coins x80",c:.5},{i:"Smouldering Stone",c:.02},{i:"Hellhound Fang",c:.05},{i:"Clue Scroll",c:.08}],
-imp:[{i:"Coins x3",c:.5},{i:"Imp Bead",c:.8},{i:"Firelighter",c:.15}],
-tzhaar:[{i:"Obsidian Shard",c:.4},{i:"Tokkul x50",c:.8},{i:"Obsidian Maul",c:.02},{i:"Obsidian Shield",c:.03},{i:"Fire Cape Shard",c:.01}],
-elf:[{i:"Crystal Shard",c:.5},{i:"Coins x100",c:.6},{i:"Crystal Bow Seed",c:.02},{i:"Elven Signet",c:.01},{i:"Raw Tuna",c:.3}],
-mummy:[{i:"Coins x50",c:.6},{i:"Pharaoh Sceptre Shard",c:.01},{i:"Gold Leaf",c:.1},{i:"Bandage",c:.4}],
-scarab:[{i:"Coins x15",c:.5},{i:"Scarab Carapace",c:.3},{i:"Keris Shard",c:.02}],
-tribesman:[{i:"Coins x10",c:.5},{i:"Poisoned Spear",c:.15},{i:"Tribal Mask",c:.03}],
-fairy:[{i:"Fairy Dust",c:.6},{i:"Nature Rune x3",c:.4},{i:"Fairy Ring Piece",c:.02}],
-mugger:[{i:"Coins x8",c:.8},{i:"Bronze Dagger",c:.3}],
-rat:[{i:"Bones",c:.5},{i:"Rat Tail",c:.3}],
-snake:[{i:"Snake Skin",c:.5},{i:"Coins x6",c:.4},{i:"Antipoison",c:.1}],
-lizard:[{i:"Lizard Skin",c:.5},{i:"Coins x10",c:.4}],
-elemental:[{i:"Elemental Ore",c:.4},{i:"Coins x70",c:.5},{i:"Elemental Shield Shard",c:.03}],
-archer:[{i:"Steel Arrow x15",c:.6},{i:"Coins x30",c:.5},{i:"Maple Bow",c:.08}],
-cultist:[{i:"Soul Rune x3",c:.3},{i:"Dark Totem Piece",c:.05},{i:"Coins x40",c:.5}],
-gargoyle:[{i:"Granite Dust",c:.5},{i:"Coins x100",c:.6},{i:"Granite Maul",c:.03}],
-bandit:[{i:"Coins x25",c:.8},{i:"Desert Amulet",c:.05}],
-golem:[{i:"Runite Ore",c:.15},{i:"Coins x120",c:.5},{i:"Golem Heart",c:.02}],
-wyrm:[{i:"Wyrm Bones",c:.8},{i:"Dragon Knife",c:.03},{i:"Coins x90",c:.5}]};
+const drops={goblin:[{i:"Onzebray Ordssway",c:.42},{i:"Oinscay x17",c:.68},{i:"Onesbay",c:1},{i:"Oblingay Ailmay",c:.08},{i:"Onzebray Ickaxepay",c:.05},{i:"Aturenay Uneray",c:.12},{i:"Efchay Athay",c:.03},{i:"Oblingay Ookbay",c:.02}],
+cow:[{i:"Awray Eefbay",c:1},{i:"Owhidecay",c:.85},{i:"Oinscay x5",c:.4},{i:"Ucketbay ofway Ilkmay",c:.3},{i:"Owcay Ornhay",c:.1}],
+chicken:[{i:"Awray Ickenchay",c:1},{i:"Eathersfay x12",c:.9},{i:"Onesbay",c:1},{i:"Eggway",c:.4}],
+guard:[{i:"Ironway Ordssway",c:.3},{i:"Oinscay x45",c:.8},{i:"Eadbray",c:.5},{i:"Eelstay Ainbodychay",c:.08},{i:"Ironway Ickaxepay",c:.04},{i:"Uardgay Ournaljay",c:.02},{i:"Ironway Atchethay",c:.06}],
+skeleton:[{i:"Onesbay",c:1},{i:"Ironway Arrowway x5",c:.6},{i:"Ancientway Oincay",c:.1},{i:"Ullskay Agmentfray",c:.15},{i:"Eathday Uneray",c:.08},{i:"Eletalsway Ootsbay",c:.03}],
+pirate:[{i:"Oinscay x30",c:.7},{i:"Umray",c:.4},{i:"Eyeway Atchpay",c:.05},{i:"Utlasscay",c:.1},{i:"Ishingfay Odray",c:.06},{i:"Awray Ordfishsway",c:.15},{i:"Easuretray Apmay",c:.02},{i:"Annoncay Allbay x5",c:.08}],
+barbarian:[{i:"Awray Eatmay",c:.8},{i:"Oinscay x12",c:.6},{i:"Earbay Urfay",c:.3},{i:"Eelstay Atchethay",c:.08},{i:"Inderboxtay",c:.1},{i:"Awray Almonsay",c:.2},{i:"Arbariansbay Elmhay",c:.04}],
+vampire:[{i:"Oodblay Uneray",c:.4},{i:"Oinscay x60",c:.5},{i:"Arlicgay",c:.2},{i:"Ampyrevay Ustday",c:.7},{i:"Oodblay Ardsshay",c:.03},{i:"Arkday Owbay",c:.02},{i:"Ubyray Ingray",c:.05}],
+demon:[{i:"Agondray Onesbay",c:.8},{i:"Uneray Imitarscay",c:.05},{i:"Oinscay x200",c:.9},{i:"Infernalway Ashway",c:.6},{i:"Irefay Uneray x20",c:.4},{i:"Agondray Aggerdray",c:.04},{i:"Obsidianway Ardsshay",c:.03},{i:"Infernalway Apecay Ardsshay",c:.01}],
+scorpion:[{i:"Oinscay x8",c:.5},{i:"Oisonpay Ingerstay",c:.3},{i:"Antidoteway",c:.1}],
+zombie:[{i:"Onesbay",c:1},{i:"Ombiezay Ampionchay Ollscray",c:.01},{i:"Ottenray Oodfay",c:.5},{i:"Ironway Ailsnay x8",c:.3}],
+wolf:[{i:"Olfway Onesbay",c:.8},{i:"Olfway Urfay",c:.6},{i:"Awray Eatmay",c:.7},{i:"Awsclay",c:.1}],
+bear:[{i:"Earbay Urfay",c:.8},{i:"Awray Earbay Eatmay",c:.7},{i:"Igbay Onesbay",c:.5},{i:"Earbay Awpay",c:.04}],
+spider:[{i:"Iderspay Ilksay",c:.6},{i:"Oinscay x3",c:.5},{i:"Edray Iderspay Eggsway",c:.2},{i:"Iderspay Angfay",c:.08}],
+drake:[{i:"Akeday Onesbay",c:.8},{i:"Agondray Alescay",c:.15},{i:"Oinscay x80",c:.6},{i:"Akeday Awclay",c:.03},{i:"Athwray Uneray x5",c:.1}],
+ghost:[{i:"Ostghay Essenceay",c:.5},{i:"Oinscay x20",c:.4},{i:"Eathday Uneray",c:.2},{i:"Ectoplasmway",c:.3},{i:"Ostghay Oberay Optay",c:.04}],
+shade:[{i:"Adeshay Oberay",c:.1},{i:"Oinscay x40",c:.5},{i:"Eathday Uneray x3",c:.15},{i:"Adowshay Eykay",c:.02}],
+troll:[{i:"Olltray Onesbay",c:.8},{i:"Anitegray x3",c:.5},{i:"Oinscay x35",c:.6},{i:"Owingtray Ockray x10",c:.3},{i:"Anitegray Aulmay",c:.02}],
+ogre:[{i:"Igbay Onesbay",c:.8},{i:"Oinscay x25",c:.6},{i:"Ogreway Owbay",c:.05},{i:"Awray Ompychay",c:.3}],
+knight:[{i:"Eelstay Atebodyplay",c:.1},{i:"Oinscay x55",c:.7},{i:"Eelstay Ordssway",c:.15},{i:"Eelstay Ieldshay",c:.08}],
+mage:[{i:"Awlay Uneray x3",c:.3},{i:"Oinscay x40",c:.6},{i:"Affstay ofway Airway",c:.06},{i:"Izardway Oberay",c:.04},{i:"Ysticmay Ovesglay",c:.02}],
+thief:[{i:"Oinscay x35",c:.8},{i:"Ockpicklay",c:.2},{i:"Iamondday",c:.04},{i:"Ievingtay Apecay Ardsshay",c:.01}],
+dwarf:[{i:"Oinscay x20",c:.7},{i:"Ironway Oreay",c:.5},{i:"Eelstay Ickaxepay",c:.06},{i:"Arvendway Outstay",c:.2},{i:"Oldgay Oreay",c:.08}],
+whiteknight:[{i:"Ithrilmay Ordssway",c:.1},{i:"Oinscay x65",c:.7},{i:"Iteway Ieldshay",c:.05},{i:"Ayerpray Otionpay",c:.08}],
+darkwiz:[{i:"Aoscay Uneray x5",c:.4},{i:"Oinscay x30",c:.6},{i:"Izardway Athay",c:.1},{i:"Indmay Uneray x15",c:.5},{i:"Ysticmay Oberay Ottombay",c:.03}],
+revenant:[{i:"Evenantray Ethereay x10",c:.6},{i:"Oinscay x150",c:.5},{i:"Ancientway Atuettestay",c:.02},{i:"Awcray Owbay",c:.01},{i:"Amuleway ofway Avariceway",c:.005}],
+hellhound:[{i:"Igbay Onesbay",c:.8},{i:"Oinscay x80",c:.5},{i:"Oulderingsmay Onesay",c:.02},{i:"Ellhoundhay Angfay",c:.05},{i:"Ueclay Ollscray",c:.08}],
+imp:[{i:"Oinscay x3",c:.5},{i:"Impway Eadbay",c:.8},{i:"Irelighterfay",c:.15}],
+tzhaar:[{i:"Obsidianway Ardsshay",c:.4},{i:"Okkulay x50",c:.8},{i:"Obsidianway Aulmay",c:.02},{i:"Obsidianway Ieldshay",c:.03},{i:"Irefay Apecay Ardsshay",c:.01}],
+elf:[{i:"Ystalcray Ardsshay",c:.5},{i:"Oinscay x100",c:.6},{i:"Ystalcray Owbay Eedsay",c:.02},{i:"Elvenway Ignetsay",c:.01},{i:"Awray Unatay",c:.3}],
+mummy:[{i:"Oinscay x50",c:.6},{i:"Araohsphay Eptresay Ardsshay",c:.01},{i:"Oldgay Eaflay",c:.1},{i:"Andagebay",c:.4}],
+scarab:[{i:"Oinscay x15",c:.5},{i:"Arabscay Arapacecay",c:.3},{i:"Eriskay Ardsshay",c:.02}],
+tribesman:[{i:"Oinscay x10",c:.5},{i:"Oisonedpay Earspay",c:.15},{i:"Ibaltray Askmay",c:.03}],
+fairy:[{i:"Airyfay Ustday",c:.6},{i:"Aturenay Uneray x3",c:.4},{i:"Airyfay Ingray Iecepay",c:.02}],
+mugger:[{i:"Oinscay x8",c:.8},{i:"Onzebray Aggerdray",c:.3}],
+rat:[{i:"Onesbay",c:.5},{i:"Atray Ailtay",c:.3}],
+snake:[{i:"Akesnay Inskay",c:.5},{i:"Oinscay x6",c:.4},{i:"Antipoisonway",c:.1}],
+lizard:[{i:"Izardlay Inskay",c:.5},{i:"Oinscay x10",c:.4}],
+elemental:[{i:"Elementalway Oreay",c:.4},{i:"Oinscay x70",c:.5},{i:"Elementalway Ieldshay Ardsshay",c:.03}],
+archer:[{i:"Eelstay Arrowway x15",c:.6},{i:"Oinscay x30",c:.5},{i:"Aplemay Owbay",c:.08}],
+cultist:[{i:"Oulsay Uneray x3",c:.3},{i:"Arkday Otemtay Iecepay",c:.05},{i:"Oinscay x40",c:.5}],
+gargoyle:[{i:"Anitegray Ustday",c:.5},{i:"Oinscay x100",c:.6},{i:"Anitegray Aulmay",c:.03}],
+bandit:[{i:"Oinscay x25",c:.8},{i:"Esertday Amuleway",c:.05}],
+golem:[{i:"Uniteray Oreay",c:.15},{i:"Oinscay x120",c:.5},{i:"Olemgay Earthay",c:.02}],
+wyrm:[{i:"Yrmway Onesbay",c:.8},{i:"Agondray Ifenay",c:.03},{i:"Oinscay x90",c:.5}]};
 
 // log function defined above at line 326 using chat-log element
 
@@ -718,28 +1068,45 @@ const regions=[
 {n:'Ardougneway',x:-1200,z:100,r:320,lv:25,c:[.40,.46,.34],en:['guard','knight','thief'],fog:0x8a9a7a},
 {n:'Anilleyay',x:-1400,z:500,r:200,lv:30,c:[.36,.42,.30],en:['ogre','guard'],fog:0x7a8a6a},
 {n:'Anifiscay',x:1300,z:-200,r:240,lv:35,c:[.15,.20,.12],en:['vampire','wolf','ghost'],fog:0x2a3820},
-{n:'Orytaniamay',x:1600,z:-400,r:350,lv:40,c:[.12,.16,.10],en:['ghost','shade','vampire'],fog:0x1a2a18},
+{n:'Orytaniamay',x:1600,z:-400,r:350,lv:40,c:[.12,.16,.10],en:['ghost','shade','vampire','bloodveld'],fog:0x1a2a18},
 {n:'Aramjakay',x:-200,z:1800,r:400,lv:15,c:[.32,.52,.20],en:['spider','snake','tribesman'],fog:0x6a9a50},
-{n:'Imhavenbray',x:-500,z:2200,r:280,lv:20,c:[.28,.46,.16],en:['spider','drake','snake'],fog:0x5a8a40},
-{n:'Ollheimtray',x:-200,z:-3500,r:350,lv:55,c:[.30,.28,.24],en:['troll','wolf'],fog:0x5a5040},
-{n:'Odgay Arsway',x:0,z:-4500,r:400,lv:80,c:[.18,.14,.22],en:['demon','golem','wyrm'],fog:0x2a2030},
-{n:'Eepday Ildernesway',x:0,z:-1800,r:500,lv:65,c:[.12,.10,.08],en:['revenant','hellhound','demon'],fog:0x1a1510},
-{n:'Eerssay Illagevay',x:-800,z:-100,r:220,lv:22,c:[.40,.48,.34],en:['guard','mage'],fog:0x8a9a7a},
-{n:'Ellekkaray',x:-400,z:-3800,r:300,lv:45,c:[.32,.35,.38],en:['troll','barbarian','wolf'],fog:0x5a6068},
-{n:'Eldagrimkay',x:-800,z:-3200,r:250,lv:50,c:[.36,.30,.26],en:['dwarf','golem'],fog:0x6a5848},
-{n:'Osmay Elay Armlesshay',x:500,z:2500,r:300,lv:25,c:[.48,.52,.28],en:['pirate','snake','spider'],fog:0x9a9a60},
-{n:'Esertday Ateauplay',x:2000,z:600,r:400,lv:35,c:[.70,.58,.30],en:['scorpion','mummy','warrior'],fog:0xc0a070},
-{n:'Ophanemsay',x:2500,z:200,r:260,lv:40,c:[.65,.52,.26],en:['mummy','scarab','snake'],fog:0xb09060},
-{n:'Enaphossmay',x:3000,z:400,r:300,lv:50,c:[.62,.50,.24],en:['mummy','warrior','mage'],fog:0xa88850},
-{n:'Irannwntay',x:-3500,z:0,r:450,lv:55,c:[.20,.40,.15],en:['elf','wolf','bear'],fog:0x3a6a28},
-{n:'Ifddinas pray',x:-4000,z:-300,r:300,lv:70,c:[.42,.52,.48],en:['elf','knight','mage'],fog:0x8aaa98},
-{n:'Ossilfay Islandway',x:2500,z:-1500,r:300,lv:45,c:[.34,.40,.24],en:['wyrm','spider','lizard'],fog:0x6a7a50},
+{n:'Imhavenbray',x:-500,z:2200,r:280,lv:20,c:[.28,.46,.16],en:['spider','drake','snake','basilisk'],fog:0x5a8a40},
+{n:'Ollheimtray',x:-200,z:-3500,r:350,lv:55,c:[.30,.28,.24],en:['troll','wolf','bear'],fog:0x5a5040},
+{n:'Odgay Arsway',x:0,z:-4500,r:400,lv:80,c:[.18,.14,.22],en:['demon','golem','wyrm','nex'],fog:0x2a2030},
+{n:'Eepday Ildernesway',x:0,z:-1800,r:500,lv:65,c:[.12,.10,.08],en:['revenant','hellhound','demon','blackdragon'],fog:0x1a1510},
+{n:'Eerssay Illagevay',x:-800,z:-100,r:220,lv:22,c:[.40,.48,.34],en:['guard','mage','turoth'],fog:0x8a9a7a},
+{n:'Ellekkaray',x:-400,z:-3800,r:300,lv:45,c:[.32,.35,.38],en:['troll','barbarian','wolf','skeletalwyvern'],fog:0x5a6068},
+{n:'Eldagrimkay',x:-800,z:-3200,r:250,lv:50,c:[.36,.30,.26],en:['dwarf','golem','dagannoth'],fog:0x6a5848},
+{n:'Osmay Elay Armlesshay',x:500,z:2500,r:300,lv:25,c:[.48,.52,.28],en:['pirate','snake','spider','cockatrice'],fog:0x9a9a60},
+{n:'Esertday Ateauplay',x:2000,z:600,r:400,lv:35,c:[.70,.58,.30],en:['scorpion','mummy','warrior','kalphite'],fog:0xc0a070},
+{n:'Ophanemsay',x:2500,z:200,r:260,lv:40,c:[.65,.52,.26],en:['mummy','scarab','snake','kalphite'],fog:0xb09060},
+{n:'Enaphossmay',x:3000,z:400,r:300,lv:50,c:[.62,.50,.24],en:['mummy','warrior','mage','gargoyle'],fog:0xa88850},
+{n:'Irannwntay',x:-3500,z:0,r:450,lv:55,c:[.20,.40,.15],en:['elf','wolf','bear','kurask'],fog:0x3a6a28},
+{n:'Ifddinas pray',x:-4000,z:-300,r:300,lv:70,c:[.42,.52,.48],en:['elf','knight','mage','darkbeast'],fog:0x8aaa98},
+{n:'Ossilfay Islandway',x:2500,z:-1500,r:300,lv:45,c:[.34,.40,.24],en:['wyrm','spider','lizard','wyvern'],fog:0x6a7a50},
 {n:'Eahzay Osidiushay',x:-2000,z:1200,r:350,lv:15,c:[.48,.52,.28],en:['lizard','chicken','cow'],fog:0x9a9a6a},
 {n:'Eahzay Ayzien shay',x:-2500,z:800,r:300,lv:35,c:[.34,.30,.26],en:['knight','warrior','guard'],fog:0x6a5a48},
-{n:'Eahzay Ovakengjlay',x:-2800,z:1600,r:280,lv:40,c:[.26,.22,.18],en:['dwarf','golem','bat'],fog:0x4a3a30},
-{n:'Eahzay Arceuusway',x:-2200,z:1800,r:250,lv:50,c:[.20,.16,.28],en:['ghost','shade','cultist'],fog:0x2a2040},
+{n:'Eahzay Ovakengjlay',x:-2800,z:1600,r:280,lv:40,c:[.26,.22,.18],en:['dwarf','golem','bat','mimic'],fog:0x4a3a30},
+{n:'Eahzay Arceuusway',x:-2200,z:1800,r:250,lv:50,c:[.20,.16,.28],en:['ghost','shade','cultist','nechryael'],fog:0x2a2040},
 {n:'Anarisza y',x:800,z:800,r:200,lv:30,c:[.25,.40,.44],en:['imp','fairy','spider'],fog:0x4a7a8a},
-{n:'Aartzhay Itycay',x:1800,z:1200,r:250,lv:60,c:[.48,.16,.08],en:['tzhaar','imp','elemental'],fog:0x8a2010}
+{n:'Aartzhay Itycay',x:1800,z:1200,r:250,lv:60,c:[.48,.16,.08],en:['tzhaar','imp','elemental','jad'],fog:0x8a2010},
+// === FAR REGIONS (very large map) ===
+{n:'Abyssalway Exusney',x:0,z:-6000,r:500,lv:85,c:[.08,.04,.12],en:['abyssal','abyssaldemon','nechryael','bloodveld'],fog:0x0a0418},
+{n:'Agondray Airlay',x:3500,z:-2500,r:450,lv:75,c:[.14,.22,.10],en:['dragon','brutalblue','brutalred','wyvern'],fog:0x2a3a18},
+{n:'Ackblay Agondray Entryday',x:4500,z:-3000,r:400,lv:90,c:[.06,.06,.06],en:['blackdragon','brutalblack','skeletalwyvern'],fog:0x0a0a0a},
+{n:'Akenkray Ovecay',x:-1500,z:-5000,r:350,lv:80,c:[.10,.15,.25],en:['kraken','dagannoth','snake'],fog:0x1a2a4a},
+{n:'Erberuscay Airlay',x:2000,z:-5500,r:300,lv:90,c:[.15,.06,.06],en:['cerberus','hellhound','demon'],fog:0x2a0a0a},
+{n:'Orkathsvay Ankbay',x:-3000,z:-4500,r:350,lv:85,c:[.12,.18,.22],en:['vorkath','dragon','wyvern'],fog:0x1a2a3a},
+{n:'Ightmarenay Onezay',x:4000,z:2000,r:400,lv:88,c:[.10,.06,.14],en:['nightmare','shade','ghost','cultist'],fog:0x1a0a20},
+{n:'Odgay Arsway Ungeonday',x:0,z:-7500,r:500,lv:95,c:[.06,.04,.08],en:['zilyana','graardor','kreearra','kril'],fog:0x0a0810},
+{n:'Ukzay Infernoway',x:2500,z:2500,r:350,lv:99,c:[.30,.08,.02],en:['zuk','jad','tzhaar','elemental'],fog:0x5a1004},
+{n:'Ydrahay Arshesmay',x:-5000,z:-2000,r:400,lv:80,c:[.16,.22,.12],en:['hydra','drake','basilisk','wyrm'],fog:0x2a3a1a},
+{n:'Ayerplay Ownedway Areaway',x:-6000,z:0,r:500,lv:70,c:[.28,.36,.22],en:['elf','darkbeast','kurask','turoth'],fog:0x4a5a3a},
+{n:'Ancientway Avescay',x:5000,z:0,r:450,lv:75,c:[.18,.14,.10],en:['skeleton','mummy','gargoyle','revenant'],fog:0x2a2018},
+{n:'Rozenway Asteway',x:0,z:5000,r:600,lv:60,c:[.45,.50,.55],en:['wolf','bear','troll','elemental'],fog:0x8a9aaa},
+{n:'Olcanicvay Idgeray',x:3500,z:1000,r:350,lv:65,c:[.20,.10,.06],en:['demon','elemental','dragon','drake'],fog:0x3a1a0a},
+{n:'Istyway Allowsshay',x:-4500,z:2000,r:400,lv:45,c:[.20,.28,.30],en:['ghost','zombie','vampire','bandit'],fog:0x3a4a50},
+{n:'Arallelpay Imensionday',x:6000,z:-1000,r:500,lv:92,c:[.14,.08,.18],en:['nex','nightmare','abyssaldemon','darkbeast'],fog:0x200a28}
 ];
 const eHP={goblin:32,cow:45,chicken:18,guard:80,darkwiz:65,revenant:120,skeleton:60,demon:160,scorpion:40,warrior:55,whiteknight:90,dwarf:70,barbarian:50,vampire:85,zombie:45,pirate:55,mugger:30,
 troll:140,ogre:110,drake:180,bear:95,wolf:65,spider:50,bat:28,ghost:75,golem:200,wyrm:220,shade:90,hellhound:150,imp:35,bandit:70,rat:15,snake:40,lizard:45,elemental:160,gargoyle:190,knight:100,mage:85,archer:70,cultist:95,thief:40,tribesman:55,mummy:130,scarab:60,elf:120,fairy:30,tzhaar:250,
@@ -748,21 +1115,46 @@ dragon:400,blackdragon:550,hydra:480,kraken:420,cerberus:500,basilisk:180,cockat
 const eCol={goblin:0x2a5a28,cow:0x7a4a2a,chicken:0xcca855,guard:0x4444aa,darkwiz:0x2a0a3a,revenant:0x1a4a3a,skeleton:0xccccaa,demon:0x5a1010,scorpion:0x4a3a10,warrior:0x886830,whiteknight:0xcccccc,dwarf:0x886644,barbarian:0x8a5a30,vampire:0x2a0a1a,zombie:0x3a5a30,pirate:0x554430,mugger:0x3a3a3a,
 troll:0x5a5a4a,ogre:0x4a6a30,drake:0x6a3020,bear:0x4a3020,wolf:0x555555,spider:0x2a2a20,bat:0x3a3040,ghost:0x6a8aaa,golem:0x5a5a60,wyrm:0x4a2040,shade:0x2a2a3a,hellhound:0x5a2010,imp:0x8a2020,bandit:0x4a4030,rat:0x5a4a3a,snake:0x2a4a20,lizard:0x4a6a30,elemental:0x2a4a6a,gargoyle:0x5a5a5a,knight:0x6a6a7a,mage:0x3a3a6a,archer:0x4a5a3a,cultist:0x3a1a3a,thief:0x3a3a3a,tribesman:0x5a4a2a,mummy:0x8a7a5a,scarab:0x2a3a1a,elf:0x4a6a5a,fairy:0x6a8aaa,tzhaar:0x8a3010,
 dragon:0x2a6a1a,blackdragon:0x1a1a1a,hydra:0x4a6a3a,kraken:0x1a3a5a,cerberus:0x5a1a1a,basilisk:0x5a6a3a,cockatrice:0x6a7a2a,wyvern:0x3a4a5a,abyssal:0x2a0a2a,dagannoth:0x4a5a2a,kalphite:0x5a4a1a,jad:0x8a2a00,zuk:0xaa3a10,nightmare:0x2a1a3a,vorkath:0x2a5a6a,zilyana:0xaaaacc,graardor:0x5a4a3a,kreearra:0x3a5a3a,kril:0x5a1a2a,nex:0x4a0a3a,mimic:0x6a5a2a,bloodveld:0x6a2a2a,kurask:0x4a6a2a,turoth:0x3a5a2a,nechryael:0x4a2a4a,abyssaldemon:0x3a1a3a,darkbeast:0x1a1a2a,skeletalwyvern:0x8a8a7a,brutalblue:0x2a3a6a,brutalred:0x6a2a1a,brutalblack:0x1a1a1a};
-// NEW MONSTER DROPS
-drops.dragon=[{i:"Dragon Bones",c:1},{i:"Dragon Hide",c:.9},{i:"Coins x500",c:.8},{i:"Dragon Platelegs",c:.04},{i:"Dragon Med Helm",c:.06},{i:"Draconic Visage",c:.005},{i:"Dragon Spear",c:.02}];
-drops.blackdragon=[{i:"Dragon Bones",c:1},{i:"Black Dragonhide",c:.9},{i:"Coins x800",c:.7},{i:"Dragon Platebody",c:.01},{i:"Draconic Visage",c:.01},{i:"Dragon Crossbow",c:.008}];
-drops.hydra=[{i:"Hydra Bones",c:1},{i:"Hydra Leather",c:.3},{i:"Hydra Claw",c:.02},{i:"Coins x600",c:.7},{i:"Brimstone Ring Piece",c:.03}];
-drops.kraken=[{i:"Kraken Tentacle",c:.08},{i:"Trident of the Seas",c:.02},{i:"Coins x400",c:.6},{i:"Raw Shark x5",c:.4},{i:"Mystic Water Staff",c:.05}];
-drops.cerberus=[{i:"Primordial Crystal",c:.015},{i:"Pegasian Crystal",c:.015},{i:"Eternal Crystal",c:.015},{i:"Smouldering Stone",c:.02},{i:"Coins x700",c:.6},{i:"Hellhound Fang",c:.1}];
-drops.basilisk=[{i:"Basilisk Jaw",c:.02},{i:"Coins x150",c:.5},{i:"Mystic Hat",c:.04}];
-drops.wyvern=[{i:"Wyvern Bones",c:.8},{i:"Dragon Platelegs",c:.02},{i:"Battlestaff",c:.08},{i:"Coins x350",c:.6}];
-drops.abyssal=[{i:"Abyssal Whip",c:.015},{i:"Coins x200",c:.5},{i:"Death Rune x8",c:.3}];
-drops.kalphite=[{i:"Coins x100",c:.6},{i:"Potato Cactus",c:.3},{i:"Dragon Chain",c:.005}];
-drops.jad=[{i:"Fire Cape",c:.5},{i:"Tokkul x200",c:.8},{i:"Obsidian Maul",c:.1},{i:"Coins x2000",c:.9}];
-drops.zuk=[{i:"Infernal Cape",c:.4},{i:"Tokkul x500",c:.9},{i:"Coins x5000",c:1},{i:"TzKal Cape Shard",c:.1}];
-drops.vorkath=[{i:"Vorkath Head",c:.05},{i:"Dragonbone Necklace",c:.03},{i:"Dragon Bolts x20",c:.3},{i:"Coins x3000",c:.8},{i:"Skeletal Visage",c:.005}];
-drops.nightmare=[{i:"Nightmare Staff",c:.02},{i:"Inquisitor Mace",c:.01},{i:"Coins x4000",c:.7},{i:"Orb of Darkness",c:.008}];
-drops.nex=[{i:"Torva Platebody",c:.008},{i:"Torva Platelegs",c:.008},{i:"Torva Helm",c:.008},{i:"Zaryte Crossbow",c:.005},{i:"Ancient Hilt",c:.005},{i:"Coins x8000",c:.9}];
+// NEW MONSTER DROPS (pig latin)
+drops.dragon=[{i:"Agondray Onesbay",c:1},{i:"Agondray Idehay",c:.9},{i:"Oinscay x500",c:.8},{i:"Agondray Atelegspay",c:.04},{i:"Agondray Edmay Elmhay",c:.06},{i:"Aconicday Isagevay",c:.005},{i:"Agondray Earspay",c:.02}];
+drops.blackdragon=[{i:"Agondray Onesbay",c:1},{i:"Ackblay Agondray Idehay",c:.9},{i:"Oinscay x800",c:.7},{i:"Agondray Atebodyplay",c:.01},{i:"Aconicday Isagevay",c:.01},{i:"Agondray Ossbowcray",c:.008}];
+drops.hydra=[{i:"Ydrahay Onesbay",c:1},{i:"Ydrahay Eatherlay",c:.3},{i:"Ydrahay Awclay",c:.02},{i:"Oinscay x600",c:.7},{i:"Imstonebray Ingray Iecepay",c:.03}];
+drops.kraken=[{i:"Akenkray Entacletay",c:.08},{i:"Identtray ofway ethay Eassay",c:.02},{i:"Oinscay x400",c:.6},{i:"Awray Arkshay x5",c:.4},{i:"Ysticmay Aterway Affstay",c:.05}];
+drops.cerberus=[{i:"Imordialplay Ystalcray",c:.015},{i:"Egasianplay Ystalcray",c:.015},{i:"Eternalway Ystalcray",c:.015},{i:"Oulderingsmay Onesay",c:.02},{i:"Oinscay x700",c:.6},{i:"Ellhoundhay Angfay",c:.1}];
+drops.basilisk=[{i:"Asiliskbay Awjay",c:.02},{i:"Oinscay x150",c:.5},{i:"Ysticmay Athay",c:.04}];
+drops.cockatrice=[{i:"Ockatricecay Eadhay",c:.04},{i:"Oinscay x80",c:.5},{i:"Ysticmay Ovesglay",c:.03}];
+drops.wyvern=[{i:"Yvernway Onesbay",c:.8},{i:"Agondray Atelegspay",c:.02},{i:"Attlestaffbay",c:.08},{i:"Oinscay x350",c:.6}];
+drops.abyssal=[{i:"Abyssalway Iphway",c:.015},{i:"Oinscay x200",c:.5},{i:"Eathday Uneray x8",c:.3}];
+drops.dagannoth=[{i:"Agannothday Onesbay",c:.8},{i:"Erserkersbay Ingray",c:.008},{i:"Archersway Ingray",c:.008},{i:"Eerssay Ingray",c:.008},{i:"Oinscay x250",c:.6}];
+drops.kalphite=[{i:"Oinscay x100",c:.6},{i:"Otatopay Actuscay",c:.3},{i:"Agondray Ainchay",c:.005}];
+drops.jad=[{i:"Irefay Apecay",c:.5},{i:"Okkulay x200",c:.8},{i:"Obsidianway Aulmay",c:.1},{i:"Oinscay x2000",c:.9}];
+drops.zuk=[{i:"Infernalway Apecay",c:.4},{i:"Okkulay x500",c:.9},{i:"Oinscay x5000",c:1},{i:"Alkaytay Apecay Ardsshay",c:.1}];
+drops.vorkath=[{i:"Orkathvay Eadhay",c:.05},{i:"Agonbonedray Ecklacenay",c:.03},{i:"Agondray Oltsbay x20",c:.3},{i:"Oinscay x3000",c:.8},{i:"Eletalskay Isagevay",c:.005}];
+drops.nightmare=[{i:"Ightmarenay Affstay",c:.02},{i:"Inquisitorway Acemay",c:.01},{i:"Oinscay x4000",c:.7},{i:"Orbway ofway Arknessdey",c:.008}];
+drops.nex=[{i:"Orvatay Atebodyplay",c:.008},{i:"Orvatay Atelegspay",c:.008},{i:"Orvatay Elmhay",c:.008},{i:"Arytezay Ossbowcray",c:.005},{i:"Ancientway Ilthay",c:.005},{i:"Oinscay x8000",c:.9}];
+drops.bloodveld=[{i:"Oodblay Uneray",c:.3},{i:"Oinscay x60",c:.5},{i:"Eathday Uneray x3",c:.2},{i:"Oodbloodveldvay Eadhay",c:.01}];
+drops.kurask=[{i:"Uraskay Eadhay",c:.03},{i:"Oinscay x180",c:.5},{i:"Eaflay Adedblayway Earspay",c:.04},{i:"Aturenay Uneray x5",c:.3}];
+drops.turoth=[{i:"Urothtay Eadhay",c:.03},{i:"Oinscay x120",c:.5},{i:"Erbhay",c:.4}];
+drops.nechryael=[{i:"Echryaelnay Eadhay",c:.04},{i:"Uneray Ootsbay",c:.02},{i:"Oinscay x200",c:.5},{i:"Eathday Uneray x5",c:.25}];
+drops.abyssaldemon=[{i:"Abyssalway Iphway",c:.02},{i:"Abyssalway Eadhay",c:.03},{i:"Oinscay x300",c:.6},{i:"Eathday Uneray x10",c:.3}];
+drops.darkbeast=[{i:"Arkday Owbay",c:.02},{i:"Eathday Uneray x8",c:.3},{i:"Oinscay x250",c:.5},{i:"Arkbay Eastday Inskay",c:.01}];
+drops.skeletalwyvern=[{i:"Yvernway Onesbay",c:.8},{i:"Anitegray Egslays",c:.02},{i:"Oinscay x400",c:.6},{i:"Earthway Attlestaffbay",c:.04}];
+drops.brutalblue=[{i:"Agondray Onesbay",c:.8},{i:"Oinscay x200",c:.6},{i:"Ueblayway Agonhidedray",c:.4}];
+drops.brutalred=[{i:"Agondray Onesbay",c:.8},{i:"Oinscay x350",c:.6},{i:"Edray Agonhidedray",c:.4},{i:"Agondray Edmay Elmhay",c:.03}];
+drops.brutalblack=[{i:"Agondray Onesbay",c:.8},{i:"Oinscay x600",c:.7},{i:"Ackblay Agondray Idehay",c:.4},{i:"Agondray Atebodyplay",c:.008}];
+drops.mimic=[{i:"Oinscay x1000",c:.9},{i:"Imicmay Apecay",c:.05},{i:"Irdway Udgetfay",c:.02},{i:"Iamondday",c:.1}];
+drops.bat=[{i:"Onesbay",c:.5},{i:"Atbay Ingway",c:.2},{i:"Oinscay x3",c:.4}];
+drops.warrior=[{i:"Oinscay x25",c:.7},{i:"Ironway Ordssway",c:.15},{i:"Eelstay Elmhay",c:.06},{i:"Eadbray",c:.4}];
+drops.zilyana=[{i:"Aramintesay Ightlay",c:.008},{i:"Armadylway Ossbowcray",c:.005},{i:"Oulsay Uneray x3",c:.3},{i:"Oinscay x5000",c:.8},{i:"Adamantway Atebodyplay",c:.05}];
+drops.graardor=[{i:"Andosbay Ainbodychay",c:.008},{i:"Andosbay Assieschay",c:.008},{i:"Andosbay Ootsbay",c:.008},{i:"Oinscay x6000",c:.8},{i:"Olemgay Earthay",c:.02}];
+drops.kreearra=[{i:"Armadylway Elmhay",c:.008},{i:"Armadylway Ainbodychay",c:.008},{i:"Armadylway Iltskay",c:.008},{i:"Oinscay x5000",c:.8},{i:"Illskay Ecklacenay",c:.01}];
+drops.kril=[{i:"Amarokzay Earspay",c:.008},{i:"Affstay ofway ethay Eadday",c:.005},{i:"Oinscay x5500",c:.8},{i:"Eamstay Attlestaffbay",c:.03},{i:"Arkday Owbay",c:.01}];
+drops.gargoyle=[{i:"Anitegray Ustday",c:.5},{i:"Oinscay x100",c:.6},{i:"Anitegray Aulmay",c:.03},{i:"Ysticmay Oberay Optay",c:.02}];
+drops.archer=[{i:"Eelstay Arrowway x15",c:.6},{i:"Oinscay x30",c:.5},{i:"Aplemay Owbay",c:.08}];
+drops.bandit=[{i:"Oinscay x25",c:.8},{i:"Esertday Amuleway",c:.05},{i:"Eadbray",c:.3}];
+// Pig latin name display map
+const ePigName={goblin:'Oblingay',cow:'Owcay',chicken:'Ickenchay',guard:'Uardgay',darkwiz:'Arkday Izardway',revenant:'Evenantray',skeleton:'Eletonskay',demon:'Emonday',scorpion:'Orpionscay',warrior:'Arriorway',whiteknight:'Itewhay Ightnkay',dwarf:'Arfday',barbarian:'Arbarianba',vampire:'Ampirevay',zombie:'Ombiezay',pirate:'Iratepay',mugger:'Uggermay',troll:'Olltray',ogre:'Ogreway',drake:'Akedray',bear:'Earbay',wolf:'Olfway',spider:'Iderspay',bat:'Atbay',ghost:'Ostghay',golem:'Olemgay',wyrm:'Yrmway',shade:'Adeshay',hellhound:'Ellhoundhay',imp:'Impway',bandit:'Anditbay',rat:'Atray',snake:'Akesnay',lizard:'Izardlay',elemental:'Elementalway',gargoyle:'Argoyleway',knight:'Ightnkay',mage:'Agemay',archer:'Archerway',cultist:'Ultistcay',thief:'Iefthay',tribesman:'Ibesmantra',mummy:'Ummymay',scarab:'Arabscay',elf:'Elfway',fairy:'Airyfay',tzhaar:'Aartzhay',
+dragon:'Agondray',blackdragon:'Ackblay Agondray',hydra:'Ydrahay',kraken:'Akenkray',cerberus:'Erberuscay',basilisk:'Asiliskbay',cockatrice:'Ockatricecay',wyvern:'Yvernway',abyssal:'Abyssalway',dagannoth:'Agannothday',kalphite:'Alphitekay',jad:'Adjay',zuk:'Ukzay',nightmare:'Ightmarenay',vorkath:'Orkathvay',zilyana:'Ilyanzay',graardor:'Aardorgray',kreearra:'Eearrakray',kril:'Ilkray',nex:'Exnay',mimic:'Imicmay',bloodveld:'Oodveldblday',kurask:'Uraskay',turoth:'Urothtay',nechryael:'Echryaelnay',abyssaldemon:'Abyssalway Emonday',darkbeast:'Arkday Eastbay',skeletalwyvern:'Eletalskay Yvernway',brutalblue:'Utalbray Ueblay',brutalred:'Utalbray Edray',brutalblack:'Utalbray Ackblay'};
 function getReg(x,z){let b=regions[0],d=1e9;for(const r of regions){const dd=Math.hypot(x-r.x,z-r.z);if(dd<d){d=dd;b=r}}return b}
 function biomeCol(x,z){const r=getReg(x,z),v=Math.sin(x*1.7+z*2.3)*.03;return[Math.max(0,Math.min(1,r.c[0]+v)),Math.max(0,Math.min(1,r.c[1]+v*.7)),Math.max(0,Math.min(1,r.c[2]+v*.5))]}
 
@@ -1127,7 +1519,8 @@ rb.position.set((Math.random()-.5)*14*s,Math.random()*2,(Math.random()-.5)*6);rb
 g.position.set(x,meshTerrainH(x,z),z);g.rotation.y=rot||0;scene.add(g)}
 // === WORLD BUILDER HELPERS ===
 function wall(x,z,w,h,rot){const bY=meshTerrainH(x,z);const g=new THREE.Group();
-const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,3),mt.st);m.position.y=h/2;m.castShadow=true;g.add(m);addSolid(m);
+const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,3),mt.st);m.position.y=h/2;m.castShadow=true;g.add(m);
+addCircleSolid(x,z,w/2+2,bY,bY+h);
 // Crenellations
 const cN=Math.max(2,Math.floor(w/4));for(let i=0;i<cN;i++){if(i%2===0){const cr=new THREE.Mesh(new THREE.BoxGeometry(w/cN*.8,2,3.2),mt.stD);cr.position.set(-w/2+w/cN*(i+.5),h+1,0);cr.castShadow=true;g.add(cr)}}
 // Arrow slits
@@ -1136,7 +1529,8 @@ const slitN=Math.max(1,Math.floor(w/8));for(let i=0;i<slitN;i++){const sl=new TH
 const base=new THREE.Mesh(new THREE.BoxGeometry(w+1,1,3.8),mt.stD);base.position.y=.5;g.add(base);
 g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
 function wallW(x,z,w,h,rot){const bY=meshTerrainH(x,z);const g=new THREE.Group();
-const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,3),mt.stW);m.position.y=h/2;m.castShadow=true;g.add(m);addSolid(m);
+const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,3),mt.stW);m.position.y=h/2;m.castShadow=true;g.add(m);
+addCircleSolid(x,z,w/2+2,bY,bY+h);
 const cN=Math.max(2,Math.floor(w/4));for(let i=0;i<cN;i++){if(i%2===0){const cr=new THREE.Mesh(new THREE.BoxGeometry(w/cN*.8,2,3.2),mt.stW);cr.position.set(-w/2+w/cN*(i+.5),h+1,0);cr.castShadow=true;g.add(cr)}}
 const slitN=Math.max(1,Math.floor(w/8));for(let i=0;i<slitN;i++){const sl=new THREE.Mesh(new THREE.BoxGeometry(.4,2,.2),new MS({color:0x0a0a0a,roughness:1}));sl.position.set(-w/2+w/(slitN+1)*(i+1),h*.6,1.6);g.add(sl)}
 const base=new THREE.Mesh(new THREE.BoxGeometry(w+1,1,3.8),mt.stD);base.position.y=.5;g.add(base);
@@ -1147,19 +1541,20 @@ const doorMat=new MS({color:0x3a2818,roughness:.85,metalness:.05});
 const intFloorMat=new MS({color:0x5a4a38,roughness:.92});
 const winGlassMat=new MS({color:0x2a4a6a,roughness:.15,metalness:.3,emissive:0x1a3a5a,emissiveIntensity:.5,transparent:true,opacity:.5});
 // Foundation
-const found=new THREE.Mesh(new THREE.BoxGeometry(wW+2*s,1.5*s,wD+2*s),mt.st);found.position.y=.75*s;found.castShadow=true;g.add(found);addSolid(found);
+const found=new THREE.Mesh(new THREE.BoxGeometry(wW+2*s,1.5*s,wD+2*s),mt.st);found.position.y=.75*s;found.castShadow=true;g.add(found);
+addCircleSolid(x,z,Math.max(wW,wD)/2+1,h,h+wH+2);
 // Interior floor
 const intFloor=new THREE.Mesh(new THREE.BoxGeometry(wW-.5*s,.2*s,wD-.5*s),intFloorMat);intFloor.position.y=1.6*s;intFloor.receiveShadow=true;g.add(intFloor);
 // Back wall (solid)
-const backW=new THREE.Mesh(new THREE.BoxGeometry(wW,wH,wallT),mt.wd);backW.position.set(0,wH/2+1.5*s,-wD/2);backW.castShadow=true;g.add(backW);addSolid(backW);
+const backW=new THREE.Mesh(new THREE.BoxGeometry(wW,wH,wallT),mt.wd);backW.position.set(0,wH/2+1.5*s,-wD/2);backW.castShadow=true;g.add(backW);
 // Left wall (solid)
-const leftW=new THREE.Mesh(new THREE.BoxGeometry(wallT,wH,wD),mt.wd);leftW.position.set(-wW/2,wH/2+1.5*s,0);leftW.castShadow=true;g.add(leftW);addSolid(leftW);
+const leftW=new THREE.Mesh(new THREE.BoxGeometry(wallT,wH,wD),mt.wd);leftW.position.set(-wW/2,wH/2+1.5*s,0);leftW.castShadow=true;g.add(leftW);
 // Right wall (solid)
-const rightW=leftW.clone();rightW.position.x=wW/2;g.add(rightW);addSolid(rightW);
+const rightW=leftW.clone();rightW.position.x=wW/2;g.add(rightW);
 // Front wall — two sections flanking doorway
 const fwSideW=(wW-doorW)/2;
-const fwL=new THREE.Mesh(new THREE.BoxGeometry(fwSideW,wH,wallT),mt.wd);fwL.position.set(-(doorW+fwSideW)/2,wH/2+1.5*s,wD/2);fwL.castShadow=true;g.add(fwL);addSolid(fwL);
-const fwR=fwL.clone();fwR.position.x=(doorW+fwSideW)/2;g.add(fwR);addSolid(fwR);
+const fwL=new THREE.Mesh(new THREE.BoxGeometry(fwSideW,wH,wallT),mt.wd);fwL.position.set(-(doorW+fwSideW)/2,wH/2+1.5*s,wD/2);fwL.castShadow=true;g.add(fwL);
+const fwR=fwL.clone();fwR.position.x=(doorW+fwSideW)/2;g.add(fwR);
 // Lintel above door
 const lintel=new THREE.Mesh(new THREE.BoxGeometry(doorW+1*s,1.2*s,wallT+.2*s),mt.stD);lintel.position.set(0,doorH2+1.5*s+.6*s,wD/2);lintel.castShadow=true;g.add(lintel);
 // Top section above door
@@ -1201,9 +1596,10 @@ const tblLeg1=new THREE.Mesh(new THREE.CylinderGeometry(.1*s,.1*s,2*s,4),mt.wd);
 g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g)}
 function tower(x,z,s,mat){s=s||1;mat=mat||mt.st;const h=meshTerrainH(x,z);const g=new THREE.Group();
 // Base (wider)
-const base=new THREE.Mesh(new THREE.CylinderGeometry(7.5*s,8.5*s,4*s,10),mat);base.position.y=2*s;base.castShadow=true;g.add(base);addSolid(base);
+const base=new THREE.Mesh(new THREE.CylinderGeometry(7.5*s,8.5*s,4*s,10),mat);base.position.y=2*s;base.castShadow=true;g.add(base);
 // Main body
-const b=new THREE.Mesh(new THREE.CylinderGeometry(6*s,7*s,30*s,10),mat);b.position.y=17*s;b.castShadow=true;g.add(b);addSolid(b);
+const b=new THREE.Mesh(new THREE.CylinderGeometry(6*s,7*s,30*s,10),mat);b.position.y=17*s;b.castShadow=true;g.add(b);
+addCircleSolid(x,z,8.5*s,h,h+35*s);
 // Battlement ring
 for(let i=0;i<10;i++){const a=i/10*Math.PI*2;const cr=new THREE.Mesh(new THREE.BoxGeometry(2.5*s,2*s,1.5*s),mt.stD);cr.position.set(Math.cos(a)*6.5*s,33*s,Math.sin(a)*6.5*s);cr.rotation.y=a;cr.castShadow=true;g.add(cr)}
 // Conical roof
@@ -1287,7 +1683,7 @@ function bridge(x,z,rot,len){const h=meshTerrainH(x,z);const g=new THREE.Group()
 // Main planks (individual)
 const planks=Math.floor(len/2);for(let i=0;i<planks;i++){const pl=new THREE.Mesh(new THREE.BoxGeometry(5.5,.3,1.8),mt.bridge);pl.position.set(0,2,(i-planks/2)*2);pl.castShadow=true;pl.receiveShadow=true;g.add(pl)}
 // Support beams underneath
-const bridgeDeck=new THREE.Mesh(new THREE.BoxGeometry(5.5,.4,len),mt.bridge);bridgeDeck.position.set(0,2.1,0);bridgeDeck.receiveShadow=true;g.add(bridgeDeck);addSolid(bridgeDeck);
+const bridgeDeck=new THREE.Mesh(new THREE.BoxGeometry(5.5,.4,len),mt.bridge);bridgeDeck.position.set(0,2.1,0);bridgeDeck.receiveShadow=true;g.add(bridgeDeck);
 [-2.2,2.2].forEach(sx=>{const beam=new THREE.Mesh(new THREE.BoxGeometry(.6,.6,len),mt.wd);beam.position.set(sx,1.5,0);beam.castShadow=true;g.add(beam)});
 // Rope railings
 [-1,1].forEach(sd=>{
@@ -1303,7 +1699,8 @@ const brace=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,2,3),mt.wd);brace.
 g.position.set(x,h,z);g.rotation.y=rot;scene.add(g)}
 function ruin(x,z){const h=meshTerrainH(x,z);const g=new THREE.Group();
 // Standing wall fragments
-for(let i=0;i<3;i++){const w=new THREE.Mesh(new THREE.BoxGeometry(3+Math.random()*5,8+Math.random()*16,2.5),mt.stD);w.position.set((Math.random()-.5)*18,5+Math.random()*4,(Math.random()-.5)*18);w.rotation.set(Math.random()*.15,Math.random(),Math.random()*.15);w.castShadow=true;g.add(w);addSolid(w)}
+for(let i=0;i<3;i++){const w=new THREE.Mesh(new THREE.BoxGeometry(3+Math.random()*5,8+Math.random()*16,2.5),mt.stD);w.position.set((Math.random()-.5)*18,5+Math.random()*4,(Math.random()-.5)*18);w.rotation.set(Math.random()*.15,Math.random(),Math.random()*.15);w.castShadow=true;g.add(w)}
+addCircleSolid(x,z,12,h,h+25);
 // Fallen columns
 for(let i=0;i<2;i++){const col=new THREE.Mesh(new THREE.CylinderGeometry(.6,.8,8+Math.random()*4,6),mt.st);col.position.set((Math.random()-.5)*16,1,(Math.random()-.5)*16);col.rotation.z=Math.PI/2+Math.random()*.3;col.castShadow=true;g.add(col)}
 // Rubble pile
@@ -1331,7 +1728,8 @@ torchPositions.push({x:tx,y:th+11,z:tz,mesh:fm,ph:Math.random()*6.28,big:false})
 // === GOTHIC ARCHITECTURE BUILDERS ===
 function gothicSpire(x,z,h,sc){sc=sc||1;const bY=meshTerrainH(x,z);const g=new THREE.Group();
 // Base pillar (octagonal)
-const base=new THREE.Mesh(new THREE.CylinderGeometry(4*sc,5*sc,h*.6,8),mt.stGoth);base.position.y=h*.3;base.castShadow=true;g.add(base);addSolid(base);
+const base=new THREE.Mesh(new THREE.CylinderGeometry(4*sc,5*sc,h*.6,8),mt.stGoth);base.position.y=h*.3;base.castShadow=true;g.add(base);
+addCircleSolid(x,z,5*sc,bY,bY+h*1.2);
 // Upper taper
 const upper=new THREE.Mesh(new THREE.CylinderGeometry(3*sc,4*sc,h*.25,8),mt.st);upper.position.y=h*.7;upper.castShadow=true;g.add(upper);
 // Pointed spire top
@@ -1352,7 +1750,8 @@ torchPositions.push({x,y:bY+h*.55,z,mesh:fm,ph:Math.random()*6.28,big:false})}
 
 function gothicArch(x,z,rot,sc){sc=sc||1;const bY=meshTerrainH(x,z);const g=new THREE.Group();
 // Two pillars
-[-1,1].forEach(s=>{const p=new THREE.Mesh(new THREE.BoxGeometry(3*sc,24*sc,3*sc),mt.stGoth);p.position.set(s*7*sc,12*sc,0);p.castShadow=true;g.add(p);addSolid(p);
+addCircleSolid(x,z,10*sc,bY,bY+30*sc);
+[-1,1].forEach(s=>{const p=new THREE.Mesh(new THREE.BoxGeometry(3*sc,24*sc,3*sc),mt.stGoth);p.position.set(s*7*sc,12*sc,0);p.castShadow=true;g.add(p);
 // Capital (decorative top)
 const cap=new THREE.Mesh(new THREE.BoxGeometry(4*sc,1.5*sc,4*sc),mt.st);cap.position.set(s*7*sc,24.5*sc,0);cap.castShadow=true;g.add(cap);
 // Pillar base
@@ -1377,12 +1776,13 @@ g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
 
 function cathedral(x,z,rot,sc){sc=sc||1;const bY=meshTerrainH(x,z);const g=new THREE.Group();
 // Main nave
-const nave=new THREE.Mesh(new THREE.BoxGeometry(20*sc,25*sc,40*sc),mt.stGoth);nave.position.y=12.5*sc;nave.castShadow=true;g.add(nave);addSolid(nave);
+const nave=new THREE.Mesh(new THREE.BoxGeometry(20*sc,25*sc,40*sc),mt.stGoth);nave.position.y=12.5*sc;nave.castShadow=true;g.add(nave);
+addCircleSolid(x,z,22*sc,bY,bY+50*sc);
 // Peaked roof
-const roof=new THREE.Mesh(new THREE.BoxGeometry(22*sc,3*sc,42*sc),mt.rfSlate);roof.position.y=26*sc;roof.rotation.z=0;roof.castShadow=true;g.add(roof);addSolid(roof);
+const roof=new THREE.Mesh(new THREE.BoxGeometry(22*sc,3*sc,42*sc),mt.rfSlate);roof.position.y=26*sc;roof.rotation.z=0;roof.castShadow=true;g.add(roof);
 const roofPeak=new THREE.Mesh(new THREE.BoxGeometry(4*sc,8*sc,42*sc),mt.rfSlate);roofPeak.position.y=30*sc;roofPeak.castShadow=true;g.add(roofPeak);
 // Front face with pointed entrance
-const front=new THREE.Mesh(new THREE.BoxGeometry(22*sc,30*sc,2*sc),mt.st);front.position.set(0,15*sc,21*sc);front.castShadow=true;g.add(front);addSolid(front);
+const front=new THREE.Mesh(new THREE.BoxGeometry(22*sc,30*sc,2*sc),mt.st);front.position.set(0,15*sc,21*sc);front.castShadow=true;g.add(front);
 // Entrance void
 const door=new THREE.Mesh(new THREE.BoxGeometry(6*sc,12*sc,3*sc),new MS({color:0x050505,roughness:1}));door.position.set(0,6*sc,21*sc);g.add(door);
 // Pointed gable
@@ -1392,7 +1792,7 @@ for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const spoke=new THREE.Mesh(new THREE.
 const rwRing=new THREE.Mesh(new THREE.TorusGeometry(3.5*sc,.4*sc,6,16),mt.st);rwRing.position.set(0,22*sc,22*sc);g.add(rwRing);
 const rwGlow=new THREE.Mesh(new THREE.CircleGeometry(3*sc,12),new MS({color:0x2a3a5a,emissive:0x1a2a4a,emissiveIntensity:.8,side:THREE.DoubleSide}));rwGlow.position.set(0,22*sc,21.8*sc);g.add(rwGlow);
 // Bell towers (twin spires)
-[-1,1].forEach(s=>{const tw=new THREE.Mesh(new THREE.BoxGeometry(6*sc,35*sc,6*sc),mt.stGoth);tw.position.set(s*14*sc,17.5*sc,19*sc);tw.castShadow=true;g.add(tw);addSolid(tw);
+[-1,1].forEach(s=>{const tw=new THREE.Mesh(new THREE.BoxGeometry(6*sc,35*sc,6*sc),mt.stGoth);tw.position.set(s*14*sc,17.5*sc,19*sc);tw.castShadow=true;g.add(tw);
 const sp=new THREE.Mesh(new THREE.ConeGeometry(4*sc,16*sc,8),mt.stD);sp.position.set(s*14*sc,43*sc,19*sc);sp.castShadow=true;g.add(sp);
 const fin=new THREE.Mesh(new THREE.SphereGeometry(.6*sc,5,5),mt.gold);fin.position.set(s*14*sc,51*sc,19*sc);g.add(fin)});
 // Side buttresses
@@ -1405,87 +1805,92 @@ torchPositions.push({x,y:bY+10*sc,z,mesh:fm1,ph:Math.random()*6.28,big:true});
 g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
 
 function grandStairs(x,z,rot,steps,w,sc){sc=sc||1;steps=steps||12;w=w||10;const bY=meshTerrainH(x,z);const g=new THREE.Group();
-for(let i=0;i<steps;i++){const step=new THREE.Mesh(new THREE.BoxGeometry(w*sc,1.2*sc,2.5*sc),mt.stGoth);step.position.set(0,i*1.1*sc,i*2.2*sc);step.castShadow=true;step.receiveShadow=true;g.add(step);addSolid(step)}
+for(let i=0;i<steps;i++){const step=new THREE.Mesh(new THREE.BoxGeometry(w*sc,1.2*sc,2.5*sc),mt.stGoth);step.position.set(0,i*1.1*sc,i*2.2*sc);step.castShadow=true;step.receiveShadow=true;g.add(step)}
 // Balustrades
 [-1,1].forEach(s=>{for(let i=0;i<steps;i+=2){const post=new THREE.Mesh(new THREE.CylinderGeometry(.3*sc,.35*sc,4*sc,5),mt.st);post.position.set(s*(w/2+.5)*sc,i*1.1*sc+2*sc,i*2.2*sc);post.castShadow=true;g.add(post)}});
 g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
 
+// Footprint tracking to prevent building overlap (defined early for hand-placed structures)
+const cityFootprints=[];
+function canPlace(bx,bz,rad){for(const f of cityFootprints){if(Math.hypot(bx-f.x,bz-f.z)<rad+f.r)return false}return true}
+function markPlace(bx,bz,rad){cityFootprints.push({x:bx,z:bz,r:rad})}
+
 // ========== LUMBRIDGE (0,0) — minimal hand-placed, procCity handles bulk ==========
-gothicArch(0,10,0,1.2);bonfire(0,5);
-cathedral(120,80,-.3,.8);grandStairs(120,108,-.3,8,8,.8);
+gothicArch(0,10,0,1.2);markPlace(0,10,6);bonfire(0,5);
+cathedral(120,80,-.3,.8);markPlace(120,80,30);grandStairs(120,108,-.3,8,8,.8);
 torch(30,20);torch(55,35);torch(0,-40);
 
 // ========== VARROCK (550,50) ==========
-cathedral(555,50,0,1.2);grandStairs(555,80,0,10,12,1);bonfire(555,50);
+cathedral(555,50,0,1.2);markPlace(555,50,35);grandStairs(555,80,0,10,12,1);bonfire(555,50);
 torch(490,90);torch(620,10);
 
 // ========== WILDERNESS (0,-650) ==========
-for(let i=0;i<5;i++)ruin((Math.random()-.5)*300,-550-Math.random()*200);
+for(let i=0;i<5;i++){const rx=(Math.random()-.5)*300,rz=-550-Math.random()*200;if(canPlace(rx,rz,10)){ruin(rx,rz);markPlace(rx,rz,10)}}
 for(let i=0;i<3;i++){const lx=(Math.random()-.5)*200,lz=-600-Math.random()*150;const lv=new THREE.Mesh(new THREE.CircleGeometry(6+Math.random()*8,8),mt.lava);lv.rotation.x=-Math.PI/2;lv.position.set(lx,meshTerrainH(lx,lz)+.5,lz);scene.add(lv);torchPositions.push({x:lx,y:meshTerrainH(lx,lz)+4,z:lz,mesh:lv,ph:Math.random()*6.28,big:true,col:0xff4400})}
-tower(-45,-580,1.5);tower(55,-580,1.5);
+tower(-45,-580,1.5);markPlace(-45,-580,14);tower(55,-580,1.5);markPlace(55,-580,14);
 
 // ========== AL KHARID (580,400) ==========
-tower(525,350,1.2);tower(640,450,1.2);bonfire(580,400);
+tower(525,350,1.2);markPlace(525,350,14);tower(640,450,1.2);markPlace(640,450,14);bonfire(580,400);
 
 // ========== FALADOR (-480,280) ==========
-cathedral(-480,280,Math.PI/2,1);grandStairs(-480,305,0,8,10,.9);bonfire(-480,260);
+cathedral(-480,280,Math.PI/2,1);markPlace(-480,280,30);grandStairs(-480,305,0,8,10,.9);bonfire(-480,260);
 
 // ========== BARBARIAN VILLAGE (280,-250) ==========
-hut(260,-240,.3,1.2);hut(300,-260,-.5,1);bonfire(280,-250);
+hut(260,-240,.3,1.2);markPlace(260,-240,12);hut(300,-260,-.5,1);markPlace(300,-260,10);bonfire(280,-250);
 
 // ========== DRAYNOR (-300,-150) ==========
-hut(-320,-160,1,.8);hut(-280,-180,-.5,.9);tower(-315,-100,1.2);bonfire(-300,-150);
+hut(-320,-160,1,.8);markPlace(-320,-160,10);hut(-280,-180,-.5,.9);markPlace(-280,-180,10);tower(-315,-100,1.2);markPlace(-315,-100,14);bonfire(-300,-150);
 
 // ========== PORT SARIM (-160,480) ==========
-hut(-190,460,.5,1);hut(-150,470,.8,1);bridge(-160,420,0,40);
-const hull=new THREE.Mesh(new THREE.BoxGeometry(14,6,30),mt.wd);hull.position.set(-30,meshTerrainH(-30,510)+3,510);hull.castShadow=true;scene.add(hull);
+hut(-190,460,.5,1);markPlace(-190,460,10);hut(-150,470,.8,1);markPlace(-150,470,10);bridge(-160,420,0,40);
+const hull=new THREE.Mesh(new THREE.BoxGeometry(14,6,30),mt.wd);hull.position.set(-30,meshTerrainH(-30,510)+3,510);hull.castShadow=true;scene.add(hull);markPlace(-30,510,18);
 bonfire(-160,470);
 
 // ========== EDGEVILLE (150,-350) ==========
-hut(140,-340,.5,1);hut(170,-345,-.3,1);bonfire(155,-350);
+hut(140,-340,.5,1);markPlace(140,-340,10);hut(170,-345,-.3,1);markPlace(170,-345,10);bonfire(155,-350);
 
 // ========== CATHERBY (-500,-400) ==========
-hut(-520,-390,.3,.9);hut(-505,-395,-.5,.9);bonfire(-500,-400);
+hut(-520,-390,.3,.9);markPlace(-520,-390,10);hut(-505,-395,-.5,.9);markPlace(-505,-395,10);bonfire(-500,-400);
 
 // ========== ARDOUGNE (-1200,100) ==========
-cathedral(-1200,100,0,1);bonfire(-1200,100);torch(-1250,100);torch(-1150,100);
+cathedral(-1200,100,0,1);markPlace(-1200,100,30);bonfire(-1200,100);torch(-1250,100);torch(-1150,100);
 
 // ========== CANIFIS (1300,-200) ==========
-hut(1270,-210,.3,.8);hut(1330,-205,-.4,.8);tower(1340,-180,1.2);bonfire(1300,-200);
+hut(1270,-210,.3,.8);markPlace(1270,-210,10);hut(1330,-205,-.4,.8);markPlace(1330,-205,10);tower(1340,-180,1.2);markPlace(1340,-180,14);bonfire(1300,-200);
 
 // ========== MORYTANIA (1600,-400) ==========
-for(let i=0;i<3;i++)ruin(1550+Math.random()*100,-450+Math.random()*80);
-tower(1600,-400,1.5);bonfire(1600,-400);
+for(let i=0;i<3;i++){const rx=1550+Math.random()*100,rz=-450+Math.random()*80;if(canPlace(rx,rz,10)){ruin(rx,rz);markPlace(rx,rz,10)}}
+tower(1600,-400,1.5);markPlace(1600,-400,14);bonfire(1600,-400);
 
 // ========== KARAMJA (-200,1800) ==========
-hut(-230,1790,.3,1);hut(-170,1810,-.5,1);bonfire(-200,1800);
+hut(-230,1790,.3,1);markPlace(-230,1790,10);hut(-170,1810,-.5,1);markPlace(-170,1810,10);bonfire(-200,1800);
 
 // ========== TROLLHEIM (-200,-3500) ==========
-for(let i=0;i<3;i++)ruin(-250+Math.random()*100,-3530+Math.random()*60);
-tower(-200,-3480,1.5);bonfire(-200,-3500);
+for(let i=0;i<3;i++){const rx=-250+Math.random()*100,rz=-3530+Math.random()*60;if(canPlace(rx,rz,10)){ruin(rx,rz);markPlace(rx,rz,10)}}
+tower(-200,-3480,1.5);markPlace(-200,-3480,14);bonfire(-200,-3500);
 
 // ========== GOD WARS (0,-4500) ==========
-for(let i=0;i<4;i++)ruin(-100+Math.random()*200,-4550+Math.random()*100);
-tower(-50,-4500,2.5);tower(50,-4500,2.5);
+for(let i=0;i<4;i++){const rx=-100+Math.random()*200,rz=-4550+Math.random()*100;if(canPlace(rx,rz,10)){ruin(rx,rz);markPlace(rx,rz,10)}}
+tower(-50,-4500,2.5);markPlace(-50,-4500,18);tower(50,-4500,2.5);markPlace(50,-4500,18);
 
 // ========== DEEP WILDERNESS (0,-1800) ==========
-for(let i=0;i<5;i++)ruin(-200+Math.random()*400,-1900+Math.random()*200);
+for(let i=0;i<5;i++){const rx=-200+Math.random()*400,rz=-1900+Math.random()*200;if(canPlace(rx,rz,10)){ruin(rx,rz);markPlace(rx,rz,10)}}
 
 // ========== SEERS VILLAGE (-800,-100) ==========
-hut(-840,-110,.3,1);hut(-770,-100,-.5,1);tower(-820,-80,1.2);bonfire(-800,-100);
+hut(-840,-110,.3,1);markPlace(-840,-110,10);hut(-770,-100,-.5,1);markPlace(-770,-100,10);tower(-820,-80,1.2);markPlace(-820,-80,14);bonfire(-800,-100);
 
 // ========== RELLEKKA (-400,-3800) ==========
-hut(-440,-3810,.3,1.2);hut(-370,-3800,-.5,1.2);bonfire(-400,-3800);
+hut(-440,-3810,.3,1.2);markPlace(-440,-3810,12);hut(-370,-3800,-.5,1.2);markPlace(-370,-3800,12);bonfire(-400,-3800);
 
 // ========== KELDAGRIM (-800,-3200) ==========
-tower(-855,-3230,2);tower(-740,-3230,2);bonfire(-800,-3200);cave(-820,-3250,.2);
+tower(-855,-3230,2);markPlace(-855,-3230,18);tower(-740,-3230,2);markPlace(-740,-3230,18);bonfire(-800,-3200);cave(-820,-3250,.2);
 
 // ========== PRIFDDINAS (-4000,-300) ==========
-cathedral(-4000,-300,0,1.5);grandStairs(-4000,-265,0,14,14,1.2);bonfire(-4000,-300);
+cathedral(-4000,-300,0,1.5);markPlace(-4000,-300,35);grandStairs(-4000,-265,0,14,14,1.2);bonfire(-4000,-300);
 
 // ========== TZHAAR CITY (1800,1200) ==========
 for(let i=0;i<3;i++){const lx=1760+Math.random()*80,lz=1160+Math.random()*80;const lv=new THREE.Mesh(new THREE.CircleGeometry(5,8),mt.lava);lv.rotation.x=-Math.PI/2;lv.position.set(lx,meshTerrainH(lx,lz)+.5,lz);scene.add(lv);torchPositions.push({x:lx,y:meshTerrainH(lx,lz)+3,z:lz,mesh:lv,ph:Math.random()*6.28,big:true,col:0xff3300})}
-tower(1800,1200,1.8);cave(1810,1180,.2);bonfire(1800,1200);
+tower(1800,1200,1.8);markPlace(1800,1200,16);cave(1810,1180,.2);bonfire(1800,1200);
 
 // === BRIDGES over rivers ===
 bridge(220,0,Math.PI/2,32);bridge(220,100,Math.PI/2,32);bridge(220,-100,Math.PI/2,32);
@@ -1554,29 +1959,26 @@ grassInst.count=gi;grassInst.instanceMatrix.needsUpdate=true;scene.add(grassInst
 
 console.log('INIT: scatter done, starting procCity');
 // === PROCEDURAL CITY GENERATION ===
-// Footprint tracking to prevent building overlap
-const cityFootprints=[];
-function canPlace(bx,bz,rad){for(const f of cityFootprints){if(Math.hypot(bx-f.x,bz-f.z)<rad+f.r)return false}return true}
-function markPlace(bx,bz,rad){cityFootprints.push({x:bx,z:bz,r:rad})}
 function procCity(cx,cz,radius,density,style){
 const bTypes=['house','shop','tavern','workshop','warehouse','manor'];
 const nBuildings=Math.floor(density*radius/4);
-// City walls
+// City walls — mark footprints along perimeter
 const wallSegs=Math.floor(radius*2*Math.PI/30);
 for(let i=0;i<wallSegs;i++){const a=i/wallSegs*Math.PI*2;
-wall(cx+Math.cos(a)*(radius+5),cz+Math.sin(a)*(radius+5),16,18,a)}
+const wx=cx+Math.cos(a)*(radius+5),wz=cz+Math.sin(a)*(radius+5);
+wall(wx,wz,16,18,a);markPlace(wx,wz,10)}
 // Corner towers
-for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const tx=cx+Math.cos(a)*(radius+8),tz=cz+Math.sin(a)*(radius+8);tower(tx,tz,1.3);markPlace(tx,tz,12)}
+for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const tx=cx+Math.cos(a)*(radius+8),tz=cz+Math.sin(a)*(radius+8);tower(tx,tz,1.3);markPlace(tx,tz,14)}
 // Gate arches
-for(let i=0;i<4;i++){const a=i/4*Math.PI*2;gothicArch(cx+Math.cos(a)*(radius+5),cz+Math.sin(a)*(radius+5),a,1)}
+for(let i=0;i<4;i++){const a=i/4*Math.PI*2;const gx=cx+Math.cos(a)*(radius+5),gz=cz+Math.sin(a)*(radius+5);gothicArch(gx,gz,a,1);markPlace(gx,gz,8)}
 // Streets
 const streetMat=new MS({color:0x6a6a60,roughness:.95});
 for(let i=0;i<4;i++){const a=i/4*Math.PI*2;const sLen=radius*1.8;
 const st=new THREE.Mesh(new THREE.BoxGeometry(4,.1,sLen),streetMat);st.position.set(cx+Math.cos(a)*radius*.4,meshTerrainH(cx,cz)+.2,cz+Math.sin(a)*radius*.4);st.rotation.y=a;st.receiveShadow=true;scene.add(st)}
-// Buildings with overlap prevention
+// Buildings with overlap prevention — keep away from walls
 let placed=0;
 for(let i=0;i<nBuildings*3&&placed<nBuildings;i++){
-const a=Math.random()*Math.PI*2;const r=14+Math.random()*(radius-20);
+const a=Math.random()*Math.PI*2;const r=18+Math.random()*(radius-30);
 const bx=cx+Math.cos(a)*r,bz=cz+Math.sin(a)*r;
 if(isInLake(bx,bz))continue;
 const bType=bTypes[Math.floor(Math.random()*bTypes.length)];
@@ -1587,14 +1989,14 @@ const bRot=a+Math.PI+Math.random()*.4-.2;
 if(bType==='house'||bType==='shop')hut(bx,bz,bRot,sc);
 else if(bType==='tavern'){hut(bx,bz,bRot,sc*1.3);torch(bx+Math.cos(bRot)*8,bz+Math.sin(bRot)*8)}
 else if(bType==='workshop'){hut(bx,bz,bRot,sc*.9)}
-else if(bType==='warehouse'){const h=meshTerrainH(bx,bz);const wh=new THREE.Mesh(new THREE.BoxGeometry(16*sc,12*sc,14*sc),mt.wd);wh.position.set(bx,h+6*sc,bz);wh.rotation.y=bRot;wh.castShadow=true;scene.add(wh);addSolid(wh);const rf=new THREE.Mesh(new THREE.BoxGeometry(18*sc,1*sc,16*sc),mt.rf);rf.position.set(bx,h+12.5*sc,bz);rf.rotation.y=bRot;scene.add(rf);addSolid(rf)}
+else if(bType==='warehouse'){const h=meshTerrainH(bx,bz);const wh=new THREE.Mesh(new THREE.BoxGeometry(16*sc,12*sc,14*sc),mt.wd);wh.position.set(bx,h+6*sc,bz);wh.rotation.y=bRot;wh.castShadow=true;scene.add(wh);const rf=new THREE.Mesh(new THREE.BoxGeometry(18*sc,1*sc,16*sc),mt.rf);rf.position.set(bx,h+12.5*sc,bz);rf.rotation.y=bRot;scene.add(rf);addCircleSolid(bx,bz,10*sc,h,h+13*sc)}
 else if(bType==='manor'){hut(bx,bz,bRot,sc*1.5);
 for(let f=0;f<4;f++){const fa=bRot+f/4*Math.PI*2;const fx=bx+Math.cos(fa)*12*sc,fz=bz+Math.sin(fa)*12*sc;
 const fence=new THREE.Mesh(new THREE.BoxGeometry(8*sc,3,.2),mt.wd);fence.position.set(fx,meshTerrainH(fx,fz)+1.5,fz);fence.rotation.y=fa;scene.add(fence)}}}
 // Market square at center (reserve footprint)
 markPlace(cx,cz,22);
 for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const sx=cx+Math.cos(a)*15,sz=cz+Math.sin(a)*15;
-const stall=new THREE.Mesh(new THREE.BoxGeometry(4,3,3),mt.wd);stall.position.set(sx,meshTerrainH(sx,sz)+1.5,sz);stall.rotation.y=a;scene.add(stall);addSolid(stall);
+const stall=new THREE.Mesh(new THREE.BoxGeometry(4,3,3),mt.wd);stall.position.set(sx,meshTerrainH(sx,sz)+1.5,sz);stall.rotation.y=a;scene.add(stall);addCircleSolid(sx,sz,3,meshTerrainH(sx,sz),meshTerrainH(sx,sz)+4);
 const canopy=new THREE.Mesh(new THREE.BoxGeometry(5,.15,4),new MS({color:[0x8a2020,0x203a8a,0x2a6a2a,0x8a6a20,0x6a2a6a,0x2a6a6a][i],roughness:.9}));canopy.position.set(sx,meshTerrainH(sx,sz)+3.2,sz);canopy.rotation.y=a;scene.add(canopy)}
 const fountain=new THREE.Mesh(new THREE.CylinderGeometry(4,5,2,12),mt.st);fountain.position.set(cx,meshTerrainH(cx,cz)+1,cz);scene.add(fountain);addSolid(fountain);
 const fWater=new THREE.Mesh(new THREE.CylinderGeometry(3.5,3.5,.5,12),mt.lakeMat);fWater.position.set(cx,meshTerrainH(cx,cz)+2.3,cz);scene.add(fWater);
@@ -1604,6 +2006,7 @@ bonfire(cx+20,cz+20);bonfire(cx-20,cz-20);
 // === MASSIVE CASTLE GENERATOR ===
 function castle(cx,cz,sc,rot){
 sc=sc||1;rot=rot||0;const bY=meshTerrainH(cx,cz);const g=new THREE.Group();
+addCircleSolid(cx,cz,125*sc,bY,bY+80*sc);
 // --- OUTER CURTAIN WALL (huge perimeter) ---
 const wallR=120*sc,wallH=40*sc,wallT=6*sc;
 const wallSegs=20;
@@ -1612,7 +2015,7 @@ const wx=Math.cos(a)*wallR,wz=Math.sin(a)*wallR;
 const segLen=wallR*2*Math.PI/wallSegs;
 const wm=new THREE.Mesh(new THREE.BoxGeometry(segLen,wallH,wallT),mt.stGoth);
 wm.position.set((Math.cos(a)+Math.cos(a2))/2*wallR,wallH/2,(Math.sin(a)+Math.sin(a2))/2*wallR);
-wm.rotation.y=-(a+a2)/2+Math.PI/2;wm.castShadow=true;g.add(wm);addSolid(wm);
+wm.rotation.y=-(a+a2)/2+Math.PI/2;wm.castShadow=true;g.add(wm);
 // Battlements on top
 for(let b=0;b<3;b++){const bOff=(b-1)*segLen/3;
 const merlon=new THREE.Mesh(new THREE.BoxGeometry(3*sc,4*sc,wallT+1),mt.stD);
@@ -1621,7 +2024,7 @@ merlon.rotation.y=wm.rotation.y;g.add(merlon)}}
 // --- CORNER TOWERS (8 massive towers) ---
 for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const tx=Math.cos(a)*(wallR+4*sc),tz=Math.sin(a)*(wallR+4*sc);
 const tH=55*sc;
-const tBase=new THREE.Mesh(new THREE.CylinderGeometry(10*sc,12*sc,tH,12),mt.stGoth);tBase.position.set(tx,tH/2,tz);tBase.castShadow=true;g.add(tBase);addSolid(tBase);
+const tBase=new THREE.Mesh(new THREE.CylinderGeometry(10*sc,12*sc,tH,12),mt.stGoth);tBase.position.set(tx,tH/2,tz);tBase.castShadow=true;g.add(tBase);
 const tRoof=new THREE.Mesh(new THREE.ConeGeometry(12*sc,18*sc,12),mt.rfSlate);tRoof.position.set(tx,tH+9*sc,tz);tRoof.castShadow=true;g.add(tRoof);
 const tFin=new THREE.Mesh(new THREE.SphereGeometry(1.5*sc,6,6),mt.gold);tFin.position.set(tx,tH+18*sc,tz);g.add(tFin);
 // Tower battlements
@@ -1630,9 +2033,9 @@ const merlon=new THREE.Mesh(new THREE.BoxGeometry(3*sc,4*sc,3*sc),mt.stD);
 merlon.position.set(tx+Math.cos(ba)*10.5*sc,tH+2*sc,tz+Math.sin(ba)*10.5*sc);g.add(merlon)}}
 // --- KEEP (central massive tower) ---
 const keepW=50*sc,keepD=40*sc,keepH=80*sc;
-const keep=new THREE.Mesh(new THREE.BoxGeometry(keepW,keepH,keepD),mt.stGoth);keep.position.y=keepH/2;keep.castShadow=true;g.add(keep);addSolid(keep);
+const keep=new THREE.Mesh(new THREE.BoxGeometry(keepW,keepH,keepD),mt.stGoth);keep.position.y=keepH/2;keep.castShadow=true;g.add(keep);
 // Keep roof
-const keepRoof=new THREE.Mesh(new THREE.BoxGeometry(keepW+6*sc,4*sc,keepD+6*sc),mt.rfSlate);keepRoof.position.y=keepH+2*sc;keepRoof.castShadow=true;g.add(keepRoof);addSolid(keepRoof);
+const keepRoof=new THREE.Mesh(new THREE.BoxGeometry(keepW+6*sc,4*sc,keepD+6*sc),mt.rfSlate);keepRoof.position.y=keepH+2*sc;keepRoof.castShadow=true;g.add(keepRoof);
 // Keep battlements
 for(let i=0;i<12;i++){const bx=-keepW/2+i*keepW/11;
 const m1=new THREE.Mesh(new THREE.BoxGeometry(3*sc,5*sc,3*sc),mt.stD);m1.position.set(bx,keepH+4.5*sc,keepD/2);m1.castShadow=true;g.add(m1);
@@ -1647,21 +2050,21 @@ win.position.set(wx,20*sc+lv*22*sc,keepD/2+.5);g.add(win);
 const wFrame=new THREE.Mesh(new THREE.BoxGeometry(3*sc,9*sc,.3),mt.stD);wFrame.position.set(wx,20*sc+lv*22*sc,keepD/2+.7);g.add(wFrame)}}
 // --- GATEHOUSE (front entrance with portcullis) ---
 const ghW=20*sc,ghH=35*sc,ghD=14*sc;
-const ghL=new THREE.Mesh(new THREE.BoxGeometry(ghW/2-3*sc,ghH,ghD),mt.stGoth);ghL.position.set(-ghW/4-1.5*sc,ghH/2,wallR);ghL.castShadow=true;g.add(ghL);addSolid(ghL);
-const ghR=ghL.clone();ghR.position.x=ghW/4+1.5*sc;g.add(ghR);addSolid(ghR);
+const ghL=new THREE.Mesh(new THREE.BoxGeometry(ghW/2-3*sc,ghH,ghD),mt.stGoth);ghL.position.set(-ghW/4-1.5*sc,ghH/2,wallR);ghL.castShadow=true;g.add(ghL);
+const ghR=ghL.clone();ghR.position.x=ghW/4+1.5*sc;g.add(ghR);
 // Portcullis arch
 const ghArch=new THREE.Mesh(new THREE.BoxGeometry(7*sc,4*sc,ghD),mt.stD);ghArch.position.set(0,ghH-2*sc,wallR);g.add(ghArch);
 // Gatehouse towers
 [-1,1].forEach(s=>{const gt=new THREE.Mesh(new THREE.CylinderGeometry(7*sc,8*sc,ghH+10*sc,10),mt.stGoth);
-gt.position.set(s*12*sc,(ghH+10*sc)/2,wallR);gt.castShadow=true;g.add(gt);addSolid(gt);
+gt.position.set(s*12*sc,(ghH+10*sc)/2,wallR);gt.castShadow=true;g.add(gt);
 const gtRoof=new THREE.Mesh(new THREE.ConeGeometry(9*sc,14*sc,10),mt.rfSlate);gtRoof.position.set(s*12*sc,ghH+12*sc,wallR);g.add(gtRoof)});
 // --- INNER COURTYARD FEATURES ---
 // Great hall
 const hallW=36*sc,hallH=30*sc,hallD=60*sc;
-const hall=new THREE.Mesh(new THREE.BoxGeometry(hallW,hallH,hallD),mt.stD);hall.position.set(0,hallH/2,-30*sc);hall.castShadow=true;g.add(hall);addSolid(hall);
-const hallRoof=new THREE.Mesh(new THREE.BoxGeometry(hallW+4*sc,3*sc,hallD+4*sc),mt.rfSlate);hallRoof.position.set(0,hallH+1.5*sc,-30*sc);g.add(hallRoof);addSolid(hallRoof);
+const hall=new THREE.Mesh(new THREE.BoxGeometry(hallW,hallH,hallD),mt.stD);hall.position.set(0,hallH/2,-30*sc);hall.castShadow=true;g.add(hall);
+const hallRoof=new THREE.Mesh(new THREE.BoxGeometry(hallW+4*sc,3*sc,hallD+4*sc),mt.rfSlate);hallRoof.position.set(0,hallH+1.5*sc,-30*sc);g.add(hallRoof);
 // Chapel spire
-const chapel=new THREE.Mesh(new THREE.BoxGeometry(16*sc,25*sc,20*sc),mt.st);chapel.position.set(40*sc,12.5*sc,-20*sc);chapel.castShadow=true;g.add(chapel);addSolid(chapel);
+const chapel=new THREE.Mesh(new THREE.BoxGeometry(16*sc,25*sc,20*sc),mt.st);chapel.position.set(40*sc,12.5*sc,-20*sc);chapel.castShadow=true;g.add(chapel);
 const chapelSpire=new THREE.Mesh(new THREE.ConeGeometry(6*sc,30*sc,6),mt.rfSlate);chapelSpire.position.set(40*sc,40*sc,-20*sc);chapelSpire.castShadow=true;g.add(chapelSpire);
 const cross=new THREE.Mesh(new THREE.BoxGeometry(.5*sc,4*sc,.5*sc),mt.gold);cross.position.set(40*sc,56*sc,-20*sc);g.add(cross);
 // Courtyard torches
@@ -1762,75 +2165,135 @@ console.log('INIT: cities+waterfalls+caves+bones done, starting dungeons');
 const bossTypes={demon:{hp:500,dmg:35,col:0x8a1010,name:'Infernal Lord'},golem:{hp:600,dmg:30,col:0x5a5a60,name:'Ancient Golem'},wyrm:{hp:450,dmg:40,col:0x4a2050,name:'Shadow Wyrm'},tzhaar:{hp:700,dmg:45,col:0xaa4010,name:'TzTok-Xil'},vampire:{hp:400,dmg:35,col:0x3a0a1a,name:'Blood Count'},elf:{hp:350,dmg:50,col:0x4a6a5a,name:'Crystal Guardian'},
 dragon:{hp:800,dmg:50,col:0x2a6a1a,name:'King Black Dragon'},hydra:{hp:900,dmg:55,col:0x4a6a3a,name:'Alchemical Hydra'},kraken:{hp:650,dmg:40,col:0x1a3a5a,name:'Cave Kraken'},cerberus:{hp:750,dmg:60,col:0x5a1a1a,name:'Cerberus'},vorkath:{hp:1000,dmg:65,col:0x2a5a6a,name:'Vorkath'},nightmare:{hp:1200,dmg:70,col:0x2a1a3a,name:'The Nightmare'},nex:{hp:1500,dmg:80,col:0x4a0a3a,name:'Nex'},jad:{hp:850,dmg:55,col:0x8a2a00,name:'TzTok-Jad'},zuk:{hp:2000,dmg:90,col:0xaa3a10,name:'TzKal-Zuk'}};
 const specialLoot=[
-// WEAPONS (30+)
-{name:'Dragon Longsword',atk:45,def:5,str:30,slot:'Weapon',rarity:'rare'},
-{name:'Abyssal Whip',atk:55,def:0,str:40,slot:'Weapon',rarity:'rare'},
-{name:'Dragon Scimitar',atk:40,def:3,str:28,slot:'Weapon',rarity:'rare'},
-{name:'Godsword (Armadyl)',atk:75,def:5,str:55,slot:'Weapon',rarity:'legendary'},
-{name:'Godsword (Bandos)',atk:70,def:5,str:65,slot:'Weapon',rarity:'legendary'},
-{name:'Godsword (Saradomin)',atk:72,def:10,str:50,slot:'Weapon',rarity:'legendary'},
-{name:'Godsword (Zamorak)',atk:78,def:3,str:58,slot:'Weapon',rarity:'legendary'},
-{name:'Scythe of Vitur',atk:90,def:0,str:70,slot:'Weapon',rarity:'mythic'},
-{name:'Twisted Bow',atk:85,def:0,str:60,slot:'Weapon',rarity:'mythic'},
-{name:'Ghrazi Rapier',atk:65,def:0,str:50,slot:'Weapon',rarity:'legendary'},
-{name:'Blade of Saeldor',atk:62,def:5,str:48,slot:'Weapon',rarity:'legendary'},
-{name:'Inquisitor Mace',atk:60,def:0,str:55,slot:'Weapon',rarity:'legendary'},
-{name:'Nightmare Staff',atk:55,def:5,str:35,slot:'Weapon',rarity:'legendary'},
-{name:'Trident of the Swamp',atk:50,def:3,str:30,slot:'Weapon',rarity:'rare'},
-{name:'Toxic Blowpipe',atk:48,def:0,str:35,slot:'Weapon',rarity:'rare'},
-{name:'Dragon Claws',atk:52,def:5,str:42,slot:'Weapon',rarity:'rare'},
-{name:'Elder Maul',atk:58,def:0,str:60,slot:'Weapon',rarity:'legendary'},
-{name:'Zaryte Crossbow',atk:80,def:0,str:55,slot:'Weapon',rarity:'mythic'},
-{name:'Tumeken Shadow',atk:95,def:0,str:75,slot:'Weapon',rarity:'mythic'},
-// HELMS (10+)
-{name:'Dragon Full Helm',atk:3,def:35,str:5,slot:'Helm',rarity:'rare'},
-{name:'Torva Full Helm',atk:5,def:55,str:10,slot:'Helm',rarity:'mythic'},
-{name:'Neitiznot Faceguard',atk:8,def:40,str:12,slot:'Helm',rarity:'legendary'},
-{name:'Serpentine Helm',atk:3,def:45,str:8,slot:'Helm',rarity:'rare'},
-{name:'Justiciar Faceguard',atk:0,def:50,str:3,slot:'Helm',rarity:'legendary'},
-{name:'Ancestral Hat',atk:25,def:8,str:0,slot:'Helm',rarity:'legendary'},
-{name:'Slayer Helm (i)',atk:12,def:30,str:10,slot:'Helm',rarity:'rare'},
-// CHEST (10+)
-{name:'Bandos Chestplate',atk:5,def:45,str:15,slot:'Chest',rarity:'rare'},
-{name:'Ancestral Robe Top',atk:30,def:10,str:0,slot:'Chest',rarity:'legendary'},
-{name:'Torva Platebody',atk:8,def:65,str:15,slot:'Chest',rarity:'mythic'},
-{name:'Justiciar Chestguard',atk:0,def:60,str:5,slot:'Chest',rarity:'legendary'},
-{name:'Inquisitor Hauberk',atk:10,def:50,str:18,slot:'Chest',rarity:'legendary'},
-{name:'Crystal Body',atk:20,def:35,str:8,slot:'Chest',rarity:'rare'},
-{name:'Karil Leathertop',atk:18,def:30,str:5,slot:'Chest',rarity:'rare'},
-{name:'Armadyl Chestplate',atk:15,def:42,str:8,slot:'Chest',rarity:'rare'},
-// LEGS (8+)
-{name:'Armadyl Chainskirt',atk:5,def:40,str:10,slot:'Legs',rarity:'rare'},
-{name:'Torva Platelegs',atk:5,def:58,str:12,slot:'Legs',rarity:'mythic'},
-{name:'Bandos Tassets',atk:4,def:42,str:14,slot:'Legs',rarity:'rare'},
-{name:'Justiciar Legguards',atk:0,def:55,str:3,slot:'Legs',rarity:'legendary'},
-{name:'Ancestral Robe Bottom',atk:25,def:8,str:0,slot:'Legs',rarity:'legendary'},
-{name:'Dragon Platelegs',atk:3,def:35,str:5,slot:'Legs',rarity:'rare'},
-// SHIELDS (6+)
-{name:'Dragonfire Shield',atk:5,def:50,str:5,slot:'Shield',rarity:'legendary'},
-{name:'Avernic Defender',atk:18,def:35,str:12,slot:'Shield',rarity:'legendary'},
-{name:'Elysian Spirit Shield',atk:0,def:65,str:0,slot:'Shield',rarity:'mythic'},
-{name:'Arcane Spirit Shield',atk:25,def:40,str:0,slot:'Shield',rarity:'mythic'},
-{name:'Spectral Spirit Shield',atk:15,def:45,str:0,slot:'Shield',rarity:'legendary'},
-{name:'Crystal Shield',atk:5,def:38,str:3,slot:'Shield',rarity:'rare'},
-// BOOTS (6+)
-{name:'Primordial Boots',atk:2,def:25,str:10,slot:'Boots',rarity:'rare'},
-{name:'Pegasian Boots',atk:12,def:18,str:5,slot:'Boots',rarity:'rare'},
-{name:'Eternal Boots',atk:18,def:10,str:0,slot:'Boots',rarity:'rare'},
-{name:'Dragon Boots',atk:2,def:20,str:8,slot:'Boots',rarity:'rare'},
-{name:'Guardian Boots',atk:0,def:28,str:3,slot:'Boots',rarity:'legendary'},
-// GLOVES (5+)
-{name:'Barrows Gloves',atk:10,def:15,str:10,slot:'Gloves',rarity:'rare'},
-{name:'Ferocious Gloves',atk:14,def:12,str:14,slot:'Gloves',rarity:'legendary'},
-{name:'Tormented Bracelet',atk:18,def:5,str:2,slot:'Gloves',rarity:'legendary'},
-{name:'Zaryte Vambraces',atk:15,def:10,str:5,slot:'Gloves',rarity:'mythic'},
-// RINGS (6+)
-{name:'Berserker Ring',atk:15,def:5,str:20,slot:'Ring',rarity:'legendary'},
-{name:'Ring of Suffering',atk:0,def:22,str:0,slot:'Ring',rarity:'legendary'},
-{name:'Brimstone Ring',atk:12,def:12,str:12,slot:'Ring',rarity:'legendary'},
-{name:'Ultor Ring',atk:18,def:3,str:22,slot:'Ring',rarity:'mythic'},
-{name:'Bellator Ring',atk:20,def:5,str:18,slot:'Ring',rarity:'mythic'},
-{name:'Venator Ring',atk:16,def:3,str:15,slot:'Ring',rarity:'mythic'}
+// ===== WEAPONS — RUNESCAPE (pig latin) =====
+{name:'Agondray Ongswordlay',atk:45,def:5,str:30,slot:'Weapon',rarity:'rare'},
+{name:'Abyssalay Ipwhay',atk:55,def:0,str:40,slot:'Weapon',rarity:'rare'},
+{name:'Agondray Imitarscay',atk:40,def:3,str:28,slot:'Weapon',rarity:'rare'},
+{name:'Odswordgay (Armadylway)',atk:75,def:5,str:55,slot:'Weapon',rarity:'legendary'},
+{name:'Odswordgay (Andosbay)',atk:70,def:5,str:65,slot:'Weapon',rarity:'legendary'},
+{name:'Odswordgay (Aradominsay)',atk:72,def:10,str:50,slot:'Weapon',rarity:'legendary'},
+{name:'Odswordgay (Amorakzay)',atk:78,def:3,str:58,slot:'Weapon',rarity:'legendary'},
+{name:'Ythescay ofway Iturvay',atk:90,def:0,str:70,slot:'Weapon',rarity:'mythic'},
+{name:'Istedtway Owbay',atk:85,def:0,str:60,slot:'Weapon',rarity:'mythic'},
+{name:'Azighray Apierray',atk:65,def:0,str:50,slot:'Weapon',rarity:'legendary'},
+{name:'Adeblay ofway Aeldorsay',atk:62,def:5,str:48,slot:'Weapon',rarity:'legendary'},
+{name:'Inquisitorway Acemay',atk:60,def:0,str:55,slot:'Weapon',rarity:'legendary'},
+{name:'Ightmarenay Affstay',atk:55,def:5,str:35,slot:'Weapon',rarity:'legendary'},
+{name:'Identtray ofway ethay Ampsway',atk:50,def:3,str:30,slot:'Weapon',rarity:'rare'},
+{name:'Oxictay Owpipeblay',atk:48,def:0,str:35,slot:'Weapon',rarity:'rare'},
+{name:'Agondray Awsclay',atk:52,def:5,str:42,slot:'Weapon',rarity:'rare'},
+{name:'Elderway Aulmay',atk:58,def:0,str:60,slot:'Weapon',rarity:'legendary'},
+{name:'Arytezay Ossbowcray',atk:80,def:0,str:55,slot:'Weapon',rarity:'mythic'},
+{name:'Umekentay Adowshay',atk:95,def:0,str:75,slot:'Weapon',rarity:'mythic'},
+{name:'Uneray Imitarscay',atk:42,def:2,str:25,slot:'Weapon',rarity:'rare'},
+{name:'Ithrilmay Alberdahay',atk:35,def:4,str:22,slot:'Weapon',rarity:'rare'},
+{name:'Anicday Axeway',atk:68,def:3,str:52,slot:'Weapon',rarity:'legendary'},
+// ===== WEAPONS — DARK SOULS (pig latin) =====
+{name:'Aysclay Oreymay Eatswordsay',atk:98,def:8,str:80,slot:'Weapon',rarity:'mythic'},
+{name:'Oonlightmay Eatswordsay',atk:88,def:5,str:65,slot:'Weapon',rarity:'mythic'},
+{name:'Arkday Oonmay Eatswordsay',atk:82,def:3,str:60,slot:'Weapon',rarity:'legendary'},
+{name:'Ackblay Ightknight Eatswordsay',atk:70,def:5,str:55,slot:'Weapon',rarity:'legendary'},
+{name:'Ukesday Ordssway ofway Osscray Ightknight',atk:65,def:8,str:50,slot:'Weapon',rarity:'legendary'},
+{name:'Assdway Aithfurlssay Ordssway',atk:60,def:3,str:48,slot:'Weapon',rarity:'rare'},
+{name:'Oldway Acedmay Ordssway',atk:92,def:0,str:72,slot:'Weapon',rarity:'mythic'},
+{name:'Avelinsay Ordssway Earspay',atk:58,def:5,str:45,slot:'Weapon',rarity:'rare'},
+{name:'Uttingpay Ordssway Urbancay Urvecay',atk:56,def:0,str:48,slot:'Weapon',rarity:'rare'},
+{name:'Ingedray Ightknight Ordssway',atk:50,def:8,str:40,slot:'Weapon',rarity:'rare'},
+{name:'Assdday Orkfay Aitsay',atk:45,def:3,str:35,slot:'Weapon',rarity:'rare'},
+{name:'Aymoreway Ansientray Ordssway',atk:75,def:0,str:58,slot:'Weapon',rarity:'legendary'},
+{name:'Ormsstay Urvecay Eatswordsay',atk:72,def:5,str:55,slot:'Weapon',rarity:'legendary'},
+{name:'Anelessday Ordssway Aikenfray',atk:68,def:0,str:50,slot:'Weapon',rarity:'legendary'},
+{name:'Uqueendayway Assway',atk:55,def:15,str:40,slot:'Weapon',rarity:'rare'},
+// ===== HELMS — RUNESCAPE (pig latin) =====
+{name:'Agondray Ullfay Elmhay',atk:3,def:35,str:5,slot:'Helm',rarity:'rare'},
+{name:'Orvatay Ullfay Elmhay',atk:5,def:55,str:10,slot:'Helm',rarity:'mythic'},
+{name:'Eitiznotnay Aceguardfay',atk:8,def:40,str:12,slot:'Helm',rarity:'legendary'},
+{name:'Erpentinesay Elmhay',atk:3,def:45,str:8,slot:'Helm',rarity:'rare'},
+{name:'Usticiarjay Aceguardfay',atk:0,def:50,str:3,slot:'Helm',rarity:'legendary'},
+{name:'Ancestralway Athay',atk:25,def:8,str:0,slot:'Helm',rarity:'legendary'},
+{name:'Ayerslay Elmhay (i)',atk:12,def:30,str:10,slot:'Helm',rarity:'rare'},
+// ===== HELMS — DARK SOULS (pig latin) =====
+{name:'Avelsay Elmhay ofway Enway',atk:10,def:42,str:8,slot:'Helm',rarity:'legendary'},
+{name:'Ornsteinway Elmhay',atk:6,def:48,str:12,slot:'Helm',rarity:'legendary'},
+{name:'Avel Ordlay Ownscray',atk:15,def:55,str:5,slot:'Helm',rarity:'mythic'},
+{name:'Atcherwayay Elmhay',atk:5,def:38,str:6,slot:'Helm',rarity:'rare'},
+{name:'Arfaronway Etshay',atk:8,def:44,str:10,slot:'Helm',rarity:'legendary'},
+{name:'Assway Ookflay Oodshay',atk:20,def:20,str:15,slot:'Helm',rarity:'rare'},
+// ===== CHEST — RUNESCAPE (pig latin) =====
+{name:'Andosbay Estplatechay',atk:5,def:45,str:15,slot:'Chest',rarity:'rare'},
+{name:'Ancestralway Oberay Optay',atk:30,def:10,str:0,slot:'Chest',rarity:'legendary'},
+{name:'Orvatay Atebodyplay',atk:8,def:65,str:15,slot:'Chest',rarity:'mythic'},
+{name:'Usticiarjay Estguardchay',atk:0,def:60,str:5,slot:'Chest',rarity:'legendary'},
+{name:'Inquisitorway Auberkhay',atk:10,def:50,str:18,slot:'Chest',rarity:'legendary'},
+{name:'Ystalcray Odybay',atk:20,def:35,str:8,slot:'Chest',rarity:'rare'},
+{name:'Arilkay Eathertopplay',atk:18,def:30,str:5,slot:'Chest',rarity:'rare'},
+{name:'Armadylway Estplatechay',atk:15,def:42,str:8,slot:'Chest',rarity:'rare'},
+// ===== CHEST — DARK SOULS (pig latin) =====
+{name:'Avelsay Armoray ofway Enway',atk:8,def:58,str:12,slot:'Chest',rarity:'legendary'},
+{name:'Ornsteinway Armoray',atk:12,def:62,str:10,slot:'Chest',rarity:'mythic'},
+{name:'Ackblay Ironway Etshay',atk:5,def:52,str:15,slot:'Chest',rarity:'legendary'},
+{name:'Aintssay Estvestchay',atk:0,def:48,str:20,slot:'Chest',rarity:'rare'},
+{name:'Avorsway Armoray',atk:10,def:55,str:14,slot:'Chest',rarity:'legendary'},
+{name:'Ilverbay Ightknight Armoray',atk:6,def:50,str:12,slot:'Chest',rarity:'rare'},
+// ===== LEGS — RUNESCAPE (pig latin) =====
+{name:'Armadylway Ainskirtchay',atk:5,def:40,str:10,slot:'Legs',rarity:'rare'},
+{name:'Orvatay Ateleggsplay',atk:5,def:58,str:12,slot:'Legs',rarity:'mythic'},
+{name:'Andosbay Assetstay',atk:4,def:42,str:14,slot:'Legs',rarity:'rare'},
+{name:'Usticiarjay Egguardslay',atk:0,def:55,str:3,slot:'Legs',rarity:'legendary'},
+{name:'Ancestralway Oberay Ottombay',atk:25,def:8,str:0,slot:'Legs',rarity:'legendary'},
+{name:'Agondray Ateleggsplay',atk:3,def:35,str:5,slot:'Legs',rarity:'rare'},
+// ===== LEGS — DARK SOULS (pig latin) =====
+{name:'Avelsay Eggingslay ofway Enway',atk:4,def:45,str:8,slot:'Legs',rarity:'legendary'},
+{name:'Ornsteinway Eggingslay',atk:6,def:52,str:10,slot:'Legs',rarity:'legendary'},
+{name:'Ackblay Ironway Eggingslay',atk:3,def:48,str:12,slot:'Legs',rarity:'rare'},
+{name:'Averway Ardsguay',atk:2,def:40,str:8,slot:'Legs',rarity:'rare'},
+// ===== SHIELDS — RUNESCAPE (pig latin) =====
+{name:'Agonfiredray Ieldshay',atk:5,def:50,str:5,slot:'Shield',rarity:'legendary'},
+{name:'Avernicway Efenderdray',atk:18,def:35,str:12,slot:'Shield',rarity:'legendary'},
+{name:'Elysianway Iritspay Ieldshay',atk:0,def:65,str:0,slot:'Shield',rarity:'mythic'},
+{name:'Arcaneway Iritspay Ieldshay',atk:25,def:40,str:0,slot:'Shield',rarity:'mythic'},
+{name:'Ectralspay Iritspay Ieldshay',atk:15,def:45,str:0,slot:'Shield',rarity:'legendary'},
+{name:'Ystalcray Ieldshay',atk:5,def:38,str:3,slot:'Shield',rarity:'rare'},
+// ===== SHIELDS — DARK SOULS (pig latin) =====
+{name:'Assway Ieldshay ofway Anterway',atk:0,def:60,str:0,slot:'Shield',rarity:'legendary'},
+{name:'Assiesgray Eatshieldgray',atk:5,def:55,str:5,slot:'Shield',rarity:'legendary'},
+{name:'Ilverbay Ightknight Ieldshay',atk:3,def:48,str:3,slot:'Shield',rarity:'rare'},
+{name:'Eidhay Ieldshay',atk:0,def:70,str:0,slot:'Shield',rarity:'mythic'},
+{name:'Olfiray Esttray',atk:8,def:42,str:8,slot:'Shield',rarity:'rare'},
+// ===== BOOTS — RUNESCAPE (pig latin) =====
+{name:'Imordialspray Ootsbay',atk:2,def:25,str:10,slot:'Boots',rarity:'rare'},
+{name:'Egasianpay Ootsbay',atk:12,def:18,str:5,slot:'Boots',rarity:'rare'},
+{name:'Eternaway Ootsbay',atk:18,def:10,str:0,slot:'Boots',rarity:'rare'},
+{name:'Agondray Ootsbay',atk:2,def:20,str:8,slot:'Boots',rarity:'rare'},
+{name:'Uardiansgay Ootsbay',atk:0,def:28,str:3,slot:'Boots',rarity:'legendary'},
+// ===== BOOTS — DARK SOULS (pig latin) =====
+{name:'Avelsay Ootsbay ofway Enway',atk:3,def:30,str:8,slot:'Boots',rarity:'legendary'},
+{name:'Ornsteinway Ootsbay',atk:5,def:32,str:10,slot:'Boots',rarity:'legendary'},
+{name:'Avel Ordlay Appersway',atk:8,def:25,str:5,slot:'Boots',rarity:'rare'},
+{name:'Ironway Eadstray',atk:2,def:22,str:6,slot:'Boots',rarity:'rare'},
+// ===== GLOVES — RUNESCAPE (pig latin) =====
+{name:'Arrowsbay Ovesglay',atk:10,def:15,str:10,slot:'Gloves',rarity:'rare'},
+{name:'Erociousfay Ovesglay',atk:14,def:12,str:14,slot:'Gloves',rarity:'legendary'},
+{name:'Ormentedtay Aceletbray',atk:18,def:5,str:2,slot:'Gloves',rarity:'legendary'},
+{name:'Arytezay Ambracesyay',atk:15,def:10,str:5,slot:'Gloves',rarity:'mythic'},
+// ===== GLOVES — DARK SOULS (pig latin) =====
+{name:'Avelsay Auntletsgay ofway Enway',atk:8,def:18,str:10,slot:'Gloves',rarity:'legendary'},
+{name:'Ornsteinway Auntletsgay',atk:10,def:20,str:8,slot:'Gloves',rarity:'legendary'},
+{name:'Avel Ordlay Aceletbray',atk:6,def:15,str:12,slot:'Gloves',rarity:'rare'},
+// ===== RINGS — RUNESCAPE (pig latin) =====
+{name:'Erserkersbay Ingray',atk:15,def:5,str:20,slot:'Ring',rarity:'legendary'},
+{name:'Ingray ofway Ufferingsay',atk:0,def:22,str:0,slot:'Ring',rarity:'legendary'},
+{name:'Imstonebray Ingray',atk:12,def:12,str:12,slot:'Ring',rarity:'legendary'},
+{name:'Ultorway Ingray',atk:18,def:3,str:22,slot:'Ring',rarity:'mythic'},
+{name:'Ellatorbay Ingray',atk:20,def:5,str:18,slot:'Ring',rarity:'mythic'},
+{name:'Enatorvay Ingray',atk:16,def:3,str:15,slot:'Ring',rarity:'mythic'},
+// ===== RINGS — DARK SOULS (pig latin) =====
+{name:'Avelsay Ingray ofway Avorsfay',atk:12,def:12,str:18,slot:'Ring',rarity:'legendary'},
+{name:'Avelhay Ingray',atk:8,def:5,str:25,slot:'Ring',rarity:'legendary'},
+{name:'Oridanchlay Ingray',atk:0,def:30,str:0,slot:'Ring',rarity:'legendary'},
+{name:'Ingray ofway Eel Andinglay',atk:5,def:5,str:5,slot:'Ring',rarity:'rare'},
+{name:'Eoway Ingray',atk:10,def:10,str:10,slot:'Ring',rarity:'rare'},
+{name:'Olfway Ingray',atk:18,def:0,str:20,slot:'Ring',rarity:'legendary'}
 ];
 
 function genDungeon(entranceX,entranceZ,depth,theme,bossType){
@@ -2005,7 +2468,7 @@ if(dx*dx+dz*dz>SD)c.castShadow=false;else c.castShadow=true}});};
 const gear={atk:10,def:5,str:8,name:'Starter'};
 const gearSlots=['Helm','Chest','Legs','Weapon','Shield','Boots','Gloves','Ring'];
 const equipped={};gearSlots.forEach(s=>equipped[s]={name:'None',atk:1,def:1,str:1});
-equipped.Weapon={name:'Starter Sword',atk:10,def:0,str:5};equipped.Shield={name:'Starter Shield',atk:0,def:5,str:0};
+equipped.Weapon={name:'Arterstay Ordssway',atk:10,def:0,str:5};equipped.Shield={name:'Arterstay Ieldshay',atk:0,def:5,str:0};
 function totalGear(){let a=0,d=0,s=0;gearSlots.forEach(sl=>{a+=equipped[sl].atk;d+=equipped[sl].def;s+=equipped[sl].str});return{atk:a,def:d,str:s}}
 
 function buildEnemy(type,lv){
@@ -2157,19 +2620,36 @@ const h=meshTerrainH(x,z);e.mesh.position.set(x,h,z);scene.add(e.mesh);enemies.p
 
 function calcHit(a,d){const g=totalGear();const ab=a===player?40+g.atk:22+((a.lv||1)*1.5);const db=d===player?30+g.def:15;return Math.random()<Math.max(.08,Math.min(.94,(ab/(db+12))*.82))}
 
+function makeLootMesh(col,sz){
+const g=new THREE.Group();
+// Glowing orb
+const orb=new THREE.Mesh(new THREE.SphereGeometry(sz,8,8),new MS({color:col,emissive:col,emissiveIntensity:1.2,roughness:.2,metalness:.4,transparent:true,opacity:.85}));
+g.add(orb);
+// Vertical light pillar (DS style)
+const pillar=new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,12,6),new MS({color:col,emissive:col,emissiveIntensity:2,transparent:true,opacity:.35,side:THREE.DoubleSide}));
+pillar.position.y=4;g.add(pillar);
+// Soft halo ring on ground
+const halo=new THREE.Mesh(new THREE.RingGeometry(1.5,3,16),new MS({color:col,emissive:col,emissiveIntensity:.8,transparent:true,opacity:.25,side:THREE.DoubleSide}));
+halo.rotation.x=-Math.PI/2;halo.position.y=-.5;g.add(halo);
+return g}
 function spawnLoot(x,z,e){
-// Always drop gear that is 1% better than current best in a random slot
+// Gear drop
 const slot=gearSlots[Math.floor(Math.random()*gearSlots.length)];
 const cur=equipped[slot];const boost=1.01;
 const newItem={name:e.type+' '+slot+' Lv'+(e.lv||1),atk:Math.ceil(Math.max(cur.atk*boost,cur.atk+1)),def:Math.ceil(Math.max(cur.def*boost,cur.def+1)),str:Math.ceil(Math.max(cur.str*boost,cur.str+1)),slot};
-const c=0xffdd44;const m=new THREE.Mesh(new THREE.BoxGeometry(2.5,2.5,2.5),new MS({color:c,emissive:c,emissiveIntensity:.6,roughness:.3,metalness:.3}));
-m.position.set(x,meshTerrainH(x,z)+4,z);m.userData={vx:(Math.random()-.5)*5,vz:(Math.random()-.5)*5,vy:8,life:900,item:newItem.name,gear:newItem};scene.add(m);lootArr.push(m);
-// Also drop bones/coins
-const c2=0xccccaa;const m2=new THREE.Mesh(new THREE.BoxGeometry(1.5,1.5,1.5),new MS({color:c2,emissive:c2,emissiveIntensity:.2,roughness:.6}));
-m2.position.set(x+2,meshTerrainH(x,z)+4,z+2);m2.userData={vx:(Math.random()-.5)*4,vz:(Math.random()-.5)*4,vy:7,life:600,item:'Bones'};scene.add(m2);lootArr.push(m2);
+const m=makeLootMesh(0xffd700,1.2);
+m.position.set(x,meshTerrainH(x,z)+4,z);m.userData={vx:(Math.random()-.5)*5,vz:(Math.random()-.5)*5,vy:8,life:1800,item:newItem.name,gear:newItem,rarity:'gear',settled:false};scene.add(m);lootArr.push(m);
+// Drop table items
+const dt=drops[e.type];if(dt){for(const d of dt){if(Math.random()<d.c){
+const ox=x+(Math.random()-.5)*6,oz=z+(Math.random()-.5)*6;
+const m2=makeLootMesh(0xccccaa,.7);
+m2.position.set(ox,meshTerrainH(ox,oz)+3,oz);m2.userData={vx:(Math.random()-.5)*4,vz:(Math.random()-.5)*4,vy:7,life:1200,item:d.i,rarity:'common',settled:false};scene.add(m2);lootArr.push(m2);break}}}
+// Bones always
+const bx=x+2,bz=z+2;const m3=makeLootMesh(0x998877,.5);
+m3.position.set(bx,meshTerrainH(bx,bz)+3,bz);m3.userData={vx:(Math.random()-.5)*3,vz:(Math.random()-.5)*3,vy:6,life:1200,item:'Onesbay',rarity:'common',settled:false};scene.add(m3);lootArr.push(m3);
 }
 function hitFX(x,y,z,col=0xff4400){for(let i=0;i<25;i++){const p=new THREE.Mesh(new THREE.SphereGeometry(.3,4,4),new MS({color:col,emissive:col,emissiveIntensity:1.5,roughness:1}));p.position.set(x,y,z);p.userData={vx:(Math.random()-.5)*10,vy:(Math.random()-.5)*10+4,vz:(Math.random()-.5)*10,life:22};scene.add(p);particles.push(p)}}
-function cycleLock(){if(!enemies.length)return;lockIdx=(lockIdx+1)%enemies.length;lockOn=enemies[lockIdx];log('Locked on: '+lockOn.type,'#cc4')}
+function cycleLock(){if(!enemies.length)return;lockIdx=(lockIdx+1)%enemies.length;lockOn=enemies[lockIdx];log('Locked on: '+(ePigName[lockOn.type]||lockOn.type),'#cc4')}
 function parry(){player.blocking=true;if(lockOn){const d=Math.hypot(lockOn.mesh.position.x-player.x,lockOn.mesh.position.z-player.z);if(d<18){hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+6,lockOn.mesh.position.z,0x00ffff);lockOn.hp-=12;player.sta=Math.min(player.sta+28,player.maxSta);skills.Defence.xp+=8;log('PARRY RIPOSTE!','#0ff')}}}
 
 let gpIndex=-1;
@@ -2213,6 +2693,13 @@ gpButtons.dLeft=isP(gpMap.dLeft);gpButtons.dRight=isP(gpMap.dRight);
 // Lock-on via mapped button
 if(isP(gpMap.lockon)&&!player._lkCD){cycleLock();player._lkCD=20}
 if(player._lkCD)player._lkCD--;
+// A button for jump when not healing
+gpButtons.a_jump=isP(0);
+// Y button opens ability book
+if(isP(3)&&!player._ybCD){toggleAbilityBook();player._ybCD=20}
+if(player._ybCD)player._ybCD--;
+// Gamepad dual-button combos for bar 2
+pollGpCombos(gp);
 }
 
 function loop(){
@@ -2242,7 +2729,12 @@ let diff=targetAng-player.ang;while(diff>Math.PI)diff-=Math.PI*2;while(diff<-Mat
 player.ang+=diff*.15}
 else{const co=pushOut(player.x,player.y,player.z);player.x=co.x;player.z=co.z}
 
-player.y=inDungeon?-inDungeon.depth*50+2:surfaceH(player.x,player.z,player.y);
+// Vertical physics — gravity + jump
+const groundY=inDungeon?-inDungeon.depth*50+2:surfaceH(player.x,player.z,player.y);
+player.vy-=.6; // gravity
+player.y+=player.vy*.6;
+if(player.y<=groundY){player.y=groundY;player.vy=0;player.grounded=true;}
+else{player.grounded=false;}
 const curReg=getReg(player.x,player.z);
 const totalLv=skillDefs.reduce((a,s)=>a+skills[s].lvl,0);
 document.getElementById('locbar').textContent=(inDungeon?'⚔ Dungeon Depth '+inDungeon.depth+' — ':'')+curReg.n+' · Zone Lv '+curReg.lv+'+';
@@ -2273,7 +2765,10 @@ else player.sta=Math.min(player.sta+1,player.maxSta);
 if((keys['3']||gpButtons.a)&&!player._healCD&&player.hp<player.maxHp){player.hp=Math.min(player.hp+40,player.maxHp);player._healCD=60;log('Healed with Estus Flask','#4c4');hitFX(player.x,player.y+6,player.z,0x44cc44)}
 if(player._healCD)player._healCD--;
 
-if((keys[' ']||gpButtons.b)&&!player.rolling&&player.sta>24){player.rolling=true;player.rollT=22;player.sta-=24;skills.Agility.xp+=2}
+// Jump (Space / gamepad A)
+if((keys[' ']||keys['Space']||gpButtons.a_jump)&&player.grounded&&!player.rolling){player.vy=12;player.grounded=false;skills.Agility.xp+=1}
+// Roll (Shift or gamepad B)
+if((keys['shift']||gpButtons.b)&&!player.rolling&&player.sta>24&&player.grounded){player.rolling=true;player.rollT=22;player.sta-=24;skills.Agility.xp+=2}
 if(mouse.right||gpButtons.lt||gpButtons.lb){parry()}else{player.blocking=false}
 // Gamepad: RB=parry riposte
 if(gpButtons.rb&&!player._rbCD){parry();player._rbCD=12}
@@ -2360,32 +2855,72 @@ if(e.mesh.userData.hpBar){const pct=Math.max(0,e.hp/e.maxHp);e.mesh.userData.hpB
 e.mesh.userData.hpBar.lookAt(cam.position)}
 if(e.hp<=0){spawnLoot(e.mesh.position.x,e.mesh.position.z,e);scene.remove(e.mesh);enemies.splice(i,1);if(lockOn===e)lockOn=null;
 const xpMult=Math.max(1,(e.lv||1)*.8);skills.Attack.xp+=Math.round(15*xpMult);skills.Strength.xp+=Math.round(12*xpMult);skills.Hitpoints.xp+=Math.round(10*xpMult);
-log(e.type+' (Lv'+(e.lv||1)+') slain! +'+Math.round(37*xpMult)+'xp','#fa4');
+log((ePigName[e.type]||e.type)+' (Lv'+(e.lv||1)+') slain! +'+Math.round(37*xpMult)+'xp','#fa4');
 const rt=e.type,rx=e.x,rz=e.z,rlv=getReg(rx,rz).lv;setTimeout(()=>{if(scene)spawnE(rt,rx+(Math.random()-.5)*30,rz+(Math.random()-.5)*30,rlv)},15000)}}
 
 if((mouse.down||gpButtons.rt||gpButtons.x||keys['1'])&&player.atkCD<=0&&player.sta>19){player.atkCD=14;player.sta-=19;
 const gStats=totalGear();const pDmg=Math.max(12,10+gStats.atk+gStats.str);
 if(lockOn&&lockOn.hp>0&&Math.hypot(lockOn.mesh.position.x-player.x,lockOn.mesh.position.z-player.z)<22){
 lockOn.hp-=pDmg;lockOn.poi-=16;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+6,lockOn.mesh.position.z);
-log('Hit '+lockOn.type+' for '+pDmg,'#ff8');
+log('Hit '+(ePigName[lockOn.type]||lockOn.type)+' for '+pDmg,'#ff8');
 if(lockOn.poi<=0){lockOn.hp-=Math.round(pDmg*.5);lockOn.poi=30;log('POISE BREAK!','#ff4')}}
 else{for(let i=enemies.length-1;i>=0;i--){let e=enemies[i],edx=e.mesh.position.x-player.x,edz=e.mesh.position.z-player.z;
 if(Math.hypot(edx,edz)<16){const eAng=Math.atan2(edx,edz);let ad=eAng-player.ang;while(ad>Math.PI)ad-=Math.PI*2;while(ad<-Math.PI)ad+=Math.PI*2;
-if(Math.abs(ad)<1.2&&calcHit(player,e)){e.hp-=pDmg;hitFX(e.mesh.position.x,e.mesh.position.y+6,e.mesh.position.z);log('Hit '+e.type+' for '+pDmg,'#ff8')}}}}}
+if(Math.abs(ad)<1.2&&calcHit(player,e)){e.hp-=pDmg;hitFX(e.mesh.position.x,e.mesh.position.y+6,e.mesh.position.z);log('Hit '+(ePigName[e.type]||e.type)+' for '+pDmg,'#ff8')}}}}}
 player.atkCD=Math.max(0,player.atkCD-1);if(player._parryCD)player._parryCD--;if(player._estusCD)player._estusCD--;
 
-for(let i=lootArr.length-1;i>=0;i--){let l=lootArr[i];l.userData.vy-=.45;l.position.x+=l.userData.vx*.6;l.position.z+=l.userData.vz*.6;l.position.y+=l.userData.vy*.6;l.userData.vx*=.92;l.userData.vz*=.92;l.userData.life--;l.rotation.y+=.05;
-const lh=meshTerrainH(l.position.x,l.position.z)+1.5;if(l.position.y<lh){l.position.y=lh;l.userData.vy*=-.4}
+// Loot label overlay — clear each frame
+lootLabelCtx.clearRect(0,0,lootLabelCanvas.width,lootLabelCanvas.height);
+let closestLoot=null,closestDist=Infinity;
+const lootPromptEl=document.getElementById('loot-prompt');
+for(let i=lootArr.length-1;i>=0;i--){let l=lootArr[i];
+// Physics
+if(!l.userData.settled){l.userData.vy-=.45;l.position.x+=l.userData.vx*.6;l.position.z+=l.userData.vz*.6;l.position.y+=l.userData.vy*.6;l.userData.vx*=.92;l.userData.vz*=.92;
+const lh=meshTerrainH(l.position.x,l.position.z)+1.5;if(l.position.y<lh){l.position.y=lh;l.userData.vy*=-.4;if(Math.abs(l.userData.vy)<.5){l.userData.settled=true;l.position.y=lh}}}
+l.userData.life--;
+// DS glow pulse
+const pulse=.85+Math.sin(time*4+i)*0.15;l.children[0].scale.setScalar(pulse);
+l.rotation.y+=.03;
+// Vertical hover once settled
+if(l.userData.settled){l.position.y=meshTerrainH(l.position.x,l.position.z)+1.5+Math.sin(time*2+i*.5)*.4}
 if(l.userData.life<=0){scene.remove(l);lootArr.splice(i,1);continue}
-if(Math.hypot(l.position.x-player.x,l.position.z-player.z)<9){
+// Screen-space label
+const lPos=new THREE.Vector3(l.position.x,l.position.y+3,l.position.z);
+lPos.project(cam);
+const sx=(lPos.x*.5+.5)*lootLabelCanvas.width;
+const sy=(-.5*lPos.y+.5)*lootLabelCanvas.height;
+if(lPos.z<1&&sx>0&&sx<lootLabelCanvas.width&&sy>0&&sy<lootLabelCanvas.height){
+const ldist=Math.hypot(l.position.x-player.x,l.position.z-player.z);
+if(ldist<80){
+const alpha=Math.min(1,Math.max(.3,(80-ldist)/60));
+const col=l.userData.gear?'rgba(255,215,0,'+alpha+')':l.userData.rarity==='common'?'rgba(200,200,170,'+alpha+')':'rgba(180,180,140,'+alpha+')';
+lootLabelCtx.font='bold 12px "Times New Roman",serif';lootLabelCtx.textAlign='center';
+lootLabelCtx.fillStyle='rgba(0,0,0,'+alpha*.6+')';lootLabelCtx.fillText(l.userData.item,sx+1,sy+1);
+lootLabelCtx.fillStyle=col;lootLabelCtx.fillText(l.userData.item,sx,sy)}}
+// Pickup check
+const pDist=Math.hypot(l.position.x-player.x,l.position.z-player.z);
+if(pDist<12&&pDist<closestDist){closestDist=pDist;closestLoot=l}
+if(autoLoot&&pDist<7){
 if(l.userData.gear){const g=l.userData.gear;equipped[g.slot]=g;updateEqUI();log('EQUIPPED: '+g.name+' [ATK+'+g.atk+' DEF+'+g.def+' STR+'+g.str+']','#0ff')}
 if(inventory.length<28){inventory.push(l.userData.item);updateInvUI();log('Picked up: '+l.userData.item,'#ff4');
-// Auto-grant skill XP for skill items
 const si=skillItems[l.userData.item];if(si){skills[si.skill].xp+=si.xp;
 const lv=Math.max(skills[si.skill].lvl,Math.floor(1+Math.sqrt(skills[si.skill].xp/50)));
 if(lv>skills[si.skill].lvl){skills[si.skill].lvl=lv;log(si.skill+' level up! Now '+lv,'#ff0')}
 log(si.skill+' +'+si.xp+'xp','#cc4');updateSkillUI()}}else log('Inventory full!','#f44');
 scene.remove(l);lootArr.splice(i,1)}}
+// Loot prompt for manual pickup
+if(!autoLoot&&closestLoot&&closestDist<12){
+lootPromptEl.classList.add('active');
+lootPromptEl.querySelector('.lp-title').textContent=closestLoot.userData.item;
+if(keys['KeyE']){const l=closestLoot;
+if(l.userData.gear){const g=l.userData.gear;equipped[g.slot]=g;updateEqUI();log('EQUIPPED: '+g.name+' [ATK+'+g.atk+' DEF+'+g.def+' STR+'+g.str+']','#0ff')}
+if(inventory.length<28){inventory.push(l.userData.item);updateInvUI();log('Picked up: '+l.userData.item,'#ff4');
+const si=skillItems[l.userData.item];if(si){skills[si.skill].xp+=si.xp;
+const lv=Math.max(skills[si.skill].lvl,Math.floor(1+Math.sqrt(skills[si.skill].xp/50)));
+if(lv>skills[si.skill].lvl){skills[si.skill].lvl=lv;log(si.skill+' level up! Now '+lv,'#ff0')}
+log(si.skill+' +'+si.xp+'xp','#cc4');updateSkillUI()}}else log('Inventory full!','#f44');
+scene.remove(l);const idx=lootArr.indexOf(l);if(idx>=0)lootArr.splice(idx,1)}}
+else{lootPromptEl.classList.remove('active')}
 
 for(let i=particles.length-1;i>=0;i--){let p=particles[i];
 // Enemy projectiles move straight (no gravity) and check player hit
@@ -2463,6 +2998,9 @@ const oldLv=skills[sk.skill].lvl;const newLv=Math.max(oldLv,Math.floor(sk.xp>0?1
 if(newLv>oldLv){skills[sk.skill].lvl=newLv;log(sk.skill+' level up! Now '+newLv,'#ff0')}
 log('Used '+itm+': '+sk.skill+' +'+sk.xp+'xp','#cc4');updateSkillUI();usedItem=true;break}}
 if(!usedItem)log('No usable skill items in inventory','#887')}
+if(k==='l'){autoLoot=!autoLoot;log('Auto-Loot: '+(autoLoot?'ON — items picked up automatically':'OFF — press E near items to pick up'),'#ffd700')}
+if(k==='v'&&!e.ctrlKey){toggleAbilityBook()}
+if(k==='`'||k==='~'){toggleBar2()}
 if(k==='q'){e.preventDefault();document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));document.querySelector('[data-tab="prayer"]').classList.add('active');document.getElementById('tp-prayer').classList.add('active')}
 if(k==='t'&&gameStarted){e.preventDefault();showTeleport=!showTeleport;
 let tp=document.getElementById('teleport-menu');
@@ -2521,7 +3059,7 @@ ws.onclose=()=>{setTimeout(connectMP,3000)};
 const SAVE_KEY='soulscape_save';
 function saveGame(){
 try{const data={player:{x:player.x,z:player.z,hp:player.hp,maxHp:player.maxHp,sta:player.sta,maxSta:player.maxSta,poi:player.poi,maxPoi:player.maxPoi,speed:player.speed},
-skills:{},inventory:[...inventory],equipped:{},opts:{...gameOpts},playerClass:playerClass,ver:3};
+skills:{},inventory:[...inventory],equipped:{},opts:{...gameOpts},playerClass:playerClass,bar1:[...bar1Slots],bar2:[...bar2Slots],showBar2:showBar2,ver:3};
 skillDefs.forEach(s=>data.skills[s]={lvl:skills[s].lvl,xp:skills[s].xp});
 gearSlots.forEach(s=>data.equipped[s]={...equipped[s]});
 localStorage.setItem(SAVE_KEY,JSON.stringify(data));
@@ -2538,6 +3076,9 @@ if(data.inventory){inventory.length=0;data.inventory.forEach(i=>inventory.push(i
 if(data.equipped){gearSlots.forEach(s=>{if(data.equipped[s])equipped[s]=data.equipped[s]})}
 if(data.opts){Object.assign(gameOpts,data.opts)}
 if(data.playerClass){playerClass=data.playerClass}
+if(data.bar1){bar1Slots.length=0;data.bar1.forEach(a=>bar1Slots.push(a));renderBar(bar1Slots,'ab-wrap',bar1Keys)}
+if(data.bar2){bar2Slots.length=0;data.bar2.forEach(a=>bar2Slots.push(a));renderBar(bar2Slots,'ab-wrap2',bar2Keys)}
+if(data.showBar2){showBar2=data.showBar2;if(showBar2)document.getElementById('ab-bar2').classList.add('active')}
 updateSkillUI();updateEqUI();refreshPlayerModel();
 document.getElementById('hpT').textContent=Math.round(player.hp)+'/'+player.maxHp;
 document.getElementById('stT').textContent=Math.round(player.sta)+'/'+player.maxSta;
@@ -2585,6 +3126,9 @@ else if(o==='fy'){gameOpts.flipy*=-1;el.textContent=gameOpts.flipy>0?'Normal':'I
 else if(o==='fx'){gameOpts.flipx*=-1;el.textContent=gameOpts.flipx>0?'Normal':'Inverted'}
 else if(o==='hud')el.textContent=el.textContent==='Always Display'?'Auto':'Always Display';
 else if(o==='shad')el.textContent=el.textContent==='High'?'Low':'High'});
+document.getElementById('btn-bar2').onclick=()=>toggleBar2();
+document.getElementById('btn-abilbook').onclick=()=>toggleAbilityBook();
+document.getElementById('btn-resetbar').onclick=()=>{bar1Slots.length=0;defaultBar1.forEach(a=>bar1Slots.push(a));bar2Slots.length=0;defaultBar2.forEach(a=>bar2Slots.push(a));renderBar(bar1Slots,'ab-wrap',bar1Keys);renderBar(bar2Slots,'ab-wrap2',bar2Keys);log('Action bars reset to defaults','#cc9944')};
 document.querySelectorAll('.class-card').forEach(el=>el.addEventListener('click',()=>{
 const cls=el.dataset.c,s=classStats[cls];
 playerClass=cls;
@@ -2751,7 +3295,11 @@ print('  Open multiple tabs or share your IP for LAN co-op!')
 print('  Press Ctrl+C to stop.\n')
 
 threading.Thread(target=ws_server, daemon=True).start()
-httpd = http.server.HTTPServer(('0.0.0.0', PORT), GameHandler)
+class ThreadedHTTPServer(http.server.HTTPServer):
+    allow_reuse_address = True
+    def process_request(self, request, client_address):
+        threading.Thread(target=self.finish_request, args=(request, client_address), daemon=True).start()
+httpd = ThreadedHTTPServer(('0.0.0.0', PORT), GameHandler)
 threading.Thread(target=httpd.serve_forever, daemon=True).start()
 webbrowser.open(f'http://127.0.0.1:{PORT}/')
 try:
