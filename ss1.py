@@ -287,10 +287,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="ab-slot" data-action="heal" title="Estus Flask"><span class="ab-ico">&#127863;</span><span class="ab-name">Heal</span><span class="ab-key">3</span><div class="ab-cd"></div></div>
 <div class="ab-slot" data-action="bones" title="Bury Bones"><span class="ab-ico">&#129460;</span><span class="ab-name">Bones</span><span class="ab-key">4</span><div class="ab-cd"></div></div>
 <div class="ab-slot" data-action="prayer" title="Prayer (Q)"><span class="ab-ico">&#10013;</span><span class="ab-name">Prayer</span><span class="ab-key">Q</span><div class="ab-cd"></div></div>
-<div class="ab-slot" data-action="gather" title="Gather (F)"><span class="ab-ico">&#9935;</span><span class="ab-name">Gather</span><span class="ab-key">F</span><div class="ab-cd"></div></div>
+<div class="ab-slot" data-action="gather" title="Gather (G)"><span class="ab-ico">&#9935;</span><span class="ab-name">Gather</span><span class="ab-key">G</span><div class="ab-cd"></div></div>
 <div class="ab-slot" data-action="jump" title="Jump (Shift/J)"><span class="ab-ico">&#11014;</span><span class="ab-name">Jump</span><span class="ab-key">J</span><div class="ab-cd"></div></div>
 <div class="ab-slot" data-action="roll" title="Dodge Roll"><span class="ab-ico">&#128168;</span><span class="ab-name">Roll</span><span class="ab-key">Spc</span><div class="ab-cd"></div></div>
-<div class="ab-slot" data-action="lock" title="Cycle Target"><span class="ab-ico">&#127919;</span><span class="ab-name">Lock</span><span class="ab-key">Tab</span><div class="ab-cd"></div></div>
+<div class="ab-slot" data-action="lock" title="Lock-On Toggle (F) / Cycle (Tab)"><span class="ab-ico">&#127919;</span><span class="ab-name">Lock</span><span class="ab-key">F</span><div class="ab-cd"></div></div>
 <div class="ab-slot" data-action="map" title="World Map"><span class="ab-ico">&#128506;</span><span class="ab-name">Map</span><span class="ab-key">M</span><div class="ab-cd"></div></div>
 <div class="ab-slot" data-action="inv" title="Inventory (I)"><span class="ab-ico">&#127890;</span><span class="ab-name">Bag</span><span class="ab-key">I</span><div class="ab-cd"></div></div>
 <div class="ab-slot" data-action="skills" title="Skills (K)"><span class="ab-ico">&#9733;</span><span class="ab-name">Skills</span><span class="ab-key">K</span><div class="ab-cd"></div></div>
@@ -390,7 +390,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="chat-tab">Clan</div>
 </div>
 </div>
-<div id="controls"><b style="color:#ffd700">ESC</b> Options &#183; WASD Move &#183; <b style="color:#ffd700">Shift / J</b> Jump &#183; Space Roll &#183; <b style="color:#ffd700">1</b> Attack &#183; 2 Parry &#183; 3 Heal &#183; E Pickup &#183; Tab Lock &#183; <b style="color:#ffd700">P</b> Abilities &#183; I Inventory &#183; M Map &#183; T Teleport</div>
+<div id="controls"><b style="color:#ffd700">ESC</b> Options &#183; WASD Move &#183; <b style="color:#ffd700">Shift/J</b> Jump &#183; Space Roll &#183; <b style="color:#ffd700">1</b> Atk &#183; 2 Parry &#183; 3 Heal &#183; E Pickup &#183; <b style="color:#ffd700">F</b> Lock-On &#183; Tab Cycle Lock &#183; G Gather &#183; <b style="color:#ffd700">P</b> Abilities &#183; I Inv &#183; M Map</div>
 <div id="target-frame"><div id="tf-icon">👹</div><div id="tf-info"><div><span id="tf-name">Enemy</span><span id="tf-lv">Lv 1</span></div><div id="tf-hp-bg"><div id="tf-hp-fill" style="width:100%"></div></div><div id="tf-hp-text">100/100</div></div></div>
 <div id="world-map"><div id="wm-title">WORLD MAP</div><canvas id="wm-canvas" width="900" height="700"></canvas><div id="wm-coords">Player: 0, 0</div><div id="wm-close">&times;</div></div>
 <canvas id="loot-label-canvas"></canvas>
@@ -437,10 +437,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="ctrl-entry"><span class="ctrl-desc">Attack</span><span class="ctrl-key">1 / LMB</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Parry / Block</span><span class="ctrl-key">2 / RMB</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Heal (Estus)</span><span class="ctrl-key">3</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Gather / Chop</span><span class="ctrl-key">4</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Gather / Chop</span><span class="ctrl-key">G</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Sprint</span><span class="ctrl-key">Q (hold)</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Interact / Pickup</span><span class="ctrl-key">E</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Lock On / Cycle</span><span class="ctrl-key">Tab</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Lock-On Toggle</span><span class="ctrl-key">F</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Lock-On Cycle</span><span class="ctrl-key">Tab</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Inventory</span><span class="ctrl-key">I</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Skills</span><span class="ctrl-key">K</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">World Map</span><span class="ctrl-key">M</span></div>
@@ -460,7 +461,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="ctrl-entry"><span class="ctrl-desc">Attack</span><span class="ctrl-key">RT</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Heavy / Parry</span><span class="ctrl-key">RB</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Block / Guard</span><span class="ctrl-key">LT</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Lock On</span><span class="ctrl-key">LS Click</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Lock-On Toggle</span><span class="ctrl-key">R3 / RS Click</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Lock-On Cycle</span><span class="ctrl-key">L3 / LS Click</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Heal (Estus)</span><span class="ctrl-key">A / Cross</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Roll / Dodge</span><span class="ctrl-key">B / Circle</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Jump</span><span class="ctrl-key">Y / Triangle</span></div>
@@ -785,9 +787,9 @@ else if(id==='parry')document.dispatchEvent(new KeyboardEvent('keydown',{key:'2'
 else if(id==='heal')document.dispatchEvent(new KeyboardEvent('keydown',{key:'3'}));
 else if(id==='bones')document.dispatchEvent(new KeyboardEvent('keydown',{key:'4'}));
 else if(id==='prayer')switchTab('prayer');
-else if(id==='gather')document.dispatchEvent(new KeyboardEvent('keydown',{key:'f'}));
+else if(id==='gather')document.dispatchEvent(new KeyboardEvent('keydown',{key:'g'}));
 else if(id==='roll')document.dispatchEvent(new KeyboardEvent('keydown',{key:' '}));
-else if(id==='lock')document.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab'}));
+else if(id==='lock'){if(typeof toggleLock==='function')toggleLock()}
 else if(id==='map')document.dispatchEvent(new KeyboardEvent('keydown',{key:'m'}));
 else if(id==='inv')switchTab('inventory');
 else if(id==='skills')switchTab('skills');
@@ -880,8 +882,10 @@ const raycaster=new THREE.Raycaster();
 const clickMouse=new THREE.Vector2();
 let targetRing=null;
 function initTargetRing(){
-const rGeo=new THREE.RingGeometry(3.5,4.2,32);const rMat=new THREE.MeshBasicMaterial({color:0xff4444,side:THREE.DoubleSide,transparent:true,opacity:.55});
-targetRing=new THREE.Mesh(rGeo,rMat);targetRing.rotation.x=-Math.PI/2;targetRing.visible=false;
+// Lock-on indicator: floating diamond sprite above enemy head
+const rGeo=new THREE.OctahedronGeometry(1.2,0);
+const rMat=new THREE.MeshBasicMaterial({color:0xff2222,transparent:true,opacity:.85,depthTest:false});
+targetRing=new THREE.Mesh(rGeo,rMat);targetRing.renderOrder=999;targetRing.visible=false;
 }
 function updateTargetFrame(){
 const tf=document.getElementById('target-frame');
@@ -894,8 +898,14 @@ document.getElementById('tf-lv').textContent='Lv '+(lockOn.lv||1);
 const pct=Math.max(0,lockOn.hp/lockOn.maxHp*100);
 document.getElementById('tf-hp-fill').style.width=pct+'%';
 document.getElementById('tf-hp-text').textContent=Math.max(0,~~lockOn.hp)+'/'+lockOn.maxHp;
-if(targetRing&&lockOn.mesh){targetRing.visible=true;targetRing.position.copy(lockOn.mesh.position);targetRing.position.y+=.5;
-const sc=1+Math.sin(time*4)*.15;targetRing.scale.set(sc,sc,sc)}
+if(targetRing&&lockOn.mesh){
+// Float above enemy head and spin
+targetRing.visible=true;
+const ePos=lockOn.mesh.position;
+const eH=(lockOn.mesh.geometry&&lockOn.mesh.geometry.parameters)?Math.max(lockOn.mesh.geometry.parameters.height||8,lockOn.mesh.geometry.parameters.radiusTop||4)*2:12;
+targetRing.position.set(ePos.x,ePos.y+eH+2+Math.sin(time*3)*.6,ePos.z);
+targetRing.rotation.y=time*2;targetRing.rotation.x=time*1.5;
+const sc=.9+Math.sin(time*4)*.1;targetRing.scale.set(sc,sc,sc);}
 }
 function clickTarget(e){
 if(!gameStarted||!cam||e.button!==0)return;
@@ -3229,7 +3239,26 @@ const m3=makeLootMesh(0x998877,.5);
 m3.position.set(bx,meshTerrainH(bx,bz)+3,bz);m3.userData={vx:(Math.random()-.5)*3,vz:(Math.random()-.5)*3,vy:6,life:1200,item:'Onesbay',uid:boneItem.uid,rarity:'common',settled:false};scene.add(m3);lootArr.push(m3);
 }
 function hitFX(x,y,z,col=0xff4400){for(let i=0;i<25;i++){const p=new THREE.Mesh(new THREE.SphereGeometry(.3,4,4),new MS({color:col,emissive:col,emissiveIntensity:1.5,roughness:1}));p.position.set(x,y,z);p.userData={vx:(Math.random()-.5)*10,vy:(Math.random()-.5)*10+4,vz:(Math.random()-.5)*10,life:22};scene.add(p);particles.push(p)}}
-function cycleLock(){if(!enemies.length)return;lockIdx=(lockIdx+1)%enemies.length;lockOn=enemies[lockIdx];log('Locked on: '+lockOn.type,'#cc4')}
+function cycleLock(){
+// If no enemies, bail
+if(!enemies.length){lockOn=null;lockIdx=-1;log('No targets','#887');return}
+// Find nearest enemies to cycle through (prefer closer ones)
+const sorted=[...enemies].sort((a,b)=>Math.hypot(a.mesh.position.x-player.x,a.mesh.position.z-player.z)-Math.hypot(b.mesh.position.x-player.x,b.mesh.position.z-player.z));
+const curSortedIdx=lockOn?sorted.indexOf(lockOn):-1;
+const nextIdx=(curSortedIdx+1)%sorted.length;
+// Toggle off if cycling back to same target (only one enemy)
+if(sorted.length===1&&lockOn===sorted[0]){lockOn=null;lockIdx=-1;log('Lock-on released','#887');return}
+lockOn=sorted[nextIdx];lockIdx=enemies.indexOf(lockOn);
+log('Locked: '+lockOn.type+' (Lv'+(lockOn.lv||1)+') — press Tab/F again to cycle','#f84')}
+function toggleLock(){
+// Nearest enemy toggle — press again to release
+if(lockOn){lockOn=null;lockIdx=-1;log('Lock-on released','#887');return}
+if(!enemies.length){log('No targets nearby','#887');return}
+// Pick nearest enemy within 120 units
+let best=null,bestD=120;
+for(const e of enemies){const d=Math.hypot(e.mesh.position.x-player.x,e.mesh.position.z-player.z);if(d<bestD){bestD=d;best=e}}
+if(best){lockOn=best;lockIdx=enemies.indexOf(best);log('Locked: '+best.type+' (Lv'+(best.lv||1)+')','#f84')}
+else log('No targets in range (120u)','#887')}
 function parry(){player.blocking=true;if(lockOn){const d=Math.hypot(lockOn.mesh.position.x-player.x,lockOn.mesh.position.z-player.z);if(d<18){hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+6,lockOn.mesh.position.z,0x00ffff);lockOn.hp-=12;player.sta=Math.min(player.sta+28,player.maxSta);skills.Defence.xp+=8;log('PARRY RIPOSTE!','#0ff')}}}
 
 let gpIndex=-1;
@@ -3240,7 +3269,8 @@ roll:1,     // B/Circle = Roll (Dark Souls default)
 attack:7,   // RT = Light Attack
 parry:5,    // RB = Parry/Heavy Attack
 block:6,    // LT = Block/Guard
-lockon:10,  // LS Click = Lock-on (DS3 style)
+lockon:11,  // R3 / RS Click = Lock-on toggle (DS3 style)
+lockonCycle:10, // L3 / LS Click = Cycle through targets
 heal:0,     // A/Cross = Heal (Estus)
 useItem:2,  // X/Square = Use item
 twoHand:3,  // Y/Triangle = Two-hand toggle
@@ -3270,9 +3300,12 @@ gpButtons.lt=isV(gpMap.block);gpButtons.rt=isV(gpMap.attack);
 gpButtons.start=isP(gpMap.inventory);gpButtons.back=isP(gpMap.skills);
 gpButtons.dUp=isP(gpMap.dUp);gpButtons.dDown=isP(gpMap.dDown);
 gpButtons.dLeft=isP(gpMap.dLeft);gpButtons.dRight=isP(gpMap.dRight);
-// Lock-on via mapped button
-if(isP(gpMap.lockon)&&!player._lkCD){cycleLock();player._lkCD=20}
+// R3 = toggle lock (on/off nearest)
+if(isP(gpMap.lockon)&&!player._lkCD){toggleLock();player._lkCD=25}
+// L3 = cycle through targets
+if(isP(gpMap.lockonCycle)&&!player._lkCycleCD){cycleLock();player._lkCycleCD=25}
 if(player._lkCD)player._lkCD--;
+if(player._lkCycleCD)player._lkCycleCD--;
 if(typeof checkGpCombos==='function')checkGpCombos();
 }
 
@@ -3298,9 +3331,15 @@ if(moveDir.lengthSq()>.001){moveDir.normalize();
 const steps=spd>1?4:2;const stepSpd=spd/steps;
 for(let st=0;st<steps;st++){player.x+=moveDir.x*stepSpd;player.z+=moveDir.z*stepSpd;
 const co=pushOut(player.x,player.y,player.z);player.x=co.x;player.z=co.z}
+// When locked on, player always faces the target regardless of movement direction
+if(lockOn&&lockOn.mesh){
+const la=Math.atan2(lockOn.mesh.position.x-player.x,lockOn.mesh.position.z-player.z);
+let ld=la-player.ang;while(ld>Math.PI)ld-=Math.PI*2;while(ld<-Math.PI)ld+=Math.PI*2;
+player.ang+=ld*.18
+}else{
 const targetAng=Math.atan2(moveDir.x,moveDir.z);
 let diff=targetAng-player.ang;while(diff>Math.PI)diff-=Math.PI*2;while(diff<-Math.PI)diff+=Math.PI*2;
-player.ang+=diff*.15}
+player.ang+=diff*.15}}
 else{const co=pushOut(player.x,player.y,player.z);player.x=co.x;player.z=co.z}
 
 // Jump physics
@@ -3364,12 +3403,13 @@ if(playerGroup.userData.lArm){const lA=playerGroup.userData.lArm;
 if(player.blocking){lA.rotation.x+=(-.9-lA.rotation.x)*.3;lA.rotation.z+=(.5-lA.rotation.z)*.3;lA.position.x+=(-.8-lA.position.x)*.2;lA.position.z+=(1.5-lA.position.z)*.2}
 else{lA.rotation.x*=.82;lA.rotation.z*=.82;lA.position.x+=(-2.4-lA.position.x)*.15;lA.position.z+=(0-lA.position.z)*.15}}
 
+// Camera: always orbits behind player, player is always in frame
 const camX=player.x+Math.sin(camYaw)*Math.cos(camPitch)*camDist;
 const camZ=player.z+Math.cos(camYaw)*Math.cos(camPitch)*camDist;
 const camY=player.y+Math.sin(camPitch)*camDist;
 cam.position.x+=(camX-cam.position.x)*.1;cam.position.z+=(camZ-cam.position.z)*.1;cam.position.y+=(camY-cam.position.y)*.1;
-if(lockOn&&lockOn.mesh){const mx=(player.x+lockOn.mesh.position.x)*.5,mz=(player.z+lockOn.mesh.position.z)*.5;cam.lookAt(mx,player.y+8,mz)}
-else cam.lookAt(player.x,player.y+8,player.z);
+// Camera always looks at player — lock-on does NOT move the camera
+cam.lookAt(player.x,player.y+8,player.z);
 
 for(let i=enemies.length-1;i>=0;i--){let e=enemies[i];
 let dx=player.x-e.mesh.position.x,dz=player.z-e.mesh.position.z,dist=Math.hypot(dx,dz);
@@ -3556,6 +3596,7 @@ composer.render()}
 window.addEventListener('keydown',e=>{
 const k=e.key.toLowerCase();keys[k]=true;keys[e.code]=true;
 if(k==='tab'){e.preventDefault();cycleLock()}
+if(k==='f'&&gameStarted){e.preventDefault();toggleLock()}
 if(k==='i'){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));document.querySelector('[data-tab="inventory"]').classList.add('active');document.getElementById('tp-inventory').classList.add('active')}
 if(k==='k'){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));document.querySelector('[data-tab="skills"]').classList.add('active');document.getElementById('tp-skills').classList.add('active')}
 if(k==='f5'){e.preventDefault();if(gameStarted)saveGame()}
@@ -3595,7 +3636,7 @@ const abr=document.getElementById('ability-browser');if(abr.classList.contains('
 const tp=document.getElementById('teleport-menu');if(tp&&showTeleport){showTeleport=false;tp.style.display='none';return}
 const em=document.getElementById('esc-menu');em.classList.toggle('active');
 if(em.classList.contains('active'))e.preventDefault()}
-if(k==='f'&&gameStarted){e.preventDefault();const nT=Math.hypot(player.x+100,player.z-50)<50;const nR=Math.hypot(player.x+70,player.z+80)<40;const nM=Math.hypot(player.x-300,player.z+100)<60;
+if(k==='g'&&gameStarted){e.preventDefault();const nT=Math.hypot(player.x+100,player.z-50)<50;const nR=Math.hypot(player.x+70,player.z+80)<40;const nM=Math.hypot(player.x-300,player.z+100)<60;
 if(nT){skills.Woodcutting.xp+=18;log('Woodcutting +18xp','#6a4')}
 else if(nR){skills.Fishing.xp+=22;log('Fishing +22xp','#48f')}
 else if(nM){skills.Mining.xp+=20;log('Mining +20xp','#a86')}
@@ -3647,7 +3688,7 @@ makeToggle('ui-rpos',['Right','Left'],(i)=>{const rp=document.getElementById('os
 makeToggle('ui-abpos',['Bottom Center','Bottom Left','Bottom Right'],(i)=>{const ab=document.getElementById('action-bar');if(ab){ab.style.left=i===0?'50%':i===1?'8px':'auto';ab.style.right=i===2?'8px':'auto';ab.style.transform=i===0?'translateX(-50%)':'none'}});
 makeToggle('ui-font',['Normal','Large','Small'],(i)=>{document.documentElement.style.fontSize=i===0?'':''+[16,19,13][i]+'px'});
 // Keybind rebinder
-const kbDefs=[['move_fwd','Move Forward','w'],['move_back','Move Back','s'],['move_left','Strafe Left','a'],['move_right','Strafe Right','d'],['jump','Jump','shift'],['roll','Roll / Dodge',' '],['attack','Attack','1'],['parry','Parry / Block','2'],['heal','Heal (Estus)','3'],['gather','Gather','f'],['interact','Interact','e'],['lockon','Lock-On','tab'],['inventory','Inventory','i'],['skills','Skills','k'],['map','World Map','m'],['teleport','Teleport','t'],['abilities','Ability Browser','p'],['autoloot','Auto-Loot','l'],['sprint','Sprint','q'],['prayer','Prayer','5'],['save','Quick Save','f5']];
+const kbDefs=[['move_fwd','Move Forward','w'],['move_back','Move Back','s'],['move_left','Strafe Left','a'],['move_right','Strafe Right','d'],['jump','Jump','shift'],['roll','Roll / Dodge',' '],['attack','Attack','1'],['parry','Parry / Block','2'],['heal','Heal (Estus)','3'],['gather','Gather','g'],['lockon','Lock-On Toggle','f'],['interact','Interact','e'],['lockoncycle','Lock-On Cycle','tab'],['inventory','Inventory','i'],['skills','Skills','k'],['map','World Map','m'],['teleport','Teleport','t'],['abilities','Ability Browser','p'],['autoloot','Auto-Loot','l'],['sprint','Sprint','q'],['prayer','Prayer','5'],['save','Quick Save','f5']];
 const kbMap={};kbDefs.forEach(([id,desc,def])=>{kbMap[id]={desc,key:def}});
 const kbGrid=document.getElementById('kb-grid');
 function buildKbGrid(){kbGrid.innerHTML='';kbDefs.forEach(([id,desc])=>{const entry=document.createElement('div');entry.className='ctrl-entry';const d=document.createElement('span');d.className='ctrl-desc';d.textContent=desc;const k=document.createElement('span');k.className='esc-keybind';k.textContent=kbMap[id].key.toUpperCase();k.dataset.id=id;
