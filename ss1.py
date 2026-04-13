@@ -1219,15 +1219,15 @@ const ePos=lockOn.mesh.position;
 targetX=ePos.x;targetZ=ePos.z;
 }else{
 // Spells AND arrows without lock: use mouse cursor for precise aiming
-const rc=new THREE.Raycaster();
-rc.setFromCamera({x:mouse.x,y:mouse.y},cam);
-// Find ground intersection point for aiming
+if(!window._shootRC)window._shootRC=new THREE.Raycaster();
+if(!window._shootPlane)window._shootPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+if(!window._shootTarget)window._shootTarget=new THREE.Vector3();
+window._shootRC.setFromCamera({x:mouse.x,y:mouse.y},cam);
 const planeY=meshTerrainH(player.x,player.z);
-const plane=new THREE.Plane(new THREE.Vector3(0,1,0),-planeY);
-const target=new THREE.Vector3();
-rc.ray.intersectPlane(plane,target);
-if(!target)return;
-targetX=target.x;targetZ=target.z;}
+window._shootPlane.constant=-planeY;
+window._shootRC.ray.intersectPlane(window._shootPlane,window._shootTarget);
+if(!window._shootTarget)return;
+targetX=window._shootTarget.x;targetZ=window._shootTarget.z;}
 // Calculate direction and angle
 const dx=targetX-player.x;const dz=targetZ-player.z;
 const dist=Math.hypot(dx,dz);
@@ -1236,14 +1236,18 @@ if(dist<1)return;
 let proj;
 if(type==='arrow'){
 // Arrow shaft + fletching
+if(!window._arrowGeos){window._arrowGeos={shaft:new THREE.CylinderGeometry(.03,.03,2.2,4),tip:new THREE.ConeGeometry(.06,.3,4),fletch:new THREE.BoxGeometry(.12,.02,.3)};window._arrowMats={shaft:new MS({color:0xaa8855,roughness:.8}),tip:new MS({color:0x666666,roughness:.4,metalness:.8}),fletch:new MS({color:0xaa2222,roughness:.9})};}
 const arrowGrp=new THREE.Group();
-const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,2.2,4),new MS({color:0xaa8855,roughness:.8}));shaft.position.y=1.1;shaft.rotation.x=Math.PI/2;arrowGrp.add(shaft);
-const tip=new THREE.Mesh(new THREE.ConeGeometry(.06,.3,4),new MS({color:0x666666,roughness:.4,metalness:.8}));tip.position.set(0,0,2.2);tip.rotation.x=Math.PI/2;arrowGrp.add(tip);
-const fletch=new THREE.Mesh(new THREE.BoxGeometry(.12,.02,.3),new MS({color:0xaa2222,roughness:.9}));fletch.position.set(0,0,.2);arrowGrp.add(fletch);
+const shaft=new THREE.Mesh(window._arrowGeos.shaft,window._arrowMats.shaft);shaft.position.y=1.1;shaft.rotation.x=Math.PI/2;arrowGrp.add(shaft);
+const tip=new THREE.Mesh(window._arrowGeos.tip,window._arrowMats.tip);tip.position.set(0,0,2.2);tip.rotation.x=Math.PI/2;arrowGrp.add(tip);
+const fletch=new THREE.Mesh(window._arrowGeos.fletch,window._arrowMats.fletch);fletch.position.set(0,0,.2);arrowGrp.add(fletch);
 proj=arrowGrp;
 }else{
 // Spell orb - larger and more visible
-proj=new THREE.Mesh(new THREE.SphereGeometry(.6,12,12),new MS({color:col,emissive:col,emissiveIntensity:3,transparent:true,opacity:.9}));
+if(!window._spellGeo)window._spellGeo=new THREE.SphereGeometry(.6,12,12);
+if(!window._spellMatCache)window._spellMatCache={};
+if(!window._spellMatCache[col])window._spellMatCache[col]=new MS({color:col,emissive:col,emissiveIntensity:3,transparent:true,opacity:.9});
+proj=new THREE.Mesh(window._spellGeo,window._spellMatCache[col]);
 }
 // Position at player
 const startH=meshTerrainH(player.x,player.z);
@@ -1260,7 +1264,10 @@ proj.rotation.y=angle;proj.rotation.z=-.3;
 const speed=2.5;const arcHeight=dist*0.05;
 proj.userData={vx:Math.sin(angle)*speed,vz:Math.cos(angle)*speed,vy:arcHeight*0.01,life:120,dmg:dmg,type:type,gravity:0.008};
 // Add bright trail for spells
-for(let i=0;i<8;i++){const tr=new THREE.Mesh(new THREE.SphereGeometry(.25,6,6),new MS({color:col,emissive:col,emissiveIntensity:2,transparent:true,opacity:.6}));tr.position.copy(proj.position);tr.userData={trail:true,idx:i,life:30};scene.add(tr);particles.push(tr);}}
+if(!window._trailGeo)window._trailGeo=new THREE.SphereGeometry(.25,6,6);
+if(!window._trailMatCache)window._trailMatCache={};
+if(!window._trailMatCache[col])window._trailMatCache[col]=new MS({color:col,emissive:col,emissiveIntensity:2,transparent:true,opacity:.6});
+for(let i=0;i<8;i++){const tr=new THREE.Mesh(window._trailGeo,window._trailMatCache[col]);tr.position.copy(proj.position);tr.userData={trail:true,idx:i,life:30};scene.add(tr);particles.push(tr);}}
 scene.add(proj);
 particles.push(proj);
 // Animation
@@ -1328,13 +1335,18 @@ mmCanvas.width=250;mmCanvas.height=168;
 function drawMinimap(){
 mmCtx.fillStyle='#2b2016';mmCtx.fillRect(0,0,250,168);
 const scale=.12,cx=125,cy=84;
-// Draw regions as colored zones
-regions.forEach(r=>{const rx=(r.x-player.x)*scale+cx,rz=(r.z-player.z)*scale+cy;
+// Draw regions as colored zones (skip far regions)
+for(let ri=0;ri<regions.length;ri++){const r=regions[ri];
+if(Math.abs(r.x-player.x)>r.r+1200||Math.abs(r.z-player.z)>r.r+1200)continue;
+const rx=(r.x-player.x)*scale+cx,rz=(r.z-player.z)*scale+cy;
 mmCtx.fillStyle='rgba('+(r.fog>>16)+','+((r.fog>>8)&0xff)+','+(r.fog&0xff)+',0.4)';
-mmCtx.beginPath();mmCtx.arc(rx,rz,r.r*scale,0,Math.PI*2);mmCtx.fill()});
-// Draw enemies as red dots
-enemies.forEach(e=>{const ex=(e.mesh.position.x-player.x)*scale+cx,ez=(e.mesh.position.z-player.z)*scale+cy;
-if(ex>2&&ex<243&&ez>2&&ez<166){mmCtx.fillStyle='#cc2020';mmCtx.fillRect(ex-1,ez-1,3,3)}});
+mmCtx.beginPath();mmCtx.arc(rx,rz,r.r*scale,0,Math.PI*2);mmCtx.fill();}
+// Draw enemies as red dots (skip far enemies)
+mmCtx.fillStyle='#cc2020';
+for(let ei=0;ei<enemies.length;ei++){const e=enemies[ei];
+if(Math.abs(e.mesh.position.x-player.x)>1100||Math.abs(e.mesh.position.z-player.z)>800)continue;
+const ex=(e.mesh.position.x-player.x)*scale+cx,ez=(e.mesh.position.z-player.z)*scale+cy;
+if(ex>2&&ex<243&&ez>2&&ez<166)mmCtx.fillRect(ex-1,ez-1,3,3);}
 // Player arrow
 mmCtx.fillStyle='#fff';mmCtx.save();mmCtx.translate(cx,cy);mmCtx.rotate(-player.ang);
 mmCtx.beginPath();mmCtx.moveTo(0,-5);mmCtx.lineTo(-3,4);mmCtx.lineTo(3,4);mmCtx.fill();mmCtx.restore();
@@ -1351,17 +1363,18 @@ const rGeo=new THREE.OctahedronGeometry(1.2,0);
 const rMat=new THREE.MeshBasicMaterial({color:0xff2222,transparent:true,opacity:.85,depthTest:false});
 targetRing=new THREE.Mesh(rGeo,rMat);targetRing.renderOrder=999;targetRing.visible=false;
 }
+const _tfIcons={goblin:'\uD83D\uDC7A',cow:'\uD83D\uDC2E',chicken:'\uD83D\uDC14',guard:'\u2694',darkwiz:'\uD83E\uDDD9',revenant:'\uD83D\uDC7B',skeleton:'\uD83D\uDC80',demon:'\uD83D\uDC79',scorpion:'\uD83E\uDD82',warrior:'\u2694',whiteknight:'\u2694',dwarf:'\u26CF',barbarian:'\uD83E\uDE93',vampire:'\uD83E\uDDDB',zombie:'\uD83E\uDDDF',pirate:'\uD83C\uDFF4',mugger:'\uD83D\uDC64',troll:'\uD83E\uDDCC',ogre:'\uD83D\uDC79',drake:'\uD83D\uDC09',bear:'\uD83D\uDC3B',wolf:'\uD83D\uDC3A',spider:'\uD83D\uDD77',bat:'\uD83E\uDD87',ghost:'\uD83D\uDC7B',golem:'\uD83E\uDEA8',wyrm:'\uD83D\uDC32',shade:'\uD83D\uDC7E',hellhound:'\uD83D\uDD25',imp:'\uD83D\uDC7F',bandit:'\uD83D\uDDE1',rat:'\uD83D\uDC00',snake:'\uD83D\uDC0D',lizard:'\uD83E\uDD8E',elemental:'\uD83C\uDF0A',gargoyle:'\uD83E\uDEA8',knight:'\u2694',mage:'\uD83E\uDDD9',archer:'\uD83C\uDFF9',cultist:'\uD83D\uDD2E'};
+let _tfEl,_tfIcon,_tfName,_tfLv,_tfHpFill,_tfHpText;
 function updateTargetFrame(){
-const tf=document.getElementById('target-frame');
-if(!lockOn||!lockOn.mesh){tf.classList.remove('active');if(targetRing)targetRing.visible=false;return}
-tf.classList.add('active');
-const icons={goblin:'\uD83D\uDC7A',cow:'\uD83D\uDC2E',chicken:'\uD83D\uDC14',guard:'\u2694',darkwiz:'\uD83E\uDDD9',revenant:'\uD83D\uDC7B',skeleton:'\uD83D\uDC80',demon:'\uD83D\uDC79',scorpion:'\uD83E\uDD82',warrior:'\u2694',whiteknight:'\u2694',dwarf:'\u26CF',barbarian:'\uD83E\uDE93',vampire:'\uD83E\uDDDB',zombie:'\uD83E\uDDDF',pirate:'\uD83C\uDFF4',mugger:'\uD83D\uDC64',troll:'\uD83E\uDDCC',ogre:'\uD83D\uDC79',drake:'\uD83D\uDC09',bear:'\uD83D\uDC3B',wolf:'\uD83D\uDC3A',spider:'\uD83D\uDD77',bat:'\uD83E\uDD87',ghost:'\uD83D\uDC7B',golem:'\uD83E\uDEA8',wyrm:'\uD83D\uDC32',shade:'\uD83D\uDC7E',hellhound:'\uD83D\uDD25',imp:'\uD83D\uDC7F',bandit:'\uD83D\uDDE1',rat:'\uD83D\uDC00',snake:'\uD83D\uDC0D',lizard:'\uD83E\uDD8E',elemental:'\uD83C\uDF0A',gargoyle:'\uD83E\uDEA8',knight:'\u2694',mage:'\uD83E\uDDD9',archer:'\uD83C\uDFF9',cultist:'\uD83D\uDD2E'};
-document.getElementById('tf-icon').textContent=icons[lockOn.type]||'\uD83D\uDC7E';
-document.getElementById('tf-name').textContent=lockOn.type.charAt(0).toUpperCase()+lockOn.type.slice(1);
-document.getElementById('tf-lv').textContent='Lv '+(lockOn.lv||1);
+if(!_tfEl){_tfEl=document.getElementById('target-frame');_tfIcon=document.getElementById('tf-icon');_tfName=document.getElementById('tf-name');_tfLv=document.getElementById('tf-lv');_tfHpFill=document.getElementById('tf-hp-fill');_tfHpText=document.getElementById('tf-hp-text');}
+if(!lockOn||!lockOn.mesh){_tfEl.classList.remove('active');if(targetRing)targetRing.visible=false;return}
+_tfEl.classList.add('active');
+_tfIcon.textContent=_tfIcons[lockOn.type]||'\uD83D\uDC7E';
+_tfName.textContent=lockOn.type.charAt(0).toUpperCase()+lockOn.type.slice(1);
+_tfLv.textContent='Lv '+(lockOn.lv||1);
 const pct=Math.max(0,lockOn.hp/lockOn.maxHp*100);
-document.getElementById('tf-hp-fill').style.width=pct+'%';
-document.getElementById('tf-hp-text').textContent=Math.max(0,~~lockOn.hp)+'/'+lockOn.maxHp;
+_tfHpFill.style.width=pct+'%';
+_tfHpText.textContent=Math.max(0,~~lockOn.hp)+'/'+lockOn.maxHp;
 if(targetRing&&lockOn.mesh){
 // Float above enemy head and spin
 targetRing.visible=true;
@@ -1559,6 +1572,7 @@ const sx=b.max.x-b.min.x,sz=b.max.z-b.min.z;
 if(sx>80||sz>80)continue;
 solidBoxes.push(b)}
 log('Colliders: '+solidBoxes.length+' boxes, '+wallColliders.length+' walls, '+circleColliders.length+' circles','#0f0')}
+const _pushResult={x:0,z:0};
 function pushOut(px,py,pz){
 let ox=px,oz=pz;
 const pr=PLAYER_R;
@@ -1600,7 +1614,7 @@ if(dist>c.r+pr+10)continue;
 const minDist=c.r+pr;
 if(dist<minDist&&dist>0.01){const push=minDist-dist;
 ox+=dx/dist*push;oz+=dz/dist*push}}
-return{x:ox,z:oz}}
+_pushResult.x=ox;_pushResult.z=oz;return _pushResult}
 // Debug collision visualization
 let collisionDebugMeshes=[];let collisionDebugActive=false;
 function toggleCollisionDebug(){
@@ -2251,13 +2265,13 @@ const xguard=new THREE.Mesh(new THREE.BoxGeometry(1.6,.25,.25),mt.swordHilt);xgu
 [-1,1].forEach(s=>{const tip=new THREE.Mesh(new THREE.SphereGeometry(.12,5,5),mt.gold);tip.position.set(s*.8,handY,.15);attachTo.add(tip)});
 const hilt=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,1.4,6),mt.leather);hilt.position.set(0,handY,-.4);hilt.rotation.x=Math.PI/2;attachTo.add(hilt);
 const pommel=new THREE.Mesh(new THREE.SphereGeometry(.2,6,6),mt.gold);pommel.position.set(0,handY,-1.1);attachTo.add(pommel);
-// FIX: Reposition sword to actually be held in hand - blade extends outward from hand
-blade.position.set(0,handY-3.5,0.3);blade.rotation.set(Math.PI/2,0,0);
-fuller.position.set(0,handY-3.5,0.35);fuller.rotation.set(Math.PI/2,0,0);
+// Sword held forward from hand — blade extends along +Z (forward), hilt in hand
+blade.position.set(0,handY,4.2);blade.rotation.set(0,0,0);
+fuller.position.set(0,handY,4.2);fuller.rotation.set(0,0,0);
 xguard.position.set(0,handY,0.3);
 [-1,1].forEach(s=>{const tip=attachTo.children[attachTo.children.length-4+s];if(tip)tip.position.set(s*.8,handY,0.3);});
-hilt.position.set(0,handY+0.2,0.3);hilt.rotation.set(Math.PI/2,0,0);
-pommel.position.set(0,handY+0.9,0.3);
+hilt.position.set(0,handY,-.4);hilt.rotation.set(Math.PI/2,0,0);
+pommel.position.set(0,handY,-1.1);
 }
 function addStaff(rArm){
 // Staff attaches to hand (elbow group) for natural hand rotation
@@ -2299,12 +2313,12 @@ const fuller=new THREE.Mesh(new THREE.BoxGeometry(.05,.08,4),new MS({color:0x556
 const xguard=new THREE.Mesh(new THREE.BoxGeometry(1.2,.2,.2),mt.swordHilt);xguard.position.set(0,handY,.1);attachTo.add(xguard);
 const hilt=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,1.2,6),mt.leather);hilt.position.set(0,handY,-.3);hilt.rotation.x=Math.PI/2;attachTo.add(hilt);
 const pommel=new THREE.Mesh(new THREE.SphereGeometry(.18,6,6),mt.gold);pommel.position.set(0,handY,-.9);attachTo.add(pommel);
-// FIX: Reposition left sword to properly extend from hand
-blade.position.set(0,handY-2.5,0.3);blade.rotation.set(Math.PI/2,0,0);
-fuller.position.set(0,handY-2.5,0.35);fuller.rotation.set(Math.PI/2,0,0);
+// Left sword held forward — blade extends along +Z (forward), hilt in hand
+blade.position.set(0,handY,3.2);blade.rotation.set(0,0,0);
+fuller.position.set(0,handY,3.2);fuller.rotation.set(0,0,0);
 xguard.position.set(0,handY,0.3);
-hilt.position.set(0,handY+0.2,0.3);hilt.rotation.set(Math.PI/2,0,0);
-pommel.position.set(0,handY+0.8,0.3);
+hilt.position.set(0,handY,-.3);hilt.rotation.set(Math.PI/2,0,0);
+pommel.position.set(0,handY,-.9);
 }
 function addDaggerLeft(lArm){
 // Left hand dagger for dual wield - attaches to hand
@@ -2858,7 +2872,7 @@ scene=new THREE.Scene();scene.background=new THREE.Color(0xaaccee);scene.fog=new
 cam=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,1,8000);
 renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance',stencil:false,depth:true});
 renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(1);
-renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.BasicShadowMap;
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=gameOpts?gameOpts.bright:2.0;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
@@ -2866,9 +2880,9 @@ document.body.appendChild(renderer.domElement);
 // Bright outdoor lighting
 scene.add(new THREE.AmbientLight(0x8899aa,1.2));
 const sun=new THREE.DirectionalLight(0xfff5e0,3.0);sun.position.set(200,350,-100);sun.castShadow=true;
-sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.near=10;sun.shadow.camera.far=800;
-sun.shadow.camera.left=-250;sun.shadow.camera.right=250;sun.shadow.camera.top=250;sun.shadow.camera.bottom=-250;
-sun.shadow.bias=-.0002;sun.shadow.normalBias=.02;scene.add(sun);
+sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.near=10;sun.shadow.camera.far=900;
+sun.shadow.camera.left=-200;sun.shadow.camera.right=200;sun.shadow.camera.top=200;sun.shadow.camera.bottom=-200;
+sun.shadow.bias=-.0003;sun.shadow.normalBias=.03;scene.add(sun);
 // Sky fill light
 const fill=new THREE.DirectionalLight(0xaaccee,.8);fill.position.set(-200,100,150);scene.add(fill);
 // Warm rim light
@@ -3608,8 +3622,10 @@ const fm=new THREE.Mesh(new THREE.SphereGeometry(1.5,6,6),mt.fl);fm.position.set
 torchPositions.push({x,y:bY+h*.55,z,mesh:fm,ph:Math.random()*6.28,big:false})}
 
 function gothicArch(x,z,rot,sc){sc=(sc||1)*2;const bY=meshTerrainH(x,z);const g=new THREE.Group();
-// Two pillars
-addCircleSolid(x,z,10*sc,bY,bY+30*sc);
+// Two pillar colliders (not one big circle — leave the archway passable)
+const _aRot=rot||0;
+[-1,1].forEach(s=>{const px=x+Math.cos(_aRot)*s*7*sc;const pz=z+Math.sin(_aRot)*s*7*sc;
+addCircleSolid(px,pz,2.5*sc,bY,bY+30*sc);});
 [-1,1].forEach(s=>{const p=new THREE.Mesh(new THREE.BoxGeometry(3*sc,24*sc,3*sc),mt.stGoth);p.position.set(s*7*sc,12*sc,0);p.castShadow=true;g.add(p);
 // Capital (decorative top)
 const cap=new THREE.Mesh(new THREE.BoxGeometry(4*sc,1.5*sc,4*sc),mt.st);cap.position.set(s*7*sc,24.5*sc,0);cap.castShadow=true;g.add(cap);
@@ -5438,7 +5454,14 @@ const bx=x+2,bz=z+2;const boneItem=createDropItem('Onesbay','common');
 const m3=makeLootMesh(0x998877,.5);
 m3.position.set(bx,meshTerrainH(bx,bz)+3,bz);m3.userData={vx:(Math.random()-.5)*3,vz:(Math.random()-.5)*3,vy:6,life:1200,item:'Onesbay',uid:boneItem.uid,rarity:'common',settled:false};scene.add(m3);lootArr.push(m3);
 }
-function hitFX(x,y,z,col=0xff4400){for(let i=0;i<25;i++){const p=new THREE.Mesh(new THREE.SphereGeometry(.3,4,4),new MS({color:col,emissive:col,emissiveIntensity:1.5,roughness:1}));p.position.set(x,y,z);p.userData={vx:(Math.random()-.5)*10,vy:(Math.random()-.5)*10+4,vz:(Math.random()-.5)*10,life:22};scene.add(p);particles.push(p)}}
+const _hitGeo=new THREE.SphereGeometry(.3,4,4);const _hitMatCache={};const _hitPool=[];const MAX_PARTICLES=150;
+function _getHitMat(col){let m=_hitMatCache[col];if(!m){m=new MS({color:col,emissive:col,emissiveIntensity:1.5,roughness:1});_hitMatCache[col]=m;}return m;}
+function hitFX(x,y,z,col=0xff4400){const mat=_getHitMat(col);const count=8;
+for(let i=0;i<count;i++){let p;
+if(_hitPool.length>0){p=_hitPool.pop();p.material=mat;p.visible=true;p.scale.setScalar(1);}
+else{p=new THREE.Mesh(_hitGeo,mat);scene.add(p);}
+p.position.set(x,y,z);p.userData.vx=(Math.random()-.5)*10;p.userData.vy=(Math.random()-.5)*10+4;p.userData.vz=(Math.random()-.5)*10;p.userData.life=18;particles.push(p);}
+while(particles.length>MAX_PARTICLES){const old=particles.shift();old.visible=false;_hitPool.push(old);}}
 function cycleLock(){
 // If no enemies, bail
 if(!enemies.length){lockOn=null;lockIdx=-1;log('No targets','#887');return}
@@ -5466,7 +5489,7 @@ else log('No targets in range (120u)','#887')}
 function startBlock(){player.blocking=true}
 function endBlock(){if(!player._parryWindow)player.blocking=false}
 function parry(){if(player.sta<15){log('Not enough stamina to parry!','#f84');return}
-player.sta-=15;player._parryCD=20;player._parryWindow=12;// 12 frames (~200ms) parry window
+player.sta-=15;player._parryCD=30;player._parryWindow=24;// 24 frames (~400ms) parry window
 player.blocking=true;// Parry puts you in blocking stance
 // Trigger parry animation
 if(playerGroup&&playerGroup.userData){playerGroup.userData._parryAnimT=0;playerGroup.userData.animState='parry'}
@@ -5488,6 +5511,8 @@ hitFX(enemy.mesh.position.x,enemy.mesh.position.y+4,enemy.mesh.position.z,0xff00
 player.sta=Math.min(player.sta+35,player.maxSta);skills.Defence.xp+=15;updateXpBar();
 log('RIPOSTE! '+riposteDmg+' damage','#f00')}}
 function updateParrySystem(){
+// Decay parry cooldown
+if(player._parryCD>0)player._parryCD--;
 // Decay parry window
 if(player._parryWindow>0){player._parryWindow--;if(player._parryWindow===0&&!mouse.right&&!gpButtons.lt&&!gpButtons.lb)player.blocking=false}
 // Decay riposte window
@@ -5554,6 +5579,18 @@ if(player._lkCycleCD)player._lkCycleCD--;
 if(typeof checkGpCombos==='function')checkGpCombos();
 }
 
+// === PRE-ALLOCATED LOOP VARIABLES (zero GC per frame) ===
+const _fwd=new THREE.Vector3(),_right=new THREE.Vector3(),_moveDir=new THREE.Vector3();
+const _abCDMapLoop={attack:'atkCD',heal:'_estusCD',parry:'_parryCD',shoot:'_shootCD',spec_atk:'_specCD',
+heroic_strike:'_heroicCD',cleave:'_cleaveCD',whirlwind:'_whirlCD',thunder_clap:'_thunderCD',battle_shout:'_shoutCD',execute:'_executeCD',slam:'_slamCD',overpower:'_overpowerCD',shield_slam:'_shieldCD',recklessness:'_reckCD',
+judgment:'_judgmentCD',crusader_strike:'_crusaderCD',divine_protection:'_divineProtCD',consecration:'_consecrateCD',holy_light:'_holyLightCD',flash_light:'_flashLightCD',blessing_might:'_blessingCD',divine_shield:'_bubbleCD',hammer_justice:'_hammerCD',exorcism:'_exorcismCD',
+fireball:'_fireballCD',frostbolt:'_frostboltCD',arcane_missiles:'_missilesCD',blizzard:'_blizzardCD',sorc_fire_blast:'_fireblastCD',pyroblast:'_pyroCD',frost_nova:'_novaCD',blink:'_blinkCD',polymorph:'_polyCD',counterspell:'_counterCD',
+steady_shot:'_steadyCD',aimed_shot:'_aimedCD',multi_shot:'_multiCD',arcane_shot:'_arcaneCD',serpent_sting:'_stingCD',hunters_mark:'_markCD',distracting_shot:'_distractCD',rapid_fire:'_rapidCD',feign_death:'_feignCD',explosive_trap:'_trapCD',
+first_aid:'_aidCD',bandage:'_bandageCD',sharpen_weapon:'_sharpenCD',mining_strike:'_mineStrikeCD',lumber_up:'_lumberCD',cooking_fire:'_campfireCD',fishing_cast:'_fishCastCD',runecraft_focus:'_focusCD',sneak_attack:'_sneakCD',agility_roll:'_agiRollCD'};
+let _abSlotsCache=null;
+const _hpB=document.getElementById('hpB'),_stB=document.getElementById('stB'),_poB=document.getElementById('poB');
+const _hpT=document.getElementById('hpT'),_stT=document.getElementById('stT'),_poT=document.getElementById('poT');
+const _torchSorted=[];
 function loop(){
 requestAnimationFrame(loop);time+=.016;pollGamepad();
 if(player.dead){player.deadTimer-=.016;if(player.deadTimer<=0){player.dead=false;player.hp=player.maxHp;player.sta=player.maxSta;player.x=0;player.z=5;player.y=meshTerrainH(0,5);document.getElementById('death-overlay').classList.remove('active');log('Respawned at bonfire','#cc4')}composer.render();return}
@@ -5572,12 +5609,12 @@ camYaw+=yd*.08 // Smoothly turn toward target
 // Auto-camera: lerp camYaw behind player when not locked on
 let targetYaw=player.ang+Math.PI;while(targetYaw>Math.PI)targetYaw-=Math.PI*2;while(targetYaw<-Math.PI)targetYaw+=Math.PI*2;let yd=targetYaw-camYaw;while(yd>Math.PI)yd-=Math.PI*2;while(yd<-Math.PI)yd+=Math.PI*2;camYaw+=yd*.03}}
 
-const fwd=new THREE.Vector3(-Math.sin(camYaw),0,-Math.cos(camYaw));
-const right=new THREE.Vector3(fwd.z,0,-fwd.x);
-let moveDir=new THREE.Vector3();
-if(keys['w']||gpButtons.dUp)moveDir.add(fwd);if(keys['s']||gpButtons.dDown)moveDir.sub(fwd);
-if(keys['a']||gpButtons.dLeft)moveDir.add(right);if(keys['d']||gpButtons.dRight)moveDir.sub(right);
-if(gpAxes[0]||gpAxes[1]){moveDir.sub(right.clone().multiplyScalar(gpAxes[0]));moveDir.sub(fwd.clone().multiplyScalar(gpAxes[1]))}
+_fwd.set(-Math.sin(camYaw),0,-Math.cos(camYaw));
+_right.set(_fwd.z,0,-_fwd.x);
+_moveDir.set(0,0,0);
+if(keys['w']||gpButtons.dUp)_moveDir.add(_fwd);if(keys['s']||gpButtons.dDown)_moveDir.sub(_fwd);
+if(keys['a']||gpButtons.dLeft)_moveDir.add(_right);if(keys['d']||gpButtons.dRight)_moveDir.sub(_right);
+if(gpAxes[0]||gpAxes[1]){_moveDir.x-=_right.x*gpAxes[0]+_fwd.x*gpAxes[1];_moveDir.z-=_right.z*gpAxes[0]+_fwd.z*gpAxes[1]}
 
 // Sprint detection (Left Shift or L3 gamepad)
 const isSprinting=(keys['shift']||keys['ShiftLeft']||keys['ShiftRight']||gpButtons.lsb)&&player.sta>0;
@@ -5591,9 +5628,9 @@ else if(isSprinting){spd*=1.8} // Sprint 80% faster
 // Track previous position for velocity calculation
 const prevX=player.x,prevZ=player.z;
 
-if(moveDir.lengthSq()>.001){moveDir.normalize();
+if(_moveDir.lengthSq()>.001){_moveDir.normalize();
 const steps=spd>1?4:2;const stepSpd=spd/steps;
-for(let st=0;st<steps;st++){player.x+=moveDir.x*stepSpd;player.z+=moveDir.z*stepSpd;
+for(let st=0;st<steps;st++){player.x+=_moveDir.x*stepSpd;player.z+=_moveDir.z*stepSpd;
 const co=pushOut(player.x,player.y,player.z);player.x=co.x;player.z=co.z}
 // When locked on, player always faces the target regardless of movement direction
 if(lockOn&&lockOn.mesh){
@@ -5601,7 +5638,7 @@ const la=Math.atan2(lockOn.mesh.position.x-player.x,lockOn.mesh.position.z-playe
 let ld=la-player.ang;while(ld>Math.PI)ld-=Math.PI*2;while(ld<-Math.PI)ld+=Math.PI*2;
 player.ang+=ld*.18
 }else{
-const targetAng=Math.atan2(moveDir.x,moveDir.z);
+const targetAng=Math.atan2(_moveDir.x,_moveDir.z);
 let diff=targetAng-player.ang;while(diff>Math.PI)diff-=Math.PI*2;while(diff<-Math.PI)diff+=Math.PI*2;
 player.ang+=diff*.15}}
 else{const co=pushOut(player.x,player.y,player.z);player.x=co.x;player.z=co.z}
@@ -5609,9 +5646,9 @@ else{const co=pushOut(player.x,player.y,player.z);player.x=co.x;player.z=co.z}
 // Calculate actual velocity for animation
 player.vx=player.x-prevX;
 player.vz=player.z-prevZ;
-player.isSprinting=isSprinting&&moveDir.lengthSq()>.001;
+player.isSprinting=isSprinting&&_moveDir.lengthSq()>.001;
 // Decay velocity when not moving so animation stops smoothly
-if(moveDir.lengthSq()<=.001){player.vx*=0.5;player.vz*=0.5;}
+if(_moveDir.lengthSq()<=.001){player.vx*=0.5;player.vz*=0.5;}
 
 // Jump physics
 {const groundY=inDungeon?-inDungeon.depth*50+2:surfaceH(player.x,player.z,player.y);
@@ -5619,10 +5656,12 @@ player.vy-=.55;player.y+=player.vy;
 if(player.y<=groundY+.15){player.y=groundY+.15;player.vy=0;player.grounded=true}
 else{player.grounded=false}}
 const curReg=getReg(player.x,player.z);
-const totalLv=skillDefs.reduce((a,s)=>a+skills[s].lvl,0);
-document.getElementById('locbar').textContent=(inDungeon?'⚔ Dungeon Depth '+inDungeon.depth+' — ':'')+curReg.n+' · Zone Lv '+curReg.lv+'+';
-if(!inDungeon){const fogC=new THREE.Color(curReg.fog);const skyC=new THREE.Color(0xaaccee);fogC.lerp(skyC,.5);scene.fog.color.copy(fogC);scene.background.copy(skyC)}
-else{scene.fog.color.set(0x0a0a0a);scene.background.set(0x050505)}
+if(cullFrame%15===0){const totalLv=skillDefs.reduce((a,s)=>a+skills[s].lvl,0);
+if(!window._locbarRef)window._locbarRef=document.getElementById('locbar');
+if(window._locbarRef)window._locbarRef.textContent=(inDungeon?'⚔ Dungeon Depth '+inDungeon.depth+' — ':'')+curReg.n+' · Zone Lv '+curReg.lv+'+';
+if(!inDungeon){if(!window._fogC)window._fogC=new THREE.Color();if(!window._skyC)window._skyC=new THREE.Color();
+window._fogC.set(curReg.fog);window._skyC.set(0xaaccee);window._fogC.lerp(window._skyC,.5);scene.fog.color.copy(window._fogC);scene.background.copy(window._skyC)}
+else{scene.fog.color.set(0x0a0a0a);scene.background.set(0x050505)}}
 if(checkInteractions)checkInteractions();
 
 // Animate doors: open when player is near, close when far
@@ -5657,7 +5696,32 @@ if(player._healCD)player._healCD--;
 if((keys[' ']||keys['KeySpace']||gpButtons.b)&&!player.rolling&&player.sta>24){player.rolling=true;player.rollT=22;player.sta-=24;skills.Agility.xp+=2;updateXpBar()}
 if((keys['z']||keys['KeyZ']||gpButtons.y)&&player.grounded&&player.sta>10&&!player._jumpCD){player.vy=6.5;player.grounded=false;player.sta-=10;player._jumpCD=15;skills.Agility.xp+=1;updateXpBar()}
 if(player._jumpCD)player._jumpCD--;
-if(mouse.right||gpButtons.lt||gpButtons.lb){startBlock()}else{endBlock()}
+if(mouse.right||gpButtons.lt||gpButtons.lb){
+// Right-click: 1) Parry if available, 2) Off-hand attack if dual-wielding & parry on CD, 3) Block
+if(!player._parryCD&&player.sta>=15&&!player._rmb_parried){
+// Parry on first press (not on CD)
+parry();player._rmb_parried=true;}
+else if(player._parryCD>0&&player.atkCD<=0&&player.sta>10){
+// Right-click attack when parry on CD: off-hand weapon, shield bash, or unarmed punch
+const gStats=totalGear();
+const hasOH=equipped.OffHand&&equipped.OffHand.name!=='None';
+const hasSH=equipped.Shield&&equipped.Shield.name!=='None';
+const ohName=hasOH?equipped.OffHand.name.toLowerCase():'';
+const isSword=ohName.includes('sword')||ohName.includes('dagger')||ohName.includes('scimitar')||ohName.includes('mace')||ohName.includes('axe');
+let oDmg,label,col;
+if(isSword){oDmg=Math.max(8,7+gStats.atk+gStats.str)*0.7;label='Off-hand strike';col=0x88ccff;player.atkCD=10;player.sta-=14;}
+else if(hasSH){oDmg=Math.max(5,3+gStats.def+gStats.str)*0.5;label='Shield bash';col=0x6688bb;player.atkCD=14;player.sta-=12;}
+else{oDmg=Math.max(3,2+gStats.str)*0.4;label='Punch';col=0xccaa88;player.atkCD=8;player.sta-=10;}
+// Hit locked target or nearest enemy in front arc
+let hitAny=false;
+if(lockOn&&lockOn.hp>0&&Math.hypot(lockOn.mesh.position.x-player.x,lockOn.mesh.position.z-player.z)<6){
+lockOn.hp-=Math.round(oDmg);lockOn.poi-=(isSword?10:hasSH?20:5);hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+6,lockOn.mesh.position.z,col);
+log(label+'! '+Math.round(oDmg)+' dmg','#8cf');hitAny=true;}
+if(!hitAny){for(let i=enemies.length-1;i>=0;i--){let e=enemies[i],edx=e.mesh.position.x-player.x,edz=e.mesh.position.z-player.z;
+if(Math.hypot(edx,edz)<6){const eAng=Math.atan2(edx,edz);let ad=eAng-player.ang;while(ad>Math.PI)ad-=Math.PI*2;while(ad<-Math.PI)ad+=Math.PI*2;
+if(Math.abs(ad)<1.2){e.hp-=Math.round(oDmg);e.poi-=(isSword?10:hasSH?20:5);hitFX(e.mesh.position.x,e.mesh.position.y+6,e.mesh.position.z,col);log(label+' hit '+e.type+' for '+Math.round(oDmg),'#8cf');break}}}}
+startBlock();}
+else{startBlock()}}else{endBlock();player._rmb_parried=false;}
 // Gamepad: RB=parry riposte
 if(gpButtons.rb&&!player._rbCD){doParry();player._rbCD=12}
 if(player._rbCD)player._rbCD--;
@@ -5820,7 +5884,10 @@ if(e.windUp>=windUpTime){
 e.swingT=15;e.windUp=0;e.atkCD=40+Math.floor(Math.random()*16);
 // Fire breath attack
 const dCol=e.type==='bluedragon'?0x4488ff:e.type==='greendragon'?0x44ff44:e.type==='blackdragon'?0x440000:e.type==='irondragon'?0xffaa44:e.type==='steeldragon'?0x8888aa:0xff4400;
-const proj=new THREE.Mesh(new THREE.SphereGeometry(1.2,8,8),new MS({color:dCol,emissive:dCol,emissiveIntensity:3,transparent:true,opacity:.8}));
+if(!window._projGeo)window._projGeo=new THREE.SphereGeometry(1.2,8,8);
+if(!window._projMatCache)window._projMatCache={};
+if(!window._projMatCache[dCol])window._projMatCache[dCol]=new MS({color:dCol,emissive:dCol,emissiveIntensity:3,transparent:true,opacity:.8});
+const proj=new THREE.Mesh(window._projGeo,window._projMatCache[dCol]);
 proj.position.copy(e.mesh.position);proj.position.y+=3;
 const pAng=Math.atan2(player.z-e.mesh.position.z,player.x-e.mesh.position.x);
 proj.userData={vx:Math.cos(pAng)*1.8,vz:Math.sin(pAng)*1.8,life:90,dmg:e.dmg,owner:e};
@@ -5895,7 +5962,11 @@ e.swingT=12;e.windUp=0;e.atkCD=36+Math.floor(Math.random()*16);
 if(e.counterspelled&&e.atkStyle==='magic'){hitFX(e.mesh.position.x,e.mesh.position.y+8,e.mesh.position.z,0xff0000);log('Enemy spell interrupted by Counterspell!','#f00');e.swingT=0;}
 else if(e.atkStyle==='magic'||e.atkStyle==='breath'){
 const pc=e.atkStyle==='magic'?0x6a1aaa:0xff4400;const pe=e.atkStyle==='magic'?0x4a0a8a:0xff2200;
-const proj=new THREE.Mesh(new THREE.SphereGeometry(e.atkStyle==='breath'?1.2:.7,6,6),new MS({color:pc,emissive:pe,emissiveIntensity:3,transparent:true,opacity:.8}));
+if(!window._eProjGeoS)window._eProjGeoS=new THREE.SphereGeometry(.7,6,6);
+if(!window._eProjGeoL)window._eProjGeoL=new THREE.SphereGeometry(1.2,6,6);
+const pKey=pc+'_'+pe;if(!window._projMatCache)window._projMatCache={};
+if(!window._projMatCache[pKey])window._projMatCache[pKey]=new MS({color:pc,emissive:pe,emissiveIntensity:3,transparent:true,opacity:.8});
+const proj=new THREE.Mesh(e.atkStyle==='breath'?window._eProjGeoL:window._eProjGeoS,window._projMatCache[pKey]);
 proj.position.copy(e.mesh.position);proj.position.y+=6;
 const pAng=Math.atan2(player.z-e.mesh.position.z,player.x-e.mesh.position.x);
 proj.userData={vx:Math.cos(pAng)*1.2,vz:Math.sin(pAng)*1.2,life:80,dmg:e.dmg,owner:e};
@@ -5903,14 +5974,18 @@ scene.add(proj);particles.push(proj);
 } else {
 // Melee: damage if still in range
 if(dist<e.atkRange*1.15){
-if(calcHit(e,player)){const gd=totalGear();let blockMult=player.blocking?.65:.3;const blocked=Math.floor(gd.def*blockMult);let realDmg=Math.max(1,e.dmg-blocked);
+if(calcHit(e,player)){const gd=totalGear();
+// Parry window: flat 75% reduction + trigger riposte (works with any item/fists)
+let blockMult=player._parryWindow>0?.75:player.blocking?.65:.3;
+const blocked=Math.floor(e.dmg*blockMult);let realDmg=Math.max(1,e.dmg-blocked);
+// Successful parry during parry window — stagger enemy + riposte
+if(player._parryWindow>0){successfulParry(e);player._parryWindow=0;}
 // Divine Shield makes player invulnerable
 if(player._bubbleActive){hitFX(player.x,player.y+8,player.z,0xffffdd);log('Divine Shield absorbed all damage!','#ffd');}
 else{
-// Divine Protection reduces damage by 50%
 if(player._divineProtActive)realDmg=Math.floor(realDmg*0.5);
 player.hp-=realDmg;
-if(player.blocking){player.sta-=8;skills.Defence.xp+=4;updateXpBar();hitFX(player.x,player.y+8,player.z,0x4488ff);log(`BLOCKED ${e.type}! -${realDmg} (absorbed ${blocked})`,'#48f')}
+if(player._parryWindow>0||player.blocking){player.sta-=8;skills.Defence.xp+=4;updateXpBar();hitFX(player.x,player.y+8,player.z,0x4488ff);log(`BLOCKED ${e.type}! -${realDmg} (absorbed ${blocked})`,'#48f')}
 else{hitFX(player.x,player.y+8,player.z);log(`${e.type} hit for ${realDmg} (blocked ${blocked})`,'#f44');}}}}}
 }} else {e.windUp=Math.max(0,e.windUp-1)}
 // Swing animation
@@ -5921,9 +5996,8 @@ else if(e.mesh.userData.rArm&&e.windUp<=0){e.mesh.userData.rArm.rotation.x*=.85;
 e.atkCD=Math.max(0,e.atkCD-1);
 // Update enemy HP bar
 if(e.mesh.userData.hpBar){const pct=Math.max(0,e.hp/e.maxHp);e.mesh.userData.hpBar.scale.x=pct;e.mesh.userData.hpBar.material.color.set(pct>.5?0x00cc00:pct>.25?0xccaa00:0xcc0000);
-e.mesh.userData.hpBar.lookAt(cam.position)}
-// Update name label to face camera
-if(e.mesh.userData.nameLabel){e.mesh.userData.nameLabel.lookAt(cam.position)}
+if(e===lockOn||cullFrame%2===0)e.mesh.userData.hpBar.lookAt(cam.position)}
+if(e.mesh.userData.nameLabel&&(e===lockOn||cullFrame%2===0)){e.mesh.userData.nameLabel.lookAt(cam.position)}
 if(e.hp<=0){spawnLoot(e.mesh.position.x,e.mesh.position.z,e);scene.remove(e.mesh);enemies.splice(i,1);if(lockOn===e)lockOn=null;
 const xpMult=Math.max(1,(e.lv||1)*.8);skills.Attack.xp+=Math.round(15*xpMult);skills.Strength.xp+=Math.round(12*xpMult);skills.Hitpoints.xp+=Math.round(10*xpMult);
 log(e.type+' (Lv'+(e.lv||1)+') slain! +'+Math.round(37*xpMult)+'xp','#fa4');
@@ -5961,7 +6035,8 @@ if(player.explosiveTrap&&player.explosiveTrap.life>0){player.explosiveTrap.life-
 // Loot label overlay — clear each frame
 lootLabelCtx.clearRect(0,0,lootLabelCanvas.width,lootLabelCanvas.height);
 let closestLoot=null,closestDist=Infinity;
-const lootPromptEl=document.getElementById('loot-prompt');
+if(!window._lootPromptEl)window._lootPromptEl=document.getElementById('loot-prompt');
+const lootPromptEl=window._lootPromptEl;
 for(let i=lootArr.length-1;i>=0;i--){let l=lootArr[i];
 // Physics
 if(!l.userData.settled){l.userData.vy-=.45;l.position.x+=l.userData.vx*.6;l.position.z+=l.userData.vz*.6;l.position.y+=l.userData.vy*.6;l.userData.vx*=.92;l.userData.vz*=.92;
@@ -5974,8 +6049,10 @@ l.rotation.y+=.03;
 if(l.userData.settled){l.position.y=meshTerrainH(l.position.x,l.position.z)+1.5+Math.sin(time*2+i*.5)*.4}
 if(l.userData.life<=0){scene.remove(l);lootArr.splice(i,1);continue}
 // Screen-space label
-const lPos=new THREE.Vector3(l.position.x,l.position.y+3,l.position.z);
-lPos.project(cam);
+if(!window._lPos)window._lPos=new THREE.Vector3();
+window._lPos.set(l.position.x,l.position.y+3,l.position.z);
+window._lPos.project(cam);
+const lPos=window._lPos;
 const sx=(lPos.x*.5+.5)*lootLabelCanvas.width;
 const sy=(-.5*lPos.y+.5)*lootLabelCanvas.height;
 if(lPos.z<1&&sx>0&&sx<lootLabelCanvas.width&&sy>0&&sy<lootLabelCanvas.height){
@@ -6024,11 +6101,18 @@ const hitDist=Math.hypot(p.position.x-target.mesh.position.x,p.position.z-target
 if(hitDist<5){target.hp-=p.userData.dmg||20;hitFX(target.mesh.position.x,target.mesh.position.y+6,target.mesh.position.z,0xff4400);
 log(p.userData.owner.type+' fire breath hits '+target.type+'!','#f84');
 p.userData.life=0;}}}
-// Check player hit
+// Check player hit (parry works on projectiles too)
 const pd=Math.hypot(p.position.x-player.x,p.position.z-player.z);
-if(pd<4&&!player.rolling){const gd=totalGear();let blockMult=player.blocking?.65:.3;const blocked=Math.floor(gd.def*blockMult);const realDmg=Math.max(1,p.userData.dmg-blocked);
-player.hp-=realDmg;hitFX(player.x,player.y+8,player.z,0x8844ff);
-if(player.blocking)log(`BLOCKED projectile! -${realDmg}`,'#48f');else log(`Hit by projectile! -${realDmg}`,'#f44');
+if(pd<4&&!player.rolling){
+// Parry window: 75% flat reduction on projectiles (any item/fists)
+let blockMult=player._parryWindow>0?.75:player.blocking?.65:.3;
+const blocked=Math.floor(p.userData.dmg*blockMult);const realDmg=Math.max(1,p.userData.dmg-blocked);
+if(player._bubbleActive){hitFX(player.x,player.y+8,player.z,0xffffdd);log('Divine Shield absorbed projectile!','#ffd');}
+else{if(player._divineProtActive){const rd2=Math.floor(realDmg*0.5);player.hp-=rd2;}else{player.hp-=realDmg;}
+hitFX(player.x,player.y+8,player.z,player._parryWindow>0?0x00ffff:0x8844ff);
+if(player._parryWindow>0){log(`PARRIED projectile! -${realDmg} (deflected ${blocked})`,'#0ff');skills.Defence.xp+=8;updateXpBar();player._parryWindow=0;}
+else if(player.blocking){log(`BLOCKED projectile! -${realDmg}`,'#48f');skills.Defence.xp+=2;}
+else log(`Hit by projectile! -${realDmg}`,'#f44');}
 p.userData.life=0}
 if(p.userData.life<=0){scene.remove(p);particles.splice(i,1)}}
 // Player projectiles (arrows and spells) with gravity and enemy collision
@@ -6073,15 +6157,18 @@ if(p.userData.life<=0){scene.remove(p);particles.splice(i,1);}}
 else if(p.userData.trail){
 p.userData.life--;
 if(p.userData.life<=0){scene.remove(p);particles.splice(i,1);}}
-// Physics particles
-else{p.position.x+=p.userData.vx*.14;p.position.y+=p.userData.vy*.14;p.position.z+=p.userData.vz*.14;p.userData.vy-=.5;p.userData.life--;p.scale.setScalar(Math.max(0,p.userData.life/22));if(p.userData.life<=0){scene.remove(p);particles.splice(i,1)}}}
+// Physics particles (pooled recycling)
+else{p.position.x+=p.userData.vx*.14;p.position.y+=p.userData.vy*.14;p.position.z+=p.userData.vz*.14;p.userData.vy-=.5;p.userData.life--;p.scale.setScalar(Math.max(0,p.userData.life/18));if(p.userData.life<=0){p.visible=false;_hitPool.push(p);particles.splice(i,1)}}}
 
-// Animate torch meshes + assign 8 nearest PointLights
-const sorted=torchPositions.map(t=>({...t,d:Math.hypot(t.x-player.x,t.z-player.z)})).sort((a,b)=>a.d-b.d);
-for(let i=0;i<MAX_LIGHTS;i++){const l=lightPool[i];if(i<sorted.length&&sorted[i].d<200){const t=sorted[i];l.position.set(t.x,t.y,t.z);l.intensity=(t.big?3.5:1.8)+Math.sin(time*8+t.ph)*(t.big?1.2:.5);l.color.set(t.col||0xff8833);l.distance=t.big?50:40}else{l.intensity=0}}
-torchPositions.forEach(t=>{if(t.mesh){t.mesh.position.y+=Math.sin(time*6+t.ph)*.015;t.mesh.scale.setScalar((t.big?1:.7)+Math.sin(time*10+t.ph)*(t.big?.25:.12))}});
+// Animate torch meshes + assign 8 nearest PointLights (throttled sort every 4 frames)
+if(cullFrame%4===0){_torchSorted.length=torchPositions.length;
+for(let i=0;i<torchPositions.length;i++){const t=torchPositions[i];t._d=Math.hypot(t.x-player.x,t.z-player.z);_torchSorted[i]=t;}
+_torchSorted.sort((a,b)=>a._d-b._d);
+for(let i=0;i<MAX_LIGHTS;i++){const l=lightPool[i];if(i<_torchSorted.length&&_torchSorted[i]._d<200){const t=_torchSorted[i];l.position.set(t.x,t.y,t.z);l.color.set(t.col||0xff8833);l.distance=t.big?50:40}else{l.intensity=0}}}
+for(let i=0;i<MAX_LIGHTS;i++){const l=lightPool[i];if(l.intensity>0&&i<_torchSorted.length){const t=_torchSorted[i];l.intensity=(t.big?3.5:1.8)+Math.sin(time*8+t.ph)*(t.big?1.2:.5);}}
+if(cullFrame%2===0)torchPositions.forEach(t=>{if(t.mesh){t.mesh.position.y+=Math.sin(time*6+t.ph)*.015;t.mesh.scale.setScalar((t.big?1:.7)+Math.sin(time*10+t.ph)*(t.big?.25:.12))}});
 
-if(dustPts){const dp=dustPts.geometry.attributes.position;for(let i=0;i<dp.count;i++){let y=dp.getY(i);y+=.012;if(y>55)y=5;dp.setY(i,y)}dp.needsUpdate=true;dustPts.position.set(player.x,0,player.z)}
+if(dustPts){dustPts.position.set(player.x,0,player.z);if(cullFrame%2===0){const dp=dustPts.geometry.attributes.position;for(let i=0;i<dp.count;i++){let y=dp.getY(i);y+=.024;if(y>55)y=5;dp.setY(i,y)}dp.needsUpdate=true}}
 
 if(riverMesh&&cullFrame%3===0){const wp=riverMesh.geometry.attributes.position;for(let i=0;i<wp.count;i++){wp.setZ(i,Math.sin(wp.getX(i)*.3+time*2)*.5+Math.cos(wp.getY(i)*.2+time*1.4)*.3)}wp.needsUpdate=true}
 
@@ -6139,41 +6226,39 @@ if(totalCmbXp>=nextLevelXpNeeded&&curCL<99){xpInCurrentLevel=0;xpNeededForNextLe
 let pct=Math.min(100,Math.max(0,xpInCurrentLevel/xpNeededForNextLevel*100));
 // If we're at 100% or more, force level up check for next iteration
 if(pct>=99.9&&curCL<99){pct=100;}
-// Update display
-const xpFill=document.getElementById('xp-bar-fill');const xpText=document.getElementById('xp-bar-text');
-if(xpFill)xpFill.style.width=pct+'%';
-if(xpText){const displayHave=Math.floor(xpInCurrentLevel);const displayNeed=Math.floor(xpNeededForNextLevel);xpText.textContent='Combat Lv '+curCL+' ('+Math.floor(pct)+'%) - '+displayHave+'/'+displayNeed+' XP'}}
+// Update display (cached refs)
+if(!window._xpFill)window._xpFill=document.getElementById('xp-bar-fill');
+if(!window._xpText)window._xpText=document.getElementById('xp-bar-text');
+if(window._xpFill)window._xpFill.style.width=pct+'%';
+if(window._xpText){const displayHave=Math.floor(xpInCurrentLevel);const displayNeed=Math.floor(xpNeededForNextLevel);window._xpText.textContent='Combat Lv '+curCL+' ('+Math.floor(pct)+'%) - '+displayHave+'/'+displayNeed+' XP'}}
 
-// Periodic UI updates (no level checks - handled in updateXpBar)
-if(time*60%30<1){updateSkillUI();updateEqUI();
-document.getElementById('orb-hp').textContent=Math.max(0,~~player.hp);
-document.getElementById('orb-pray').textContent=skills.Prayer.lvl;
-document.getElementById('orb-run').textContent=~~(player.sta/player.maxSta*100);
-// Player frame
+// Periodic UI updates — staggered across frames to prevent single-frame spikes
+if(cullFrame%30===0){updateSkillUI();updateEqUI();}
+if(cullFrame%15===0){
+if(!window._orbHp)window._orbHp=document.getElementById('orb-hp');
+if(!window._orbPray)window._orbPray=document.getElementById('orb-pray');
+if(!window._orbRun)window._orbRun=document.getElementById('orb-run');
+if(window._orbHp)window._orbHp.textContent=Math.max(0,~~player.hp);
+if(window._orbPray)window._orbPray.textContent=skills.Prayer.lvl;
+if(window._orbRun)window._orbRun.textContent=~~(player.sta/player.maxSta*100);
 const cLv=Math.floor((skills.Attack.lvl+skills.Strength.lvl+skills.Defence.lvl+skills.Hitpoints.lvl+skills.Prayer.lvl+skills.Magic.lvl+skills.Ranged.lvl)/4);
-const pfLv=document.getElementById('pf-level');if(pfLv)pfLv.textContent='Lv '+cLv;
-// XP bar update
-updateXpBar()
-drawMinimap();}
+if(!window._pfLv)window._pfLv=document.getElementById('pf-level');
+if(window._pfLv)window._pfLv.textContent='Lv '+cLv;
+updateXpBar();}
+if(cullFrame%20===0)drawMinimap();
 
-// Action bar cooldowns — runs every frame for instant visual feedback
-{const _abCDMap={attack:'atkCD',heal:'_estusCD',parry:'_parryCD',shoot:'_shootCD',spec_atk:'_specCD',
-heroic_strike:'_heroicCD',cleave:'_cleaveCD',whirlwind:'_whirlCD',thunder_clap:'_thunderCD',battle_shout:'_shoutCD',execute:'_executeCD',slam:'_slamCD',overpower:'_overpowerCD',shield_slam:'_shieldCD',recklessness:'_reckCD',
-judgment:'_judgmentCD',crusader_strike:'_crusaderCD',divine_protection:'_divineProtCD',consecration:'_consecrateCD',holy_light:'_holyLightCD',flash_light:'_flashLightCD',blessing_might:'_blessingCD',divine_shield:'_bubbleCD',hammer_justice:'_hammerCD',exorcism:'_exorcismCD',
-fireball:'_fireballCD',frostbolt:'_frostboltCD',arcane_missiles:'_missilesCD',blizzard:'_blizzardCD',sorc_fire_blast:'_fireblastCD',pyroblast:'_pyroCD',frost_nova:'_novaCD',blink:'_blinkCD',polymorph:'_polyCD',counterspell:'_counterCD',
-steady_shot:'_steadyCD',aimed_shot:'_aimedCD',multi_shot:'_multiCD',arcane_shot:'_arcaneCD',serpent_sting:'_stingCD',hunters_mark:'_markCD',distracting_shot:'_distractCD',rapid_fire:'_rapidCD',feign_death:'_feignCD',explosive_trap:'_trapCD',
-first_aid:'_aidCD',bandage:'_bandageCD',sharpen_weapon:'_sharpenCD',mining_strike:'_mineStrikeCD',lumber_up:'_lumberCD',cooking_fire:'_campfireCD',fishing_cast:'_fishCastCD',runecraft_focus:'_focusCD',sneak_attack:'_sneakCD',agility_roll:'_agiRollCD'};
-const abSlots=document.querySelectorAll('.ab-slot');
-abSlots.forEach(s=>{const a=s.dataset.action;let cd=false;
+// Action bar cooldowns — uses cached DOM + pre-allocated map (zero allocs)
+if(!_abSlotsCache)_abSlotsCache=document.querySelectorAll('.ab-slot');
+for(let i=0;i<_abSlotsCache.length;i++){const s=_abSlotsCache[i],a=s.dataset.action;let cd=false;
 if(a==='roll')cd=player.rolling;
 else if(a==='dash_left'||a==='dash_right')cd=player.dashing;
-else if(_abCDMap[a])cd=player[_abCDMap[a]]>0;
-if(cd)s.classList.add('on-cd');else s.classList.remove('on-cd')});}
+else{const prop=_abCDMapLoop[a];if(prop)cd=player[prop]>0;}
+if(cd)s.classList.add('on-cd');else s.classList.remove('on-cd');}
 
 const hp=Math.max(0,player.hp/player.maxHp*100),st=player.sta/player.maxSta*100,po=player.poi/player.maxPoi*100;
-document.getElementById('hpB').style.width=hp+'%';document.getElementById('stB').style.width=st+'%';document.getElementById('poB').style.width=po+'%';
-document.getElementById('hpT').textContent=Math.max(0,~~player.hp)+'/'+player.maxHp;
-document.getElementById('stT').textContent=~~player.sta+'/'+player.maxSta;document.getElementById('poT').textContent=~~player.poi+'/'+player.maxPoi;
+if(_hpB){_hpB.style.width=hp+'%';_stB.style.width=st+'%';_poB.style.width=po+'%';}
+if(_hpT){_hpT.textContent=Math.max(0,~~player.hp)+'/'+player.maxHp;
+_stT.textContent=~~player.sta+'/'+player.maxSta;_poT.textContent=~~player.poi+'/'+player.maxPoi;}
 
 if(player.hp<=0&&!player.dead){player.dead=true;player.deadTimer=3;document.getElementById('death-overlay').classList.add('active');log('YOU DIED','#f00')}
 
