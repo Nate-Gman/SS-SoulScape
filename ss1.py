@@ -214,7 +214,7 @@ canvas{display:block}
 #sb-cats{display:flex;gap:2px;padding:6px 10px;border-bottom:1px solid #3a1a5a;flex-wrap:wrap}
 .sb-cat{padding:4px 10px;font-size:10px;cursor:pointer;border:1px solid #3a1a5a;border-radius:3px;color:#a98acc;background:#1a1018;transition:all .15s}
 .sb-cat.active,.sb-cat:hover{border-color:#a84aff;color:#c88aff;background:#2a1828}
-#sb-list{flex:1;overflow-y:auto;padding:8px;display:grid;grid-template:repeat(5,1fr);gap:4px}
+#sb-list{flex:1;overflow-y:auto;padding:8px;display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
 #sb-list::-webkit-scrollbar{width:5px}#sb-list::-webkit-scrollbar-thumb{background:#6a4282;border-radius:3px}
 .sb-item{width:80px;height:64px;background:linear-gradient(180deg,#2a1828,#1a1018);border:2px solid #3a1a5a;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;transition:all .15s;padding:2px}
 .sb-item:hover{border-color:#a84aff;transform:scale(1.05);box-shadow:0 0 8px rgba(168,74,255,.3)}
@@ -994,7 +994,7 @@ const allAbilities=[
 {id:'frostbolt',name:'Frostbolt',ico:'❄',cat:'Magic',desc:'Sorcerer: Ice slow spell',key:''},
 {id:'arcane_missiles',name:'Arcane Missiles',ico:'✦',cat:'Magic',desc:'Sorcerer: Multi-missile',key:''},
 {id:'blizzard',name:'Blizzard',ico:'🌨',cat:'Magic',desc:'Sorcerer: Ice storm AoE',key:''},
-{id:'fire_blast',name:'Fire Blast',ico:'💥',cat:'Magic',desc:'Sorcerer: Instant fire',key:''},
+{id:'sorc_fire_blast',name:'Fire Blast',ico:'💥',cat:'Magic',desc:'Sorcerer: Instant fire',key:''},
 {id:'pyroblast',name:'Pyroblast',ico:'☄',cat:'Magic',desc:'Sorcerer: Massive fireball',key:''},
 {id:'frost_nova',name:'Frost Nova',ico:'❄',cat:'Magic',desc:'Sorcerer: Ice nova root',key:''},
 {id:'blink',name:'Blink',ico:'💫',cat:'Magic',desc:'Sorcerer: Teleport dash',key:''},
@@ -1048,7 +1048,7 @@ buildAbCats();buildAbList();
 
 // === SPELL BOOK ===
 const allSpells=allAbilities.filter(a=>a.cat==='Magic');
-const sbCats=['All Magic','Strike','Bolt','Blast','Wave','Surge','Utility'];
+const sbCats=['All Magic','Fire','Frost','Arcane','Strike','Bolt','Blast','Utility'];
 const sbBrowser=document.getElementById('spell-book');
 const sbCatsEl=document.getElementById('sb-cats');
 const sbListEl=document.getElementById('sb-list');
@@ -1060,7 +1060,10 @@ d.onclick=()=>{sbCurCat=c;buildSbCats();buildSbList()};sbCatsEl.appendChild(d)})
 function buildSbList(){sbListEl.innerHTML='';
 let filtered;
 if(sbCurCat==='All Magic')filtered=allSpells;
-else if(sbCurCat==='Utility')filtered=allSpells.filter(s=>['low_alch','high_alch'].includes(s.id));
+else if(sbCurCat==='Utility')filtered=allSpells.filter(s=>['low_alch','high_alch','confuse','weaken','curse','bind','snare','entangle'].includes(s.id));
+else if(sbCurCat==='Fire')filtered=allSpells.filter(s=>['fire_strike','fire_bolt','fire_blast','fireball','sorc_fire_blast','pyroblast'].includes(s.id));
+else if(sbCurCat==='Frost')filtered=allSpells.filter(s=>['frostbolt','blizzard','frost_nova','ice_barrage'].includes(s.id));
+else if(sbCurCat==='Arcane')filtered=allSpells.filter(s=>['arcane_missiles','blink','polymorph','counterspell'].includes(s.id));
 else filtered=allSpells.filter(s=>s.id.indexOf(sbCurCat.toLowerCase())>=0);
 filtered.forEach(sp=>{const d=document.createElement('div');d.className='sb-item';d.draggable=true;
 d.innerHTML='<span class="sbi-ico">'+sp.ico+'</span><span class="sbi-name">'+sp.name+'</span><span class="sbi-desc">'+sp.desc+'</span>';
@@ -1080,6 +1083,16 @@ slot.querySelector('.ab-name').textContent=ab.name;
 slot.querySelector('.ab-key').textContent=ab.key||(idx<9?(idx+1)+'':'');
 log('Assigned '+ab.name+' to slot '+(idx+1),'#ffd700')}})});
 // Execute ability by action ID
+// Helper: get world position under the mouse cursor (ground plane intersection)
+function getCursorWorldPos(){
+if(!cam)return null;
+const rc=new THREE.Raycaster();
+rc.setFromCamera({x:mouse.x,y:mouse.y},cam);
+const planeY=meshTerrainH(player.x,player.z);
+const plane=new THREE.Plane(new THREE.Vector3(0,1,0),-planeY);
+const target=new THREE.Vector3();
+if(!rc.ray.intersectPlane(plane,target))return null;
+return{x:target.x,z:target.z,y:planeY};}
 function execAbility(id){
 if(id==='attack')document.dispatchEvent(new KeyboardEvent('keydown',{key:'1'}));
 else if(id==='parry')document.dispatchEvent(new KeyboardEvent('keydown',{key:'2'}));
@@ -1115,34 +1128,37 @@ else if(id==='autoloot')document.dispatchEvent(new KeyboardEvent('keydown',{key:
 else if(id==='spec_atk'){if(typeof player!=='undefined'&&!player._specCD){log('Special Attack!','#ff0');player._specCD=120}}
 else if(id==='shoot'){if(typeof player!=='undefined'&&!player._shootCD){const cd=player._rapidFireActive?24:40;player._shootCD=cd;shootProjectile('arrow',12+skills.Ranged.lvl);log('Shot arrow!','#8a4');}}
 else if(id.indexOf('protect_')===0||id==='smite'||id==='piety'||id==='rigour'||id==='augury'){log('Activated: '+id.replace(/_/g,' '),'#4cf')}
-else if(id.indexOf('strike')>=0||id.indexOf('bolt')>=0||id.indexOf('blast')>=0||id.indexOf('wave')>=0||id.indexOf('surge')>=0){
-// Magic combat spells - fire projectile toward cursor
+else if((id.indexOf('strike')>=0||id.indexOf('bolt')>=0||id.indexOf('blast')>=0||id.indexOf('wave')>=0||id.indexOf('surge')>=0)&&!['heroic_strike','crusader_strike','frostbolt','sorc_fire_blast','mining_strike'].includes(id)){
+// Magic combat spells - fire projectile toward cursor (excludes warrior/knight/sorcerer/general abilities)
+const manaCost=id.indexOf('strike')>=0?5:id.indexOf('bolt')>=0?10:id.indexOf('blast')>=0?15:id.indexOf('wave')>=0?20:25;
+if(player.poi<manaCost){log('Not enough mana! ('+manaCost+' needed)','#f44');return;}
+player.poi-=manaCost;
 const spellCol=id.indexOf('wind')>=0?0x88aabb:id.indexOf('water')>=0?0x2288ff:id.indexOf('earth')>=0?0x664422:id.indexOf('fire')>=0?0xff4400:0x6644ff;
 const baseDmg=id.indexOf('strike')>=0?12:id.indexOf('bolt')>=0?20:id.indexOf('blast')>=0?28:id.indexOf('wave')>=0?36:45;
 shootProjectile('spell',baseDmg+skills.Magic.lvl,spellCol);
-log('Cast '+id.replace(/_/g,' ')+'!','#48f');}
+log('Cast '+id.replace(/_/g,' ')+'! (-'+manaCost+' mana)','#48f');}
 else if(id==='low_alch'||id==='high_alch'){const gold=id==='high_alch'?'60':'30';log('Alchemy: +'+gold+' gold','#ff0');skills.Magic.xp+=25;updateXpBar();}
-else if(id==='confuse'||id==='weaken'||id==='curse'){shootProjectile('spell',5,0x6644aa);if(typeof lockOn!=='undefined'&&lockOn){lockOn.poi=Math.max(0,lockOn.poi-20);log('Cast '+id+'! Enemy weakened','#48f');skills.Magic.xp+=20;updateXpBar();}}
-else if(id==='bind'||id==='snare'||id==='entangle'){shootProjectile('spell',5,0x00aa44);if(typeof lockOn!=='undefined'&&lockOn){lockOn.staggered=true;lockOn.staggerT=60;log('Cast '+id+'! Enemy immobilized','#48f');skills.Magic.xp+=30;updateXpBar();}}
+else if(id==='confuse'||id==='weaken'||id==='curse'){if(player.poi<8){log('Not enough mana! (8 needed)','#f44');return;}player.poi-=8;shootProjectile('spell',5,0x6644aa);if(typeof lockOn!=='undefined'&&lockOn){lockOn.poi=Math.max(0,lockOn.poi-20);log('Cast '+id+'! Enemy weakened (-8 mana)','#48f');skills.Magic.xp+=20;updateXpBar();}}
+else if(id==='bind'||id==='snare'||id==='entangle'){if(player.poi<12){log('Not enough mana! (12 needed)','#f44');return;}player.poi-=12;shootProjectile('spell',5,0x00aa44);if(typeof lockOn!=='undefined'&&lockOn){lockOn.staggered=true;lockOn.staggerT=60;log('Cast '+id+'! Enemy immobilized (-12 mana)','#48f');skills.Magic.xp+=30;updateXpBar();}}
 else if(id==='telegrab'){shootProjectile('spell',0,0xaa44ff);log('Telegrab spell cast','#48f');skills.Magic.xp+=15;updateXpBar();}
 else if(id==='superheat'){shootProjectile('spell',0,0xff8800);log('Superheat spell cast','#ff0');skills.Magic.xp+=35;updateXpBar();}
 else if(id==='bones2ban'){shootProjectile('spell',0,0xffdd44);log('Bones converted to bananas!','#ff0');skills.Magic.xp+=20;updateXpBar();}
 // === WARRIOR ABILITY EXECUTIONS ===
-else if(id==='heroic_strike'){if(typeof player!=='undefined'&&!player._heroicCD&&lockOn){player._heroicCD=60;const dmg=15+skills.Attack.lvl+skills.Strength.lvl;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0xff4400);log('Heroic Strike! '+dmg+' damage','#f44');skills.Attack.xp+=20;skills.Strength.xp+=15;updateXpBar();}else if(!lockOn){log('No target for Heroic Strike','#f80');}}
+else if(id==='heroic_strike'){if(typeof player!=='undefined'&&!player._heroicCD&&lockOn){player._heroicCD=60;const dmg=15+skills.Attack.lvl+skills.Strength.lvl;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0xff4400);log('Heroic Strike! '+dmg+' damage','#f44');skills.Attack.xp+=20;skills.Strength.xp+=15;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
 else if(id==='cleave'){if(typeof player!=='undefined'&&!player._cleaveCD){player._cleaveCD=80;let hitCount=0;enemies.forEach(e=>{const dist=Math.hypot(e.x-player.x,e.z-player.z);if(dist<15){const dmg=8+skills.Strength.lvl;e.hp-=dmg;hitFX(e.mesh.position.x,e.mesh.position.y+5,e.mesh.position.z,0xff6600);hitCount++;}});log('Cleave hit '+hitCount+' enemies!','#f84');skills.Attack.xp+=15*hitCount;skills.Strength.xp+=10*hitCount;updateXpBar();}}
 else if(id==='whirlwind'){if(typeof player!=='undefined'&&!player._whirlCD&&player.sta>20){player._whirlCD=100;player.sta-=20;for(let i=0;i<3;i++){setTimeout(()=>{hitFX(player.x+Math.random()*8-4,player.y+3,player.z+Math.random()*8-4,0xffaa00);enemies.forEach(e=>{const dist=Math.hypot(e.x-player.x,e.z-player.z);if(dist<12){const dmg=5+skills.Attack.lvl;e.hp-=dmg;}});},i*200);}log('Whirlwind!','#fa0');skills.Attack.xp+=25;skills.Strength.xp+=20;updateXpBar();}}
 else if(id==='thunder_clap'){if(typeof player!=='undefined'&&!player._thunderCD){player._thunderCD=120;for(let i=0;i<20;i++){const ang=i*Math.PI*2/20;const tx=player.x+Math.cos(ang)*10;const tz=player.z+Math.sin(ang)*10;hitFX(tx,player.y+2,tz,0x4488ff);}enemies.forEach(e=>{const dist=Math.hypot(e.x-player.x,e.z-player.z);if(dist<12){const dmg=10+skills.Strength.lvl;e.hp-=dmg;e.staggered=true;e.staggerT=40;}});log('Thunder Clap! Enemies stunned','#48f');skills.Attack.xp+=20;skills.Strength.xp+=20;updateXpBar();}}
 else if(id==='battle_shout'){if(typeof player!=='undefined'&&!player._shoutCD){player._shoutCD=600;player._battleShoutActive=true;setTimeout(()=>player._battleShoutActive=false,30000);for(let i=0;i<15;i++){hitFX(player.x+Math.random()*6-3,player.y+8+i,player.z+Math.random()*6-3,0xffdd00);}log('Battle Shout! Attack power +20% for 30s','#fd0');skills.Attack.xp+=30;updateXpBar();}}
-else if(id==='execute'){if(typeof player!=='undefined'&&!player._executeCD&&lockOn){const enemyPct=lockOn.hp/lockOn.maxHp;if(enemyPct>0.2){log('Execute only works on enemies below 20% HP','#f80');}else{player._executeCD=90;const dmg=50+skills.Strength.lvl*2;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0x880000);log('EXECUTE! '+dmg+' damage!','#f00');skills.Attack.xp+=35;skills.Strength.xp+=30;updateXpBar();}}}
-else if(id==='slam'){if(typeof player!=='undefined'&&!player._slamCD&&lockOn){player._slamCD=70;const dmg=20+skills.Strength.lvl*1.5;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y,lockOn.mesh.position.z,0x884422);log('Slam! '+dmg+' damage','#a62');skills.Attack.xp+=22;skills.Strength.xp+=18;updateXpBar();}}
-else if(id==='overpower'){if(typeof player!=='undefined'&&!player._overpowerCD&&lockOn){player._overpowerCD=50;const dmg=12+skills.Attack.lvl;lockOn.hp-=dmg;lockOn.staggered=true;lockOn.staggerT=30;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0xff8800);log('Overpower! Counter attack '+dmg,'#f80');skills.Attack.xp+=18;skills.Strength.xp+=12;updateXpBar();}}
-else if(id==='shield_slam'){if(typeof player!=='undefined'&&!player._shieldCD&&lockOn){player._shieldCD=80;const dmg=15+skills.Defence.lvl;lockOn.hp-=dmg;lockOn.staggered=true;lockOn.staggerT=40;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0x6666aa);log('Shield Slam! '+dmg+' damage, enemy stunned','#66a');skills.Attack.xp+=20;skills.Defence.xp+=15;updateXpBar();}}
+else if(id==='execute'){if(typeof player!=='undefined'&&!player._executeCD&&lockOn){const enemyPct=lockOn.hp/lockOn.maxHp;if(enemyPct>0.2){log('Execute only works on enemies below 20% HP','#f80');}else{player._executeCD=90;const dmg=50+skills.Strength.lvl*2;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0x880000);log('EXECUTE! '+dmg+' damage!','#f00');skills.Attack.xp+=35;skills.Strength.xp+=30;updateXpBar();}}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
+else if(id==='slam'){if(typeof player!=='undefined'&&!player._slamCD&&lockOn){player._slamCD=70;const dmg=20+skills.Strength.lvl*1.5;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y,lockOn.mesh.position.z,0x884422);log('Slam! '+dmg+' damage','#a62');skills.Attack.xp+=22;skills.Strength.xp+=18;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
+else if(id==='overpower'){if(typeof player!=='undefined'&&!player._overpowerCD&&lockOn){player._overpowerCD=50;const dmg=12+skills.Attack.lvl;lockOn.hp-=dmg;lockOn.staggered=true;lockOn.staggerT=30;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0xff8800);log('Overpower! Counter attack '+dmg,'#f80');skills.Attack.xp+=18;skills.Strength.xp+=12;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
+else if(id==='shield_slam'){if(typeof player!=='undefined'&&!player._shieldCD&&lockOn){player._shieldCD=80;const dmg=15+skills.Defence.lvl;lockOn.hp-=dmg;lockOn.staggered=true;lockOn.staggerT=40;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0x6666aa);log('Shield Slam! '+dmg+' damage, enemy stunned','#66a');skills.Attack.xp+=20;skills.Defence.xp+=15;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
 else if(id==='recklessness'){if(typeof player!=='undefined'&&!player._reckCD){player._reckCD=900;player._reckActive=true;setTimeout(()=>player._reckActive=false,15000);for(let i=0;i<20;i++){hitFX(player.x+Math.random()*4-2,player.y+10+i*2,player.z+Math.random()*4-2,0xff0000);}log('Recklessness! Critical strikes +50% for 15s','#f00');skills.Attack.xp+=40;skills.Strength.xp+=20;updateXpBar();}}
 // === KNIGHT ABILITY EXECUTIONS ===
-else if(id==='judgment'){if(typeof player!=='undefined'&&!player._judgmentCD&&lockOn){player._judgmentCD=80;const dmg=18+skills.Attack.lvl+skills.Prayer.lvl;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+6,lockOn.mesh.position.z,0xffdd44);log('Judgment! Holy damage '+dmg,'#fd4');skills.Attack.xp+=20;skills.Prayer.xp+=15;updateXpBar();}}
-else if(id==='crusader_strike'){if(typeof player!=='undefined'&&!player._crusaderCD&&lockOn){player._crusaderCD=60;const dmg=14+skills.Attack.lvl;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0xffeeaa);log('Crusader Strike! '+dmg,'#fea');skills.Attack.xp+=18;skills.Prayer.xp+=12;updateXpBar();}}
+else if(id==='judgment'){if(typeof player!=='undefined'&&!player._judgmentCD&&lockOn){player._judgmentCD=80;const dmg=18+skills.Attack.lvl+skills.Prayer.lvl;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+6,lockOn.mesh.position.z,0xffdd44);log('Judgment! Holy damage '+dmg,'#fd4');skills.Attack.xp+=20;skills.Prayer.xp+=15;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
+else if(id==='crusader_strike'){if(typeof player!=='undefined'&&!player._crusaderCD&&lockOn){player._crusaderCD=60;const dmg=14+skills.Attack.lvl;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0xffeeaa);log('Crusader Strike! '+dmg,'#fea');skills.Attack.xp+=18;skills.Prayer.xp+=12;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
 else if(id==='divine_protection'){if(typeof player!=='undefined'&&!player._divineProtCD){player._divineProtCD=300;player._divineProtActive=true;setTimeout(()=>player._divineProtActive=false,20000);for(let i=0;i<20;i++){hitFX(player.x+Math.random()*5-2.5,player.y+5+i,player.z+Math.random()*5-2.5,0xffff88);}log('Divine Protection! -50% damage for 20s','#ff8');skills.Defence.xp+=25;skills.Prayer.xp+=20;updateXpBar();}}
-else if(id==='consecration'){if(typeof player!=='undefined'&&!player._consecrateCD){player._consecrateCD=240;for(let i=0;i<30;i++){setTimeout(()=>{hitFX(player.x+Math.random()*16-8,player.y+1,player.z+Math.random()*16-8,0xffff44);enemies.forEach(e=>{const dist=Math.hypot(e.x-player.x,e.z-player.z);if(dist<12){const dmg=3+skills.Prayer.lvl*0.5;e.hp-=dmg;}});},i*100);}log('Consecration! Holy ground burning enemies','#ff4');skills.Prayer.xp+=30;updateXpBar();}}
+else if(id==='consecration'){if(typeof player!=='undefined'&&!player._consecrateCD){player._consecrateCD=240;const cur=getCursorWorldPos();const cx=cur?cur.x:player.x,cz=cur?cur.z:player.z;for(let i=0;i<30;i++){setTimeout(()=>{hitFX(cx+Math.random()*16-8,meshTerrainH(cx,cz)+1,cz+Math.random()*16-8,0xffff44);enemies.forEach(e=>{const dist=Math.hypot(e.x-cx,e.z-cz);if(dist<12){const dmg=3+skills.Prayer.lvl*0.5;e.hp-=dmg;}});},i*100);}log('Consecration! Holy ground at cursor','#ff4');skills.Prayer.xp+=30;updateXpBar();}}
 else if(id==='holy_light'){if(typeof player!=='undefined'&&!player._holyLightCD){player._holyLightCD=120;const heal=Math.round(player.maxHp*0.4+skills.Prayer.lvl*3);player.hp=Math.min(player.hp+heal,player.maxHp);for(let i=0;i<15;i++){hitFX(player.x,player.y+5+i,player.z,0xffffaa);}log('Holy Light! +'+heal+' HP','#ffa');skills.Prayer.xp+=25;updateXpBar();}}
 else if(id==='flash_light'){if(typeof player!=='undefined'&&!player._flashLightCD){player._flashLightCD=60;const heal=Math.round(player.maxHp*0.25+skills.Prayer.lvl*2);player.hp=Math.min(player.hp+heal,player.maxHp);hitFX(player.x,player.y+8,player.z,0xffffee);log('Flash of Light! +'+heal+' HP','#ffe');skills.Prayer.xp+=15;updateXpBar();}}
 else if(id==='blessing_might'){if(typeof player!=='undefined'&&!player._blessingCD){player._blessingCD=600;player._blessingActive=true;setTimeout(()=>player._blessingActive=false,60000);for(let i=0;i<15;i++){hitFX(player.x+Math.random()*4-2,player.y+12+i*2,player.z+Math.random()*4-2,0xffaa44);}log('Blessing of Might! +15% damage for 60s','#fa4');skills.Prayer.xp+=35;skills.Strength.xp+=10;updateXpBar();}}
@@ -1150,37 +1166,37 @@ else if(id==='divine_shield'){if(typeof player!=='undefined'&&!player._bubbleCD)
 else if(id==='hammer_justice'){if(typeof player!=='undefined'&&!player._hammerCD&&lockOn){player._hammerCD=90;const dmg=12+skills.Attack.lvl+skills.Prayer.lvl;lockOn.hp-=dmg;lockOn.staggered=true;lockOn.staggerT=90;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+8,lockOn.mesh.position.z,0xffdd22);log('Hammer of Justice! Stunned for 3s','#fd2');skills.Attack.xp+=20;skills.Prayer.xp+=18;updateXpBar();}}
 else if(id==='exorcism'){if(typeof player!=='undefined'&&!player._exorcismCD&&lockOn){player._exorcismCD=70;const isUndead=lockOn.type.includes('skeleton')||lockOn.type.includes('zombie')||lockOn.type.includes('ghost')||lockOn.type.includes('shade');const dmg=(isUndead?40:20)+skills.Prayer.lvl*2;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+6,lockOn.mesh.position.z,0xffff00);log('Exorcism! '+dmg+(isUndead?' HOLY DAMAGE to undead!':' damage'),'#ff0');skills.Prayer.xp+=30;updateXpBar();}}
 // === SORCERER ABILITY EXECUTIONS ===
-else if(id==='fireball'){if(typeof player!=='undefined'&&!player._fireballCD){player._fireballCD=50;shootProjectile('spell',25+skills.Magic.lvl*1.5,0xff4400);log('Fireball!','#f40');skills.Magic.xp+=25;updateXpBar();}}
-else if(id==='frostbolt'){if(typeof player!=='undefined'&&!player._frostboltCD&&lockOn){player._frostboltCD=40;const dmg=18+skills.Magic.lvl;lockOn.hp-=dmg;lockOn.slowed=true;lockOn.slowT=180;shootProjectile('spell',dmg,0x88ccff);hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y,lockOn.mesh.position.z,0xaaddff);log('Frostbolt! '+dmg+' damage, enemy slowed','#acf');skills.Magic.xp+=22;updateXpBar();}}
-else if(id==='arcane_missiles'){if(typeof player!=='undefined'&&!player._missilesCD&&lockOn){player._missilesCD=90;let missiles=0;const int=setInterval(()=>{if(++missiles>3||!lockOn||lockOn.hp<=0){clearInterval(int);return;}const dmg=8+skills.Magic.lvl*0.8;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x+Math.random()*2-1,lockOn.mesh.position.y+5+Math.random()*3,lockOn.mesh.position.z+Math.random()*2-1,0xaa66ff);log('Arcane Missile '+missiles+'! '+dmg,'#a6f');},400);log('Arcane Missiles channeling!','#a6f');skills.Magic.xp+=30;updateXpBar();}}
-else if(id==='blizzard'){if(typeof player!=='undefined'&&!player._blizzardCD){player._blizzardCD=200;for(let i=0;i<50;i++){setTimeout(()=>{const tx=player.x+(Math.random()-.5)*40;const tz=player.z+(Math.random()-.5)*40;hitFX(tx,player.y+15,player.z,0xaaddff);enemies.forEach(e=>{const dist=Math.hypot(e.x-tx,e.z-tz);if(dist<8){const dmg=5+skills.Magic.lvl*0.5;e.hp-=dmg;}});},i*80);}log('Blizzard! Ice storm unleashed','#adf');skills.Magic.xp+=40;updateXpBar();}}
-else if(id==='fire_blast'){if(typeof player!=='undefined'&&!player._fireblastCD&&lockOn){player._fireblastCD=30;const dmg=15+skills.Magic.lvl;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0xff6600);log('Fire Blast! '+dmg,'#f60');skills.Magic.xp+=18;updateXpBar();}}
-else if(id==='pyroblast'){if(typeof player!=='undefined'&&!player._pyroCD){player._pyroCD=180;log('Pyroblast casting... (3s)','#f40');setTimeout(()=>{if(lockOn){const dmg=60+skills.Magic.lvl*2;lockOn.hp-=dmg;for(let i=0;i<30;i++){hitFX(lockOn.mesh.position.x+Math.random()*6-3,lockOn.mesh.position.y+5+Math.random()*8,lockOn.mesh.position.z+Math.random()*6-3,0xff2200);}log('PYROBLAST! '+dmg+' DAMAGE!','#f20');skills.Magic.xp+=50;updateXpBar();}},3000);}}
-else if(id==='frost_nova'){if(typeof player!=='undefined'&&!player._novaCD){player._novaCD=150;for(let i=0;i<20;i++){const ang=i*Math.PI*2/20;hitFX(player.x+Math.cos(ang)*8,player.y+2,player.z+Math.sin(ang)*8,0x88ddff);}let rooted=0;enemies.forEach(e=>{const dist=Math.hypot(e.x-player.x,e.z-player.z);if(dist<12){e.staggered=true;e.staggerT=180;rooted++;}});log('Frost Nova! '+rooted+' enemies rooted','#8df');skills.Magic.xp+=30;updateXpBar();}}
-else if(id==='blink'){if(typeof player!=='undefined'&&!player._blinkCD){player._blinkCD=90;const right=new THREE.Vector3(-Math.cos(camYaw),0,Math.sin(camYaw));const forward=new THREE.Vector3(Math.sin(camYaw),0,Math.cos(camYaw));player.x+=forward.x*20+right.x*5;player.z+=forward.z*20+right.z*5;for(let i=0;i<15;i++){hitFX(player.x-Math.cos(camYaw)*i*1.5,player.y+3,player.z+Math.sin(camYaw)*i*1.5,0xaa66ff);}log('Blink! Teleported','#a6f');skills.Magic.xp+=20;updateXpBar();}}
-else if(id==='polymorph'){if(typeof player!=='undefined'&&!player._polyCD&&lockOn){player._polyCD=300;lockOn.polymorphed=true;lockOn.polyT=600;lockOn.mesh.visible=false;const sheep=new THREE.Mesh(new THREE.BoxGeometry(2,1.5,3),new THREE.MeshStandardMaterial({color:0xffffff}));sheep.position.copy(lockOn.mesh.position);scene.add(sheep);lockOn.sheepMesh=sheep;log('Polymorph! Enemy is now a sheep','#fff');skills.Magic.xp+=35;updateXpBar();}}
-else if(id==='counterspell'){if(typeof player!=='undefined'&&!player._counterCD&&lockOn){player._counterCD=120;lockOn.counterspelled=true;lockOn.counterT=60;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+8,lockOn.mesh.position.z,0xff0000);log('Counterspell! Enemy casting interrupted','#f00');skills.Magic.xp+=25;updateXpBar();}}
+else if(id==='fireball'){if(typeof player!=='undefined'&&!player._fireballCD){if(player.poi<15){log('Not enough mana! (15 needed)','#f44');return;}player._fireballCD=50;player.poi-=15;shootProjectile('spell',25+skills.Magic.lvl*1.5,0xff4400);log('Fireball! (-15 mana)','#f40');skills.Magic.xp+=25;updateXpBar();}}
+else if(id==='frostbolt'){if(typeof player!=='undefined'&&!player._frostboltCD&&lockOn){if(player.poi<12){log('Not enough mana! (12 needed)','#f44');return;}player._frostboltCD=40;player.poi-=12;const dmg=18+skills.Magic.lvl;lockOn.hp-=dmg;lockOn.slowed=true;lockOn.slowT=180;shootProjectile('spell',dmg,0x88ccff);hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y,lockOn.mesh.position.z,0xaaddff);log('Frostbolt! '+dmg+' (-12 mana)','#acf');skills.Magic.xp+=22;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
+else if(id==='arcane_missiles'){if(typeof player!=='undefined'&&!player._missilesCD&&lockOn){if(player.poi<20){log('Not enough mana! (20 needed)','#f44');return;}player._missilesCD=90;player.poi-=20;let missiles=0;const int=setInterval(()=>{if(++missiles>3||!lockOn||lockOn.hp<=0){clearInterval(int);return;}const dmg=8+skills.Magic.lvl*0.8;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x+Math.random()*2-1,lockOn.mesh.position.y+5+Math.random()*3,lockOn.mesh.position.z+Math.random()*2-1,0xaa66ff);log('Arcane Missile '+missiles+'! '+dmg,'#a6f');},400);log('Arcane Missiles! (-20 mana)','#a6f');skills.Magic.xp+=30;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
+else if(id==='blizzard'){if(typeof player!=='undefined'&&!player._blizzardCD){if(player.poi<35){log('Not enough mana! (35 needed)','#f44');return;}player._blizzardCD=200;player.poi-=35;const cur=getCursorWorldPos();const cx=cur?cur.x:player.x,cz=cur?cur.z:player.z;for(let i=0;i<50;i++){setTimeout(()=>{const tx=cx+(Math.random()-.5)*40;const tz=cz+(Math.random()-.5)*40;hitFX(tx,meshTerrainH(tx,tz)+15,tz,0xaaddff);enemies.forEach(e=>{const dist=Math.hypot(e.x-tx,e.z-tz);if(dist<8){const dmg=5+skills.Magic.lvl*0.5;e.hp-=dmg;}});},i*80);}log('Blizzard! Ice storm at cursor','#adf');skills.Magic.xp+=40;updateXpBar();}}
+else if(id==='sorc_fire_blast'){if(typeof player!=='undefined'&&!player._fireblastCD&&lockOn){if(player.poi<10){log('Not enough mana! (10 needed)','#f44');return;}player._fireblastCD=30;player.poi-=10;const dmg=15+skills.Magic.lvl;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0xff6600);log('Fire Blast! '+dmg+' (-10 mana)','#f60');skills.Magic.xp+=18;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
+else if(id==='pyroblast'){if(typeof player!=='undefined'&&!player._pyroCD){if(player.poi<40){log('Not enough mana! (40 needed)','#f44');return;}player._pyroCD=180;player.poi-=40;log('Pyroblast casting... (-40 mana)','#f40');setTimeout(()=>{if(lockOn){const dmg=60+skills.Magic.lvl*2;lockOn.hp-=dmg;for(let i=0;i<30;i++){hitFX(lockOn.mesh.position.x+Math.random()*6-3,lockOn.mesh.position.y+5+Math.random()*8,lockOn.mesh.position.z+Math.random()*6-3,0xff2200);}log('PYROBLAST! '+dmg+' DAMAGE!','#f20');skills.Magic.xp+=50;updateXpBar();}},3000);}}
+else if(id==='frost_nova'){if(typeof player!=='undefined'&&!player._novaCD){if(player.poi<25){log('Not enough mana! (25 needed)','#f44');return;}player._novaCD=150;player.poi-=25;for(let i=0;i<20;i++){const ang=i*Math.PI*2/20;hitFX(player.x+Math.cos(ang)*8,player.y+2,player.z+Math.sin(ang)*8,0x88ddff);}let rooted=0;enemies.forEach(e=>{const dist=Math.hypot(e.x-player.x,e.z-player.z);if(dist<12){e.staggered=true;e.staggerT=180;rooted++;}});log('Frost Nova! '+rooted+' enemies rooted','#8df');skills.Magic.xp+=30;updateXpBar();}}
+else if(id==='blink'){if(typeof player!=='undefined'&&!player._blinkCD){if(player.poi<15){log('Not enough mana! (15 needed)','#f44');return;}player._blinkCD=90;player.poi-=15;const right=new THREE.Vector3(-Math.cos(camYaw),0,Math.sin(camYaw));const forward=new THREE.Vector3(Math.sin(camYaw),0,Math.cos(camYaw));player.x+=forward.x*20+right.x*5;player.z+=forward.z*20+right.z*5;for(let i=0;i<15;i++){hitFX(player.x-Math.cos(camYaw)*i*1.5,player.y+3,player.z+Math.sin(camYaw)*i*1.5,0xaa66ff);}log('Blink! Teleported','#a6f');skills.Magic.xp+=20;updateXpBar();}}
+else if(id==='polymorph'){if(typeof player!=='undefined'&&!player._polyCD&&lockOn){if(player.poi<30){log('Not enough mana! (30 needed)','#f44');return;}player._polyCD=300;player.poi-=30;lockOn.polymorphed=true;lockOn.polyT=600;lockOn.mesh.visible=false;const sheep=new THREE.Mesh(new THREE.BoxGeometry(2,1.5,3),new THREE.MeshStandardMaterial({color:0xffffff}));sheep.position.copy(lockOn.mesh.position);scene.add(sheep);lockOn.sheepMesh=sheep;log('Polymorph! Enemy is now a sheep','#fff');skills.Magic.xp+=35;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
+else if(id==='counterspell'){if(typeof player!=='undefined'&&!player._counterCD&&lockOn){if(player.poi<20){log('Not enough mana! (20 needed)','#f44');return;}player._counterCD=120;player.poi-=20;lockOn.counterspelled=true;lockOn.counterT=60;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+8,lockOn.mesh.position.z,0xff0000);log('Counterspell! Enemy casting interrupted','#f00');skills.Magic.xp+=25;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
 // === RANGER ABILITY EXECUTIONS ===
 else if(id==='steady_shot'){if(typeof player!=='undefined'&&!player._steadyCD){const cd=player._rapidFireActive?21:35;player._steadyCD=cd;shootProjectile('arrow',18+skills.Ranged.lvl*1.2,0xccaa88);log('Steady Shot!','#ca8');skills.Ranged.xp+=18;updateXpBar();}}
-else if(id==='aimed_shot'){if(typeof player!=='undefined'&&!player._aimedCD&&lockOn){const cd=player._rapidFireActive?48:80;player._aimedCD=cd;const dmg=30+skills.Ranged.lvl*1.5;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+6,lockOn.mesh.position.z,0xffaa44);log('Aimed Shot! '+dmg+' damage','#fa4');skills.Ranged.xp+=25;updateXpBar();}}
+else if(id==='aimed_shot'){if(typeof player!=='undefined'&&!player._aimedCD&&lockOn){const cd=player._rapidFireActive?48:80;player._aimedCD=cd;const dmg=30+skills.Ranged.lvl*1.5;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+6,lockOn.mesh.position.z,0xffaa44);log('Aimed Shot! '+dmg+' damage','#fa4');skills.Ranged.xp+=25;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
 else if(id==='multi_shot'){if(typeof player!=='undefined'&&!player._multiCD){const cd=player._rapidFireActive?60:100;player._multiCD=cd;for(let i=0;i<3;i++){setTimeout(()=>{shootProjectile('arrow',12+skills.Ranged.lvl,0xccaa88);},i*150);}log('Multi-Shot! Three arrows','#ca8');skills.Ranged.xp+=22;updateXpBar();}}
-else if(id==='arcane_shot'){if(typeof player!=='undefined'&&!player._arcaneCD){player._arcaneCD=50;shootProjectile('spell',20+skills.Ranged.lvl+skills.Magic.lvl,0xaa66ff);log('Arcane Shot! Magic arrow','#a6f');skills.Ranged.xp+=20;skills.Magic.xp+=10;updateXpBar();}}
-else if(id==='serpent_sting'){if(typeof player!=='undefined'&&!player._stingCD&&lockOn){player._stingCD=70;lockOn.serpentSting=true;lockOn.stingT=300;lockOn.stingDmg=3+skills.Ranged.lvl*0.3;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0x00aa44);log('Serpent Sting! Poison applied','#0a4');skills.Ranged.xp+=20;updateXpBar();}}
-else if(id==='hunters_mark'){if(typeof player!=='undefined'&&!player._markCD&&lockOn){player._markCD=180;lockOn.huntersMark=true;lockOn.markT=600;for(let i=0;i<10;i++){hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+12+i,lockOn.mesh.position.z,0xff0000);}log('Hunters Mark! +15% damage vs target','#f00');skills.Ranged.xp+=18;updateXpBar();}}
+else if(id==='arcane_shot'){if(typeof player!=='undefined'&&!player._arcaneCD){if(player.poi<10){log('Not enough mana! (10 needed)','#f44');return;}player._arcaneCD=50;player.poi-=10;shootProjectile('spell',20+skills.Ranged.lvl+skills.Magic.lvl,0xaa66ff);log('Arcane Shot! (-10 mana)','#a6f');skills.Ranged.xp+=20;skills.Magic.xp+=10;updateXpBar();}}
+else if(id==='serpent_sting'){if(typeof player!=='undefined'&&!player._stingCD&&lockOn){player._stingCD=70;lockOn.serpentSting=true;lockOn.stingT=300;lockOn.stingDmg=3+skills.Ranged.lvl*0.3;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0x00aa44);log('Serpent Sting! Poison applied','#0a4');skills.Ranged.xp+=20;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
+else if(id==='hunters_mark'){if(typeof player!=='undefined'&&!player._markCD&&lockOn){player._markCD=180;lockOn.huntersMark=true;lockOn.markT=600;for(let i=0;i<10;i++){hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+12+i,lockOn.mesh.position.z,0xff0000);}log('Hunters Mark! +15% damage vs target','#f00');skills.Ranged.xp+=18;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
 else if(id==='distracting_shot'){if(typeof player!=='undefined'&&!player._distractCD&&lockOn){player._distractCD=60;lockOn.aggro=200;lockOn.target=player;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+8,lockOn.mesh.position.z,0xffff00);log('Distracting Shot! Taunted enemy','#ff0');skills.Ranged.xp+=15;skills.Defence.xp+=10;updateXpBar();}}
 else if(id==='rapid_fire'){if(typeof player!=='undefined'&&!player._rapidCD){player._rapidCD=300;player._rapidFireActive=true;setTimeout(()=>player._rapidFireActive=false,15000);for(let i=0;i<20;i++){hitFX(player.x+Math.random()*4-2,player.y+10+i*2,player.z+Math.random()*4-2,0xff6600);}log('Rapid Fire! +40% attack speed for 15s','#f60');skills.Ranged.xp+=30;updateXpBar();}}
 else if(id==='feign_death'){if(typeof player!=='undefined'&&!player._feignCD){player._feignCD=180;player._feignActive=true;enemies.forEach(e=>{if(e.target===player)e.target=null;e.aggro=0;});setTimeout(()=>player._feignActive=false,5000);for(let i=0;i<15;i++){hitFX(player.x,player.y+i,player.z,0x888888);}log('Feign Death! Enemies lost interest','#888');skills.Ranged.xp+=20;skills.Defence.xp+=15;updateXpBar();}}
-else if(id==='explosive_trap'){if(typeof player!=='undefined'&&!player._trapCD){player._trapCD=150;const tx=player.x+Math.sin(camYaw)*8;const tz=player.z+Math.cos(camYaw)*8;const trap={x:tx,z:tz,life:600,dmg:25+skills.Ranged.lvl};player.explosiveTrap=trap;hitFX(tx,player.y+2,tz,0xff4400);log('Explosive Trap set!','#f40');skills.Ranged.xp+=22;updateXpBar();}}
+else if(id==='explosive_trap'){if(typeof player!=='undefined'&&!player._trapCD){player._trapCD=150;const cur=getCursorWorldPos();const tx=cur?cur.x:(player.x+Math.sin(camYaw)*8);const tz=cur?cur.z:(player.z+Math.cos(camYaw)*8);const trap={x:tx,z:tz,life:600,dmg:25+skills.Ranged.lvl};player.explosiveTrap=trap;hitFX(tx,meshTerrainH(tx,tz)+2,tz,0xff4400);log('Explosive Trap set at cursor!','#f40');skills.Ranged.xp+=22;updateXpBar();}}
 // === GENERAL ABILITY EXECUTIONS ===
 else if(id==='first_aid'){if(typeof player!=='undefined'&&!player._aidCD){player._aidCD=300;player._firstAidActive=true;let ticks=0;const int=setInterval(()=>{if(++ticks>10||player.hp<=0){clearInterval(int);player._firstAidActive=false;return;}const heal=5+skills.Hitpoints.lvl*0.5;player.hp=Math.min(player.hp+heal,player.maxHp);hitFX(player.x,player.y+5,player.z,0x88ff88);},1000);log('First Aid! Healing over 10s','#8f8');skills.Hitpoints.xp+=20;updateXpBar();}}
 else if(id==='bandage'){if(typeof player!=='undefined'&&!player._bandageCD){player._bandageCD=120;const heal=15+skills.Hitpoints.lvl*2;player.hp=Math.min(player.hp+heal,player.maxHp);hitFX(player.x,player.y+6,player.z,0xffffff);log('Bandage! +'+heal+' HP','#fff');skills.Hitpoints.xp+=15;updateXpBar();}}
 else if(id==='sharpen_weapon'){if(typeof player!=='undefined'&&!player._sharpenCD){player._sharpenCD=300;player._sharpenActive=true;setTimeout(()=>player._sharpenActive=false,180000);for(let i=0;i<12;i++){hitFX(player.x+Math.random()*4-2,player.y+8+i,player.z+Math.random()*4-2,0xffaa00);}log('Sharpen Weapon! +10% melee damage for 3min','#fa0');skills.Attack.xp+=20;updateXpBar();}}
 else if(id==='mining_strike'){if(typeof player!=='undefined'&&!player._mineStrikeCD){player._mineStrikeCD=60;hitFX(player.x+Math.sin(camYaw)*4,player.y+2,player.z+Math.cos(camYaw)*4,0x664422);log('Mining Strike! Strong mining hit','#642');skills.Mining.xp+=25;updateXpBar();}}
 else if(id==='lumber_up'){if(typeof player!=='undefined'&&!player._lumberCD){player._lumberCD=120;player._lumberActive=true;setTimeout(()=>player._lumberActive=false,60000);for(let i=0;i<10;i++){hitFX(player.x+Math.random()*3-1.5,player.y+8+i*2,player.z+Math.random()*3-1.5,0x44aa44);}log('Lumber Up! +20% woodcutting speed for 60s','#4a4');skills.Woodcutting.xp+=20;updateXpBar();}}
-else if(id==='cooking_fire'){if(typeof player!=='undefined'&&!player._campfireCD){player._campfireCD=300;const tx=player.x+Math.sin(camYaw)*5;const tz=player.z+Math.cos(camYaw)*5;const fire=new THREE.Mesh(new THREE.CylinderGeometry(2,1,4,8),new THREE.MeshStandardMaterial({color:0xff4400,emissive:0xff2200,emissiveIntensity:2}));fire.position.set(tx,player.y,tz);scene.add(fire);setTimeout(()=>scene.remove(fire),60000);for(let i=0;i<20;i++){hitFX(tx,player.y+i*2,tz,0xff6600);}log('Cooking Fire! Campfire lit','#f60');skills.Cooking.xp+=15;skills.Firemaking.xp+=20;updateXpBar();}}
+else if(id==='cooking_fire'){if(typeof player!=='undefined'&&!player._campfireCD){player._campfireCD=300;const cur=getCursorWorldPos();const tx=cur?cur.x:(player.x+Math.sin(camYaw)*5);const tz=cur?cur.z:(player.z+Math.cos(camYaw)*5);const fy=meshTerrainH(tx,tz);const fire=new THREE.Mesh(new THREE.CylinderGeometry(2,1,4,8),new THREE.MeshStandardMaterial({color:0xff4400,emissive:0xff2200,emissiveIntensity:2}));fire.position.set(tx,fy,tz);scene.add(fire);setTimeout(()=>scene.remove(fire),60000);for(let i=0;i<20;i++){hitFX(tx,fy+i*2,tz,0xff6600);}log('Cooking Fire at cursor!','#f60');skills.Cooking.xp+=15;skills.Firemaking.xp+=20;updateXpBar();}}
 else if(id==='fishing_cast'){if(typeof player!=='undefined'&&!player._fishCastCD){player._fishCastCD=90;hitFX(player.x,player.y+10,player.z,0x4488ff);log('Fishing Cast! Long cast bonus XP','#48f');skills.Fishing.xp+=25;updateXpBar();}}
 else if(id==='runecraft_focus'){if(typeof player!=='undefined'&&!player._focusCD){player._focusCD=180;player._runecraftActive=true;setTimeout(()=>player._runecraftActive=false,60000);for(let i=0;i<15;i++){hitFX(player.x+Math.random()*3-1.5,player.y+10+i*2,player.z+Math.random()*3-1.5,0xaa44ff);}log('Runecraft Focus! +30% Runecraft XP for 60s','#a4f');skills.Runecraft.xp+=30;updateXpBar();}}
-else if(id==='sneak_attack'){if(typeof player!=='undefined'&&!player._sneakCD&&lockOn){player._sneakCD=90;const dist=Math.hypot(lockOn.x-player.x,lockOn.z-player.z);const dmg=dist<8?(35+skills.Attack.lvl*2):(15+skills.Attack.lvl);lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0x444444);log('Sneak Attack! '+dmg+(dist<8?' BACKSTAB!':' damage'),'#444');skills.Attack.xp+=25;skills.Thieving.xp+=15;updateXpBar();}}
+else if(id==='sneak_attack'){if(typeof player!=='undefined'&&!player._sneakCD&&lockOn){player._sneakCD=90;const dist=Math.hypot(lockOn.x-player.x,lockOn.z-player.z);const dmg=dist<8?(35+skills.Attack.lvl*2):(15+skills.Attack.lvl);lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0x444444);log('Sneak Attack! '+dmg+(dist<8?' BACKSTAB!':' damage'),'#444');skills.Attack.xp+=25;skills.Thieving.xp+=15;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
 else if(id==='agility_roll'){if(typeof player!=='undefined'&&!player._agiRollCD&&player.sta>15){player._agiRollCD=80;player.sta-=15;const rollDir=new THREE.Vector3(Math.sin(camYaw),0,Math.cos(camYaw));player.x+=rollDir.x*15;player.z+=rollDir.z*15;for(let i=0;i<10;i++){hitFX(player.x-rollDir.x*i*1.5,player.y+2,player.z-rollDir.z*i*1.5,0x44ffaa);}log('Agility Roll! Quick escape','#4fa');skills.Agility.xp+=20;updateXpBar();}}
 else log('Used ability: '+id,'#aa9')}
 // === SHOOT PROJECTILE (Arrow or Spell) ===
@@ -1526,6 +1542,10 @@ const skillItems={
 };
 const PLAYER_R=2.2;
 function addSolid(mesh){solidMeshes.push(mesh)}
+// Oriented wall collider (stores world-space center, half-extents, and rotation for accurate thin-wall collision)
+const wallColliders=[];
+function addWallSolid(wx,wz,halfW,halfD,wallH,rot,baseY){
+wallColliders.push({x:wx,z:wz,hw:halfW,hd:halfD,h:wallH,rot:rot||0,by:baseY||0});}
 // World-space circle collider (for towers, huts, round structures)
 function addCircleSolid(wx,wz,radius,minY,maxY){circleColliders.push({x:wx,z:wz,r:radius,minY:minY||0,maxY:maxY||999})}
 function buildColliders(){
@@ -1533,22 +1553,20 @@ solidBoxes.length=0;
 // FIX: Filter out invisible or invalid meshes before building colliders
 const validMeshes=solidMeshes.filter(m=>m&&m.visible&&m.parent);
 for(const m of validMeshes){m.updateMatrixWorld(true);
-const b=new THREE.Box3().setFromObject(m);solidBoxes.push(b)}
-// FIX: Remove circle colliders that are no longer valid (no matching building)
-const validCircles=circleColliders.filter(c=>{
-// Check if there's still a building or mesh at this location
-const hasBuilding=enterableBuildings.some(b=>Math.hypot(b.x-c.x,b.z-c.z)<c.r);
-const hasMesh=scene.children.some(m=>m.visible&&Math.hypot(m.position.x-c.x,m.position.z-c.z)<c.r+5);
-return hasBuilding||hasMesh||c.maxY<500; // Keep if has building, mesh, or is intentional ground collider
-});
-circleColliders.length=0;
-circleColliders.push(...validCircles);
-log('Colliders: '+solidBoxes.length+' boxes, '+circleColliders.length+' circles','#0f0')}
+const b=new THREE.Box3().setFromObject(m);
+// Skip absurdly large boxes (likely AABB artifacts from rotated meshes)
+const sx=b.max.x-b.min.x,sz=b.max.z-b.min.z;
+if(sx>80||sz>80)continue;
+solidBoxes.push(b)}
+log('Colliders: '+solidBoxes.length+' boxes, '+wallColliders.length+' walls, '+circleColliders.length+' circles','#0f0')}
 function pushOut(px,py,pz){
 let ox=px,oz=pz;
 const pr=PLAYER_R;
-// Box colliders (scene-level meshes only)
+// Box colliders (non-rotated meshes only)
 for(let pass=0;pass<2;pass++){for(const b of solidBoxes){
+// Distance cull: skip boxes far from player
+const bcx=(b.min.x+b.max.x)/2,bcz=(b.min.z+b.max.z)/2;
+if(Math.abs(ox-bcx)>60||Math.abs(oz-bcz)>60)continue;
 const minX=b.min.x-pr,maxX=b.max.x+pr,minZ=b.min.z-pr,maxZ=b.max.z+pr;
 if(py>=b.max.y-1)continue;
 if(ox>minX&&ox<maxX&&oz>minZ&&oz<maxZ&&py>b.min.y-6){
@@ -1556,11 +1574,29 @@ const ovL=ox-minX,ovR=maxX-ox,ovB=oz-minZ,ovF=maxZ-oz;
 const m=Math.min(ovL,ovR,ovB,ovF);
 if(m===ovL)ox=minX;else if(m===ovR)ox=maxX;
 else if(m===ovB)oz=minZ;else oz=maxZ}}}
-// Circle colliders (towers, huts, walls)
+// Oriented wall colliders (proper thin-wall collision respecting rotation)
+for(const w of wallColliders){
+if(Math.abs(ox-w.x)>w.hw+w.hd+pr+5&&Math.abs(oz-w.z)>w.hw+w.hd+pr+5)continue;
+if(py>=w.by+w.h-1||py<w.by-6)continue;
+const cosR=Math.cos(-w.rot),sinR=Math.sin(-w.rot);
+const lx=(ox-w.x)*cosR-(oz-w.z)*sinR;
+const lz=(ox-w.x)*sinR+(oz-w.z)*cosR;
+const hw=w.hw+pr,hd=w.hd+pr;
+if(lx>-hw&&lx<hw&&lz>-hd&&lz<hd){
+const ovL=lx+hw,ovR=hw-lx,ovB=lz+hd,ovF=hd-lz;
+const mn=Math.min(ovL,ovR,ovB,ovF);
+let plx=lx,plz=lz;
+if(mn===ovL)plx=-hw;else if(mn===ovR)plx=hw;
+else if(mn===ovB)plz=-hd;else plz=hd;
+const cosR2=Math.cos(w.rot),sinR2=Math.sin(w.rot);
+ox=w.x+plx*cosR2-plz*sinR2;
+oz=w.z+plx*sinR2+plz*cosR2;}}
+// Circle colliders (towers, huts, buildings)
 for(const c of circleColliders){
 if(py>=c.maxY-1||py<c.minY-6)continue;
 const dx=ox-c.x,dz=oz-c.z;
 const dist=Math.hypot(dx,dz);
+if(dist>c.r+pr+10)continue;
 const minDist=c.r+pr;
 if(dist<minDist&&dist>0.01){const push=minDist-dist;
 ox+=dx/dist*push;oz+=dz/dist*push}}
@@ -1586,7 +1622,14 @@ const mesh=new THREE.Mesh(geo,mat);
 mesh.rotation.x=-Math.PI/2;
 mesh.position.set(c.x,Math.max(c.minY+1,c.maxY-2),c.z);
 scene.add(mesh);collisionDebugMeshes.push(mesh)}
-log('Collision debug ON - Red=Boxes, Green=Rings','#0f0');}
+// Show wall colliders as oriented wireframes
+for(const w of wallColliders){
+const geo=new THREE.BoxGeometry(w.hw*2,w.h,w.hd*2);
+const mat=new THREE.MeshBasicMaterial({color:0xffff00,wireframe:true,transparent:true,opacity:0.6});
+const mesh=new THREE.Mesh(geo,mat);
+mesh.position.set(w.x,w.by+w.h/2,w.z);mesh.rotation.y=w.rot;
+scene.add(mesh);collisionDebugMeshes.push(mesh)}
+log('Collision debug ON - Red=Boxes, Yellow=Walls, Green=Rings','#0f0');}
 // Surface height: terrain or top of any walkable solid below the entity
 function surfaceH(px,pz,py){
 const th=meshTerrainH(px,pz);
@@ -1601,12 +1644,14 @@ return best}
 function meshTerrainH(wx,wz){
 if(!groundMesh)return terrainH(wx,wz);
 const pos=groundMesh.geometry.attributes.position;
-const segs=200,size=80000,half=size/2,cell=size/segs,cols=segs+1;
+const segs=250,size=80000,half=size/2,cell=size/segs,cols=segs+1;
 const fi=(wx+half)/cell,fj=(half+wz)/cell;
 const i0=Math.max(0,Math.min(segs-1,Math.floor(fi))),j0=Math.max(0,Math.min(segs-1,Math.floor(fj)));
 const fx=fi-i0,fz=fj-j0;
 const h00=pos.getZ(j0*cols+i0),h10=pos.getZ(j0*cols+i0+1),h01=pos.getZ((j0+1)*cols+i0),h11=pos.getZ((j0+1)*cols+i0+1);
-return h00*(1-fx)*(1-fz)+h10*fx*(1-fz)+h01*(1-fx)*fz+h11*fx*fz}
+// Triangle interpolation matching GPU rendering (PlaneGeometry diagonal: bottom-left to top-right)
+if(fx+fz<=1)return(1-fx-fz)*h00+fx*h10+fz*h01;
+return(1-fx)*h01+(fx+fz-1)*h11+(1-fz)*h10}
 let keys={},mouse={x:0,y:0,dx:0,dy:0,down:false,right:false,mid:false};
 let camYaw=0,camPitch=.35,camDist=60;
 let player={x:0,z:0,y:2,vx:0,vz:0,vy:0,speed:.42,hp:142,maxHp:142,sta:100,maxSta:100,poi:68,maxPoi:68,ang:0,rolling:false,rollT:0,atkCD:0,dead:false,deadTimer:0,blocking:false,grounded:true,isSprinting:false};
@@ -2809,11 +2854,11 @@ function init(){
 console.log('INIT START');
 // Initialize GPU instancers for building elements
 initBuildingInstancers();
-scene=new THREE.Scene();scene.background=new THREE.Color(0xaaccee);scene.fog=new THREE.FogExp2(0xaaccee,.00008);
-cam=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.5,30000);
-renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance',stencil:false,depth:true});
-renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+scene=new THREE.Scene();scene.background=new THREE.Color(0xaaccee);scene.fog=new THREE.FogExp2(0xaaccee,.00015);
+cam=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,1,8000);
+renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance',stencil:false,depth:true});
+renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(1);
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.BasicShadowMap;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=gameOpts?gameOpts.bright:2.0;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
@@ -2821,8 +2866,8 @@ document.body.appendChild(renderer.domElement);
 // Bright outdoor lighting
 scene.add(new THREE.AmbientLight(0x8899aa,1.2));
 const sun=new THREE.DirectionalLight(0xfff5e0,3.0);sun.position.set(200,350,-100);sun.castShadow=true;
-sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.near=1;sun.shadow.camera.far=1200;
-sun.shadow.camera.left=-400;sun.shadow.camera.right=400;sun.shadow.camera.top=400;sun.shadow.camera.bottom=-400;
+sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.near=10;sun.shadow.camera.far=800;
+sun.shadow.camera.left=-250;sun.shadow.camera.right=250;sun.shadow.camera.top=250;sun.shadow.camera.bottom=-250;
 sun.shadow.bias=-.0002;sun.shadow.normalBias=.02;scene.add(sun);
 // Sky fill light
 const fill=new THREE.DirectionalLight(0xaaccee,.8);fill.position.set(-200,100,150);scene.add(fill);
@@ -2853,7 +2898,7 @@ mt.shT=new MS({color:0xd8b060,roughness:.32,metalness:.82});
 // Biome-colored terrain (80000x80000) - massive world
 mt.snow=new MS({color:0xeeeeff,roughness:.7,metalness:.05});
 mt.lakeMat=new MS({color:0x2a7a9a,roughness:.05,metalness:.4,transparent:true,opacity:.75,side:THREE.DoubleSide,emissive:0x1a4a6a,emissiveIntensity:.15});
-const gGeo=new THREE.PlaneGeometry(80000,80000,200,200);
+const gGeo=new THREE.PlaneGeometry(80000,80000,250,250);
 const gp=gGeo.attributes.position;
 const vc=new Float32Array(gp.count*3);
 for(let i=0;i<gp.count;i++){const lx=gp.getX(i),lz=-gp.getY(i);
@@ -2886,8 +2931,8 @@ g.position.set(x,meshTerrainH(x,z),z);g.rotation.y=rot||0;scene.add(g)}
 // === WORLD BUILDER HELPERS ===
 function wall(x,z,w,h,rot){const bY=meshTerrainH(x,z);const g=new THREE.Group();
 const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,3),mt.st);m.position.y=h/2;m.castShadow=true;g.add(m);
-// Add to solid meshes for accurate box collision that matches wall shape and rotation
-addSolid(m);
+// Oriented wall collider: center at (x,z), half-extents (w/2, 1.5), height h, rotation rot
+addWallSolid(x,z,w/2,1.5,h,rot||0,bY);
 // Crenellations
 const cN=Math.max(2,Math.floor(w/4));for(let i=0;i<cN;i++){if(i%2===0){const cr=new THREE.Mesh(new THREE.BoxGeometry(w/cN*.8,2,3.2),mt.stD);cr.position.set(-w/2+w/cN*(i+.5),h+1,0);cr.castShadow=true;g.add(cr)}}
 // Arrow slits
@@ -2897,13 +2942,13 @@ const base=new THREE.Mesh(new THREE.BoxGeometry(w+1,1,3.8),mt.stD);base.position
 g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
 function wallW(x,z,w,h,rot){const bY=meshTerrainH(x,z);const g=new THREE.Group();
 const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,3),mt.stW);m.position.y=h/2;m.castShadow=true;g.add(m);
-// Add to solid meshes for accurate box collision that matches wall shape and rotation
-addSolid(m);
+// Oriented wall collider: center at (x,z), half-extents (w/2, 1.5), height h, rotation rot
+addWallSolid(x,z,w/2,1.5,h,rot||0,bY);
 const cN=Math.max(2,Math.floor(w/4));for(let i=0;i<cN;i++){if(i%2===0){const cr=new THREE.Mesh(new THREE.BoxGeometry(w/cN*.8,2,3.2),mt.stW);cr.position.set(-w/2+w/cN*(i+.5),h+1,0);cr.castShadow=true;g.add(cr)}}
 const slitN=Math.max(1,Math.floor(w/8));for(let i=0;i<slitN;i++){const sl=new THREE.Mesh(new THREE.BoxGeometry(.4,2,.2),new MS({color:0x0a0a0a,roughness:1}));sl.position.set(-w/2+w/(slitN+1)*(i+1),h*.6,1.6);g.add(sl)}
 const base=new THREE.Mesh(new THREE.BoxGeometry(w+1,1,3.8),mt.stD);base.position.y=.5;g.add(base);
 g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
-function hut(x,z,rot,s){s=(s||1)*2;const h=meshTerrainH(x,z);const g=new THREE.Group();
+function hut(x,z,rot,s){s=(s||1)*4;const h=meshTerrainH(x,z);const g=new THREE.Group();
 // RNG variation per hut
 const hseed=Math.abs(Math.sin(x*73.7+z*157.3)*43758.5453)%1;
 const wW=(10+hseed*8)*s,wD=(8+hseed*6)*s,wH=(7+hseed*5)*s,wallT=(.5+hseed*.3)*s;const doorW=(2.5+hseed)*s,doorH2=(4.5+hseed*2)*s;
@@ -2913,7 +2958,7 @@ const intFloorMat=new MS({color:0x5a4a38,roughness:.92});
 const winGlassMat=new MS({color:0x2a4a6a,roughness:.15,metalness:.3,emissive:0x1a3a5a,emissiveIntensity:.5,transparent:true,opacity:.5});
 // Foundation
 const found=new THREE.Mesh(new THREE.BoxGeometry(wW+2*s,1.5*s,wD+2*s),mt.st);found.position.y=.75*s;found.castShadow=true;g.add(found);
-addCircleSolid(x,z,Math.max(wW,wD)/2+1,h,h+wH+2);
+// Circle collider removed — entry handled by makeEnterable + enterBuilding system
 // Interior floor
 const intFloor=new THREE.Mesh(new THREE.BoxGeometry(wW-.5*s,.2*s,wD-.5*s),intFloorMat);intFloor.position.y=1.6*s;intFloor.receiveShadow=true;g.add(intFloor);
 // Back wall (solid)
@@ -2968,7 +3013,7 @@ const chimTop=new THREE.Mesh(new THREE.BoxGeometry(2.4*s,.4*s,2.4*s),mt.stD);chi
 // Corner posts
 [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([cx,cz])=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.3*s,.4*s,wH+.5*s,5),mt.wd);p.position.set(cx*(wW/2-.2*s),wH/2+1.5*s,cz*(wD/2-.2*s));p.castShadow=true;g.add(p)});
 // Steps leading to door
-for(let i=0;i<3;i++){const step=new THREE.Mesh(new THREE.BoxGeometry(doorW+1*s,.4*s,1.2*s),mt.st);step.position.set(0,.2+i*.4*s,wD/2+.6*s+i*1.2*s);step.receiveShadow=true;g.add(step)}
+for(let i=0;i<4;i++){const step=new THREE.Mesh(new THREE.BoxGeometry(doorW+2*s,.4*s,1.4*s),mt.st);step.position.set(0,1.5*s-i*.4*s,wD/2+.6*s+i*1.4*s);step.receiveShadow=true;g.add(step)}
 // Interior detail: table + chair
 const tbl=new THREE.Mesh(new THREE.BoxGeometry(3*s,.15*s,2*s),mt.wd);tbl.position.set(0,3.5*s,-2*s);g.add(tbl);
 const tblLeg1=new THREE.Mesh(new THREE.CylinderGeometry(.1*s,.1*s,2*s,4),mt.wd);
@@ -3933,7 +3978,7 @@ if(b[countProp]<max){inst.setMatrixAt(b[countProp]++,matrix);inst.userData.count
 console.log('INIT: scattering rural buildings across countryside');
 (function scatterRural(){
 const ruralTypes=['windmill','barn','watchtower'];
-const nRural=80; // Number of rural buildings to scatter
+const nRural=40; // Number of rural buildings to scatter
 for(let i=0;i<nRural*3;i++){
 const rx=(Math.random()-.5)*40000,rz=(Math.random()-.5)*35000;
 // Skip lakes and city areas
@@ -3976,22 +4021,22 @@ const st=new THREE.Mesh(new THREE.BoxGeometry(4,.1,sLen),streetMat);st.position.
 // Buildings with overlap prevention — keep away from walls
 let placed=0;
 for(let i=0;i<nBuildings*3&&placed<nBuildings;i++){
-const a=Math.random()*Math.PI*2;const r=18+Math.random()*(radius-30);
+const a=Math.random()*Math.PI*2;const r=30+Math.random()*(radius-45);
 const bx=cx+Math.cos(a)*r,bz=cz+Math.sin(a)*r;
 if(isInLake(bx,bz))continue;
 const bType=bTypes[Math.floor(Math.random()*bTypes.length)];
 const sc=.7+Math.random()*.6;
-let footprint=20*sc;
-if(bType==='manor'||bType==='mansion')footprint=36*sc;
-else if(bType==='warehouse')footprint=28*sc;
-else if(bType==='inn'||bType==='forge')footprint=24*sc;
-else if(bType==='chapel')footprint=22*sc;
+let footprint=40*sc;
+if(bType==='manor'||bType==='mansion')footprint=70*sc;
+else if(bType==='warehouse')footprint=55*sc;
+else if(bType==='inn'||bType==='forge')footprint=50*sc;
+else if(bType==='chapel')footprint=45*sc;
 if(!canPlace(bx,bz,footprint))continue;
 markPlace(bx,bz,footprint);placed++;
 const bRot=a+Math.PI+Math.random()*.4-.2;
-if(bType==='house'||bType==='shop')hut(bx,bz,bRot,sc);
-else if(bType==='tavern'){hut(bx,bz,bRot,sc*1.3);torch(bx+Math.cos(bRot)*8,bz+Math.sin(bRot)*8)}
-else if(bType==='workshop'){hut(bx,bz,bRot,sc*.9)}
+if(bType==='house'||bType==='shop'){hut(bx,bz,bRot,sc);makeEnterable(bx,bz,bType==='shop'?'shop':'house',bType==='shop'?'Shop':'House',Math.max(10+8*sc,16)*sc*4);}
+else if(bType==='tavern'){hut(bx,bz,bRot,sc*1.3);torch(bx+Math.cos(bRot)*8,bz+Math.sin(bRot)*8);makeEnterable(bx,bz,'tavern','Tavern',Math.max(10+8*sc,16)*sc*1.3*4);}
+else if(bType==='workshop'){hut(bx,bz,bRot,sc*.9);makeEnterable(bx,bz,'shop','Workshop',Math.max(10+8*sc,16)*sc*.9*4);}
 else if(bType==='warehouse'){const h=meshTerrainH(bx,bz);
 const wseed=Math.abs(Math.sin(bx*41.3+bz*67.1)*43758.5453)%1;
 const whW=(12+wseed*8)*sc,whH=(10+wseed*6)*sc,whD=(10+wseed*7)*sc;
@@ -4006,14 +4051,14 @@ const rfR=rfL.clone();rfR.position.z=bz-whD*.12;rfR.rotation.x=.42;scene.add(rfR
 // Warehouse door (large)
 const wdoor=new THREE.Mesh(new THREE.BoxGeometry(3.5*sc,5*sc,.3*sc),new MS({color:0x3a2a18,roughness:.85}));
 wdoor.position.set(bx+Math.cos(bRot)*whD/2,h+2.5*sc,bz+Math.sin(bRot)*whD/2);wdoor.rotation.y=bRot;scene.add(wdoor);
-addCircleSolid(bx,bz,Math.max(whW,whD)/2+1,h,h+whH+1)}
-else if(bType==='manor'){hut(bx,bz,bRot,sc*1.5);
+addCircleSolid(bx,bz,Math.max(whW,whD)/2+1,h,h+whH+1);makeEnterable(bx,bz,'house','Warehouse',Math.max(whW,whD)/2+5);}
+else if(bType==='manor'){hut(bx,bz,bRot,sc*1.5);makeEnterable(bx,bz,'mansion','Manor',Math.max(10+8*sc,16)*sc*1.5*4);
 for(let f=0;f<4;f++){const fa=bRot+f/4*Math.PI*2;const fx=bx+Math.cos(fa)*12*sc,fz=bz+Math.sin(fa)*12*sc;
 const fence=new THREE.Mesh(new THREE.BoxGeometry(8*sc,3,.2),mt.wd);fence.position.set(fx,meshTerrainH(fx,fz)+1.5,fz);fence.rotation.y=fa;scene.add(fence)}}
-else if(bType==='inn'){inn(bx,bz,bRot,sc);torch(bx+Math.cos(bRot)*10,bz+Math.sin(bRot)*10);torch(bx+Math.cos(bRot+Math.PI)*10,bz+Math.sin(bRot+Math.PI)*10)}
-else if(bType==='forge'){forge(bx,bz,bRot,sc)}
-else if(bType==='mansion'){mansion(bx,bz,bRot,sc)}
-else if(bType==='chapel'){chapel(bx,bz,bRot,sc)}}
+else if(bType==='inn'){inn(bx,bz,bRot,sc);torch(bx+Math.cos(bRot)*10,bz+Math.sin(bRot)*10);torch(bx+Math.cos(bRot+Math.PI)*10,bz+Math.sin(bRot+Math.PI)*10);makeEnterable(bx,bz,'inn','Inn',20);}
+else if(bType==='forge'){forge(bx,bz,bRot,sc);makeEnterable(bx,bz,'forge','Forge',20);}
+else if(bType==='mansion'){mansion(bx,bz,bRot,sc);makeEnterable(bx,bz,'mansion','Mansion',30);}
+else if(bType==='chapel'){chapel(bx,bz,bRot,sc);makeEnterable(bx,bz,'chapel','Chapel',25);}}
 // Market square at center (reserve footprint)
 markPlace(cx,cz,44);
 for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const sx=cx+Math.cos(a)*15,sz=cz+Math.sin(a)*15;
@@ -4021,7 +4066,7 @@ const sseed=Math.abs(Math.sin(sx*19.3+sz*37.7)*43758.5453)%1;
 const sW=3+sseed*3,sH=2.5+sseed*2,sD=2.5+sseed*2;
 const stall=new THREE.Mesh(new THREE.BoxGeometry(sW,sH,sD),mt.wd);stall.position.set(sx,meshTerrainH(sx,sz)+sH/2,sz);stall.rotation.y=a;scene.add(stall);addCircleSolid(sx,sz,Math.max(sW,sD)/2+1,meshTerrainH(sx,sz),meshTerrainH(sx,sz)+sH+2);
 const canopy=new THREE.Mesh(new THREE.BoxGeometry(sW+1.5,.15,sD+1.5),new MS({color:[0x8a2020,0x203a8a,0x2a6a2a,0x8a6a20,0x6a2a6a,0x2a6a6a][i],roughness:.9}));canopy.position.set(sx,meshTerrainH(sx,sz)+sH+.8,sz);canopy.rotation.y=a;scene.add(canopy)}
-const fountain=new THREE.Mesh(new THREE.CylinderGeometry(4,5,2,12),mt.st);fountain.position.set(cx,meshTerrainH(cx,cz)+1,cz);scene.add(fountain);addSolid(fountain);
+const fountain=new THREE.Mesh(new THREE.CylinderGeometry(4,5,2,12),mt.st);fountain.position.set(cx,meshTerrainH(cx,cz)+1,cz);scene.add(fountain);addCircleSolid(cx,cz,5,meshTerrainH(cx,cz),meshTerrainH(cx,cz)+4);
 const fWater=new THREE.Mesh(new THREE.CylinderGeometry(3.5,3.5,.5,12),mt.lakeMat);fWater.position.set(cx,meshTerrainH(cx,cz)+2.3,cz);scene.add(fWater);
 bonfire(cx+20,cz+20);bonfire(cx-20,cz-20);
 }
@@ -4039,7 +4084,6 @@ const segLen=wallR*2*Math.PI/wallSegs;
 const wm=new THREE.Mesh(new THREE.BoxGeometry(segLen,wallH,wallT),mt.stGoth);
 wm.position.set((Math.cos(a)+Math.cos(a2))/2*wallR,wallH/2,(Math.sin(a)+Math.sin(a2))/2*wallR);
 wm.rotation.y=-(a+a2)/2+Math.PI/2;wm.castShadow=true;g.add(wm);
-addSolid(wm);
 // Battlements on top
 for(let b=0;b<3;b++){const bOff=(b-1)*segLen/3;
 const merlon=new THREE.Mesh(new THREE.BoxGeometry(3*sc,4*sc,wallT+1),mt.stD);
@@ -4051,7 +4095,6 @@ const cseed=Math.abs(Math.sin(i*127.1+cx*31.7+cz*47.3)*43758.5453)%1;
 const tH=(45+cseed*25)*sc;const tR=(9+cseed*4)*sc;const tTopR=(8+cseed*3)*sc;
 const tSides=8+Math.floor(cseed*8);const cRoofStyle=Math.floor(cseed*3);
 const tBase=new THREE.Mesh(new THREE.CylinderGeometry(tTopR,tR+2*sc,tH,tSides),mt.stGoth);tBase.position.set(tx,tH/2,tz);tBase.castShadow=true;g.add(tBase);
-addSolid(tBase);
 if(cRoofStyle===0){const tRoof=new THREE.Mesh(new THREE.ConeGeometry(tTopR+2*sc,(14+cseed*10)*sc,tSides),mt.rfSlate);tRoof.position.set(tx,tH+(7+cseed*5)*sc,tz);tRoof.castShadow=true;g.add(tRoof)}
 else if(cRoofStyle===1){const dome=new THREE.Mesh(new THREE.SphereGeometry(tTopR+1*sc,tSides,8,0,Math.PI*2,0,Math.PI/2),mt.rfSlate);dome.position.set(tx,tH,tz);g.add(dome)}
 else{const flatR=new THREE.Mesh(new THREE.CylinderGeometry(tTopR+1*sc,tTopR+1*sc,.8*sc,tSides),mt.stD);flatR.position.set(tx,tH+.4*sc,tz);g.add(flatR)}
@@ -4064,7 +4107,6 @@ merlon.position.set(tx+Math.cos(ba)*(tTopR+.5*sc),tH+2*sc,tz+Math.sin(ba)*(tTopR
 // --- KEEP (central massive tower) ---
 const keepW=50*sc,keepD=40*sc,keepH=80*sc;
 const keep=new THREE.Mesh(new THREE.BoxGeometry(keepW,keepH,keepD),mt.stGoth);keep.position.y=keepH/2;keep.castShadow=true;g.add(keep);
-addSolid(keep);
 // Keep roof
 const keepRoof=new THREE.Mesh(new THREE.BoxGeometry(keepW+6*sc,4*sc,keepD+6*sc),mt.rfSlate);keepRoof.position.y=keepH+2*sc;keepRoof.castShadow=true;g.add(keepRoof);
 // Keep battlements
@@ -4098,9 +4140,7 @@ const wFrame=new THREE.Mesh(new THREE.BoxGeometry(3*sc,9*sc,.3),mt.stD);wFrame.p
 // --- GATEHOUSE (front entrance with working portcullis) ---
 const ghW=20*sc,ghH=35*sc,ghD=14*sc;
 const ghL=new THREE.Mesh(new THREE.BoxGeometry(ghW/2-3*sc,ghH,ghD),mt.stGoth);ghL.position.set(-ghW/4-1.5*sc,ghH/2,wallR);ghL.castShadow=true;g.add(ghL);
-addSolid(ghL);
 const ghR=ghL.clone();ghR.position.x=ghW/4+1.5*sc;g.add(ghR);
-addSolid(ghR);
 // Portcullis arch
 const ghArch=new THREE.Mesh(new THREE.BoxGeometry(7*sc,4*sc,ghD),mt.stD);ghArch.position.set(0,ghH-2*sc,wallR);g.add(ghArch);
 // Working portcullis (iron gate that can be opened)
@@ -4122,13 +4162,11 @@ doors.push({pivot:cDoorPivot,x:cx,z:cz+wallR,openAng:-Math.PI/2,cur:0});
 // Gatehouse towers
 [-1,1].forEach(s=>{const gt=new THREE.Mesh(new THREE.CylinderGeometry(7*sc,8*sc,ghH+10*sc,10),mt.stGoth);
 gt.position.set(s*12*sc,(ghH+10*sc)/2,wallR);gt.castShadow=true;g.add(gt);
-addSolid(gt);
 const gtRoof=new THREE.Mesh(new THREE.ConeGeometry(9*sc,14*sc,10),mt.rfSlate);gtRoof.position.set(s*12*sc,ghH+12*sc,wallR);g.add(gtRoof)});
 // --- INNER COURTYARD FEATURES ---
 // Great hall with interior
 const hallW=36*sc,hallH=30*sc,hallD=60*sc;
 const hall=new THREE.Mesh(new THREE.BoxGeometry(hallW,hallH,hallD),mt.stD);hall.position.set(0,hallH/2,-30*sc);hall.castShadow=true;g.add(hall);
-addSolid(hall);
 const hallRoof=new THREE.Mesh(new THREE.BoxGeometry(hallW+4*sc,3*sc,hallD+4*sc),mt.rfSlate);hallRoof.position.set(0,hallH+1.5*sc,-30*sc);g.add(hallRoof);
 // Hall door
 const hDoorW=6*sc,hDoorH=8*sc;
@@ -4915,7 +4953,7 @@ const fireflies=new THREE.Points(ffGeo,new THREE.PointsMaterial({color:0xeedd66,
 
 composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,cam));
 // Bloom at half res for glow effects (affordable now with reduced draw calls)
-const bloomPass=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.55,0.5,0.78);composer.addPass(bloomPass);
+const bloomPass=new UnrealBloomPass(new THREE.Vector2(innerWidth/2,innerHeight/2),0.4,0.4,0.85);composer.addPass(bloomPass);
 const dsGrade=new ShaderPass(DSColorGradeShader);composer.addPass(dsGrade);
 window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight)});
 initTargetRing();scene.add(targetRing);
@@ -4926,7 +4964,7 @@ log('World loaded: '+torchPositions.length+' lights, '+enemies.length+' enemies,
 console.log('INIT COMPLETE: scene children='+scene.children.length+', enemies='+enemies.length);
 
 // === GPU PERFORMANCE: Distance culling system ===
-const CULL_DIST=600;const CULL_DIST_SQ=CULL_DIST*CULL_DIST;
+const CULL_DIST=400;const CULL_DIST_SQ=CULL_DIST*CULL_DIST;
 const noCull=new Set();
 scene.traverse(c=>{
 if(c===ground||c===riverMesh||c===dustPts||c===playerGroup||c.isLight||c.isPoints||c.isInstancedMesh)noCull.add(c);
@@ -5578,7 +5616,7 @@ if(moveDir.lengthSq()<=.001){player.vx*=0.5;player.vz*=0.5;}
 // Jump physics
 {const groundY=inDungeon?-inDungeon.depth*50+2:surfaceH(player.x,player.z,player.y);
 player.vy-=.55;player.y+=player.vy;
-if(player.y<=groundY){player.y=groundY;player.vy=0;player.grounded=true}
+if(player.y<=groundY+.15){player.y=groundY+.15;player.vy=0;player.grounded=true}
 else{player.grounded=false}}
 const curReg=getReg(player.x,player.z);
 const totalLv=skillDefs.reduce((a,s)=>a+skills[s].lvl,0);
@@ -5600,8 +5638,8 @@ windmills.forEach(w=>{if(w.mesh)w.mesh.rotation.z+=.015});
 
 // GPU perf: distance cull every 4 frames, shadow cull every 20, sun follows player
 cullFrame++;
-if(cullFrame%4===0&&distanceCull)distanceCull();
-if(cullFrame%20===0&&shadowCull)shadowCull();
+if(cullFrame%2===0&&distanceCull)distanceCull();
+if(cullFrame%30===0&&shadowCull)shadowCull();
 {
 // Move sun shadow camera to follow player for tight shadow coverage
 if(!window._sunRef)window._sunRef=scene.children.find(c=>c.isDirectionalLight&&c.castShadow);
@@ -5610,6 +5648,8 @@ if(window._sunRef){window._sunRef.position.set(player.x+200,350,player.z-100);wi
 // Stamina regeneration (slower when sprinting)
 if(player.isSprinting)player.sta=Math.max(0,player.sta-0.05);
 else player.sta=Math.min(player.sta+1,player.maxSta);
+// Mana regeneration — base % of max mana per frame (not flat); consumables give burst regen
+player.poi=Math.min(player.poi+player.maxPoi*0.003,player.maxPoi);
 // Heal with A/Cross or key 3
 if((keys['3']||gpButtons.a)&&!player._healCD&&player.hp<player.maxHp){player.hp=Math.min(player.hp+40,player.maxHp);player._healCD=60;log('Healed with Estus Flask','#4c4');hitFX(player.x,player.y+6,player.z,0x44cc44)}
 if(player._healCD)player._healCD--;
@@ -5668,6 +5708,9 @@ cam.position.x+=(camX-cam.position.x)*.1;cam.position.z+=(camZ-cam.position.z)*.
 cam.lookAt(player.x,player.y+8,player.z);
 
 for(let i=enemies.length-1;i>=0;i--){let e=enemies[i];
+// Skip full AI for far-away enemies (performance: only process nearby)
+const _edx=player.x-e.mesh.position.x,_edz=player.z-e.mesh.position.z,_eDist2=_edx*_edx+_edz*_edz;
+if(_eDist2>250000){if(e.hp<=0){scene.remove(e.mesh);enemies.splice(i,1);if(lockOn===e)lockOn=null;const rt=e.type,rx=e.x,rz=e.z,rlv=getReg(rx,rz).lv;setTimeout(()=>{if(scene)spawnE(rt,rx+(Math.random()-.5)*30,rz+(Math.random()-.5)*30,rlv)},15000)}continue;}
 // === STATUS EFFECTS PROCESSING ===
 // Serpent Sting DoT
 if(e.serpentSting&&e.stingT>0){e.stingT--;if(e.stingT%60===0){e.hp-=e.stingDmg||3;hitFX(e.mesh.position.x,e.mesh.position.y+6,e.mesh.position.z,0x00aa44);}if(e.stingT<=0)e.serpentSting=false;}
@@ -6040,7 +6083,7 @@ torchPositions.forEach(t=>{if(t.mesh){t.mesh.position.y+=Math.sin(time*6+t.ph)*.
 
 if(dustPts){const dp=dustPts.geometry.attributes.position;for(let i=0;i<dp.count;i++){let y=dp.getY(i);y+=.012;if(y>55)y=5;dp.setY(i,y)}dp.needsUpdate=true;dustPts.position.set(player.x,0,player.z)}
 
-if(riverMesh){const wp=riverMesh.geometry.attributes.position;for(let i=0;i<wp.count;i++){wp.setZ(i,Math.sin(wp.getX(i)*.3+time*2)*.5+Math.cos(wp.getY(i)*.2+time*1.4)*.3)}wp.needsUpdate=true;riverMesh.geometry.computeVertexNormals()}
+if(riverMesh&&cullFrame%3===0){const wp=riverMesh.geometry.attributes.position;for(let i=0;i<wp.count;i++){wp.setZ(i,Math.sin(wp.getX(i)*.3+time*2)*.5+Math.cos(wp.getY(i)*.2+time*1.4)*.3)}wp.needsUpdate=true}
 
 if(keys['f']||gpButtons.lb){const nT=Math.hypot(player.x+100,player.z-50)<50;const nR=Math.hypot(player.x+70,player.z+80)<40;
 if(nT){skills.Woodcutting.xp+=18;hitFX(player.x,player.y+8,player.z,0x44aa22);log('Woodcutting +18xp','#6a4');updateXpBar()}
@@ -6111,17 +6154,21 @@ const cLv=Math.floor((skills.Attack.lvl+skills.Strength.lvl+skills.Defence.lvl+s
 const pfLv=document.getElementById('pf-level');if(pfLv)pfLv.textContent='Lv '+cLv;
 // XP bar update
 updateXpBar()
-// Action bar cooldowns
+drawMinimap();}
+
+// Action bar cooldowns — runs every frame for instant visual feedback
+{const _abCDMap={attack:'atkCD',heal:'_estusCD',parry:'_parryCD',shoot:'_shootCD',spec_atk:'_specCD',
+heroic_strike:'_heroicCD',cleave:'_cleaveCD',whirlwind:'_whirlCD',thunder_clap:'_thunderCD',battle_shout:'_shoutCD',execute:'_executeCD',slam:'_slamCD',overpower:'_overpowerCD',shield_slam:'_shieldCD',recklessness:'_reckCD',
+judgment:'_judgmentCD',crusader_strike:'_crusaderCD',divine_protection:'_divineProtCD',consecration:'_consecrateCD',holy_light:'_holyLightCD',flash_light:'_flashLightCD',blessing_might:'_blessingCD',divine_shield:'_bubbleCD',hammer_justice:'_hammerCD',exorcism:'_exorcismCD',
+fireball:'_fireballCD',frostbolt:'_frostboltCD',arcane_missiles:'_missilesCD',blizzard:'_blizzardCD',sorc_fire_blast:'_fireblastCD',pyroblast:'_pyroCD',frost_nova:'_novaCD',blink:'_blinkCD',polymorph:'_polyCD',counterspell:'_counterCD',
+steady_shot:'_steadyCD',aimed_shot:'_aimedCD',multi_shot:'_multiCD',arcane_shot:'_arcaneCD',serpent_sting:'_stingCD',hunters_mark:'_markCD',distracting_shot:'_distractCD',rapid_fire:'_rapidCD',feign_death:'_feignCD',explosive_trap:'_trapCD',
+first_aid:'_aidCD',bandage:'_bandageCD',sharpen_weapon:'_sharpenCD',mining_strike:'_mineStrikeCD',lumber_up:'_lumberCD',cooking_fire:'_campfireCD',fishing_cast:'_fishCastCD',runecraft_focus:'_focusCD',sneak_attack:'_sneakCD',agility_roll:'_agiRollCD'};
 const abSlots=document.querySelectorAll('.ab-slot');
 abSlots.forEach(s=>{const a=s.dataset.action;let cd=false;
-if(a==='attack')cd=player.atkCD>0;
-else if(a==='heal')cd=player._estusCD>0;
-else if(a==='parry')cd=player._parryCD>0;
-else if(a==='roll')cd=player.rolling;
-else if(a==='shoot')cd=player._shootCD>0;
+if(a==='roll')cd=player.rolling;
 else if(a==='dash_left'||a==='dash_right')cd=player.dashing;
-if(cd)s.classList.add('on-cd');else s.classList.remove('on-cd')});
-drawMinimap()}
+else if(_abCDMap[a])cd=player[_abCDMap[a]]>0;
+if(cd)s.classList.add('on-cd');else s.classList.remove('on-cd')});}
 
 const hp=Math.max(0,player.hp/player.maxHp*100),st=player.sta/player.maxSta*100,po=player.poi/player.maxPoi*100;
 document.getElementById('hpB').style.width=hp+'%';document.getElementById('stB').style.width=st+'%';document.getElementById('poB').style.width=po+'%';
@@ -6185,8 +6232,8 @@ const closeBtn=document.createElement('div');closeBtn.style.cssText='padding:6px
 closeBtn.textContent='Close (T)';closeBtn.onclick=()=>{showTeleport=false;tp.style.display='none'};tp.appendChild(closeBtn);
 document.body.appendChild(tp)}
 else{tp.style.display=showTeleport?'block':'none'}}
-if(k==='p'){const ab=document.getElementById('ability-browser');ab.classList.toggle('active')}
-if(k==='o'){const sb=document.getElementById('spell-book');sb.classList.toggle('active')}
+if(k==='p'){const ab=document.getElementById('ability-browser');const sb=document.getElementById('spell-book');sb.classList.remove('active');ab.classList.toggle('active');if(ab.classList.contains('active')){buildAbCats();buildAbList()}}
+if(k==='o'){const sb=document.getElementById('spell-book');const ab=document.getElementById('ability-browser');ab.classList.remove('active');sb.classList.toggle('active');if(sb.classList.contains('active')){buildSbCats();buildSbList()}}
 if(k==='m'){const wm=document.getElementById('world-map');if(wm.classList.contains('active')){wm.classList.remove('active')}else{wm.classList.add('active');drawWorldMap()}}
 if(k==='insert'){e.preventDefault();toggleEditorMode()}
 if(k==='escape'){
