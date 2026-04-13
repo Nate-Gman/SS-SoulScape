@@ -305,19 +305,21 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div id="locbar">Lv 3 &#183; Lumbridge</div>
 <!-- WOW ACTION BAR -->
 <div id="action-bar"><div id="ab-wrap">
-<div class="ab-slot" data-action="attack" title="Attack"><span class="ab-ico">&#9876;</span><span class="ab-name">Attack</span><span class="ab-key">1</span><div class="ab-cd"></div></div>
-<div class="ab-slot" data-action="parry" title="Parry/Block"><span class="ab-ico">&#128737;</span><span class="ab-name">Parry</span><span class="ab-key">2</span><div class="ab-cd"></div></div>
-<div class="ab-slot" data-action="heal" title="Estus Flask"><span class="ab-ico">&#127863;</span><span class="ab-name">Heal</span><span class="ab-key">3</span><div class="ab-cd"></div></div>
+<div class="ab-slot" data-action="attack" title="Attack (1)"><span class="ab-ico">&#9876;</span><span class="ab-name">Attack</span><span class="ab-key">1</span><div class="ab-cd"></div></div>
+<div class="ab-slot" data-action="parry" title="Parry/Block (2)"><span class="ab-ico">&#128737;</span><span class="ab-name">Parry</span><span class="ab-key">2</span><div class="ab-cd"></div></div>
+<div class="ab-slot" data-action="heal" title="Estus Flask (3)"><span class="ab-ico">&#127863;</span><span class="ab-name">Heal</span><span class="ab-key">3</span><div class="ab-cd"></div></div>
 <div class="ab-slot" data-action="shoot" title="Shoot Arrow (4)"><span class="ab-ico">&#127993;</span><span class="ab-name">Shoot</span><span class="ab-key">4</span><div class="ab-cd"></div></div>
-<div class="ab-slot" data-action="prayer" title="Prayer (Q)"><span class="ab-ico">&#10013;</span><span class="ab-name">Prayer</span><span class="ab-key">Q</span><div class="ab-cd"></div></div>
-<div class="ab-slot" data-action="gather" title="Gather (G)"><span class="ab-ico">&#9935;</span><span class="ab-name">Gather</span><span class="ab-key">G</span><div class="ab-cd"></div></div>
-<div class="ab-slot" data-action="jump" title="Jump (Z)"><span class="ab-ico">&#11014;</span><span class="ab-name">Jump</span><span class="ab-key">Z</span><div class="ab-cd"></div></div>
-<div class="ab-slot" data-action="roll" title="Dodge Roll (W/A/S/D + Space for directional)"><span class="ab-ico">&#128168;</span><span class="ab-name">Roll</span><span class="ab-key">Spc</span><div class="ab-cd"></div></div>
-<div class="ab-slot" data-action="lock" title="Lock-On Toggle (F) / Cycle (Tab)"><span class="ab-ico">&#127919;</span><span class="ab-name">Lock</span><span class="ab-key">F</span><div class="ab-cd"></div></div>
-<div class="ab-slot" data-action="map" title="World Map"><span class="ab-ico">&#128506;</span><span class="ab-name">Map</span><span class="ab-key">M</span><div class="ab-cd"></div></div>
-<div class="ab-slot" data-action="inv" title="Inventory (I)"><span class="ab-ico">&#127890;</span><span class="ab-name">Bag</span><span class="ab-key">I</span><div class="ab-cd"></div></div>
-<div class="ab-slot" data-action="skills" title="Skills (K)"><span class="ab-ico">&#9733;</span><span class="ab-name">Skills</span><span class="ab-key">K</span><div class="ab-cd"></div></div>
-<div class="ab-slot" data-action="save" title="Quick Save"><span class="ab-ico">&#128190;</span><span class="ab-name">Save</span><span class="ab-key">F5</span><div class="ab-cd"></div></div>
+<div class="ab-slot" data-action="prayer" title="Prayer (5)"><span class="ab-ico">&#10013;</span><span class="ab-name">Prayer</span><span class="ab-key">5</span><div class="ab-cd"></div></div>
+<div class="ab-slot" data-action="gather" title="Gather (6)"><span class="ab-ico">&#9935;</span><span class="ab-name">Gather</span><span class="ab-key">6</span><div class="ab-cd"></div></div>
+<div class="ab-slot" data-action="roll" title="Dodge Roll (7)"><span class="ab-ico">&#128168;</span><span class="ab-name">Roll</span><span class="ab-key">7</span><div class="ab-cd"></div></div>
+<div class="ab-slot" data-action="lock" title="Lock-On (8)"><span class="ab-ico">&#127919;</span><span class="ab-name">Lock</span><span class="ab-key">8</span><div class="ab-cd"></div></div>
+<div class="ab-slot" data-action="map" title="World Map (9)"><span class="ab-ico">&#128506;</span><span class="ab-name">Map</span><span class="ab-key">9</span><div class="ab-cd"></div></div>
+<div class="ab-slot" data-action="inv" title="Inventory (0)"><span class="ab-ico">&#127890;</span><span class="ab-name">Bag</span><span class="ab-key">10</span><div class="ab-cd"></div></div>
+<div class="ab-slot" data-action="skills" title="Skills (-)"><span class="ab-ico">&#9733;</span><span class="ab-name">Skills</span><span class="ab-key">11</span><div class="ab-cd"></div></div>
+<div class="ab-slot" data-action="save" title="Quick Save (=)"><span class="ab-ico">&#128190;</span><span class="ab-name">Save</span><span class="ab-key">12</span><div class="ab-cd"></div></div>
+<!-- Dash abilities (Q/E) - hidden from bar but active via keys -->
+<div class="ab-slot" data-action="dash_left" style="display:none"></div>
+<div class="ab-slot" data-action="dash_right" style="display:none"></div>
 </div></div>
 <!-- XP BAR -->
 <div id="xp-bar-wrap"><div id="xp-bar-bg"><div id="xp-bar-fill"></div></div><div id="xp-bar-text">Combat Lv 1 (0%) - 0/100 XP</div></div>
@@ -413,7 +415,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="chat-tab">Clan</div>
 </div>
 </div>
-<div id="controls"><b style="color:#ffd700">ESC</b> Options &#183; WASD Move &#183; <b style="color:#ffd700">Z</b> Jump (Y/△) &#183; <b style="color:#ffd700">L-Shift</b> Sprint (L3) &#183; WASD+Space Roll (B+Stick) &#183; <b style="color:#ffd700">1</b> Atk (RT) &#183; 2 Parry (RB) &#183; 3 Heal (A) &#183; E Pickup (X) &#183; <b style="color:#ffd700">F</b> Lock-On (R3) &#183; Tab Cycle (L3) &#183; G Gather &#183; <b style="color:#ffd700">P</b> Abilities &#183; I Inv (Start) &#183; M Map &#183; <b style="color:#ffd700">U</b> Dungeon</div>
+<div id="controls"><b style="color:#ffd700">ESC</b> Options &#183; WASD Move &#183; <b style="color:#ffd700">Q/E</b> Dash Left/Right &#183; <b style="color:#ffd700">L-Shift</b> Sprint (L3) &#183; <b style="color:#ffd700">Space</b> Jump/Roll &#183; <b style="color:#ffd700">1-4</b> Combat &#183; <b style="color:#ffd700">5</b> Prayer &#183; <b style="color:#ffd700">6</b> Gather &#183; <b style="color:#ffd700">7</b> Roll &#183; <b style="color:#ffd700">8</b> Lock &#183; <b style="color:#ffd700">9</b> Map &#183; <b style="color:#ffd700">0</b> Inv &#183; <b style="color:#ffd700">-</b> Skills &#183; <b style="color:#ffd700">=</b> Save &#183; F Lock-On &#183; Tab Cycle &#183; P Abilities &#183; Insert Editor</div>
 <div id="target-frame"><div id="tf-icon">👹</div><div id="tf-info"><div><span id="tf-name">Enemy</span><span id="tf-lv">Lv 1</span></div><div id="tf-hp-bg"><div id="tf-hp-fill" style="width:100%"></div></div><div id="tf-hp-text">100/100</div></div></div>
 <div id="world-map"><div id="wm-title">WORLD MAP</div><canvas id="wm-canvas" width="900" height="700"></canvas><div id="wm-coords">Player: 0, 0</div><div id="wm-close">&times;</div></div>
 <canvas id="loot-label-canvas"></canvas>
@@ -428,6 +430,95 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 
 <!-- === SPELL BOOK === -->
 <div id="spell-book"><div id="sb-header"><h3>SPELL BOOK</h3><span id="sb-close">&times;</span></div><div id="sb-cats"></div><div id="sb-list"></div><div id="sb-hint">Drag a spell onto an action bar slot to assign it. Press O to close.</div></div>
+
+<!-- === EDITOR MODE UI === -->
+<div id="editor-mode" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:transparent;z-index:9999;pointer-events:none;">
+<!-- Editor Panel - only UI element blocks clicks -->
+<div id="editor-panel" style="position:absolute;top:10px;left:10px;width:360px;max-height:90vh;background:rgba(20,15,10,0.98);border:2px solid #aa8833;border-radius:8px;padding:12px;overflow-y:auto;color:#ddd;font-family:monospace;font-size:11px;pointer-events:auto;box-shadow:0 4px 20px rgba(0,0,0,0.8);">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid #554422;padding-bottom:8px;">
+<h3 style="margin:0;color:#ffd700;font-size:14px;">🛠️ EDITOR MODE</h3>
+<span style="color:#887;font-size:10px;">Insert to toggle</span>
+</div>
+<!-- Camera Controls -->
+<div style="margin-bottom:12px;padding:8px;background:rgba(60,45,20,0.6);border-radius:4px;">
+<div style="color:#aa8833;margin-bottom:6px;font-size:10px;text-transform:uppercase;">Camera View</div>
+<div style="display:flex;gap:4px;">
+<button onclick="editorSetCamera('normal')" id="btn-cam-normal" style="flex:1;background:#554422;color:#ffd700;border:1px solid #aa8833;padding:4px;cursor:pointer;border-radius:3px;font-size:10px;">🎮 Normal</button>
+<button onclick="editorSetCamera('bird')" id="btn-cam-bird" style="flex:1;background:#332211;color:#aa8833;border:1px solid #554422;padding:4px;cursor:pointer;border-radius:3px;font-size:10px;">🦅 Bird's Eye</button>
+<button onclick="editorSetCamera('top')" id="btn-cam-top" style="flex:1;background:#332211;color:#aa8833;border:1px solid #554422;padding:4px;cursor:pointer;border-radius:3px;font-size:10px;">📐 Top Down</button>
+</div>
+</div>
+<!-- Object List -->
+<div style="margin-bottom:12px;">
+<div style="color:#aa8833;margin-bottom:6px;font-size:10px;text-transform:uppercase;">Selected Object</div>
+<div id="editor-selected-info" style="background:rgba(40,30,20,0.8);padding:8px;border-radius:4px;font-size:10px;">
+<span style="color:#887;">Click an object to select</span>
+</div>
+<div id="editor-controls" style="display:none;margin-top:8px;">
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;">
+<button onclick="editorMove('up')" style="background:#443322;color:#ffd700;border:1px solid #aa8833;padding:6px;cursor:pointer;border-radius:3px;font-size:10px;">↑ Y+</button>
+<button onclick="editorFocusSelected()" style="background:#224455;color:#8bf;border:1px solid #458;padding:6px;cursor:pointer;border-radius:3px;font-size:10px;">👁 Focus</button>
+<button onclick="editorMove('down')" style="background:#443322;color:#ffd700;border:1px solid #aa8833;padding:6px;cursor:pointer;border-radius:3px;font-size:10px;">↓ Y-</button>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:4px;">
+<button onclick="editorMove('left')" style="background:#443322;color:#ffd700;border:1px solid #aa8833;padding:6px;cursor:pointer;border-radius:3px;font-size:10px;">← X-</button>
+<button onclick="editorMove('forward')" style="background:#443322;color:#ffd700;border:1px solid #aa8833;padding:6px;cursor:pointer;border-radius:3px;font-size:10px;">↑ Z-</button>
+<button onclick="editorMove('right')" style="background:#443322;color:#ffd700;border:1px solid #aa8833;padding:6px;cursor:pointer;border-radius:3px;font-size:10px;">X+ →</button>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:4px;">
+<button onclick="editorMove('back')" style="background:#443322;color:#ffd700;border:1px solid #aa8833;padding:6px;cursor:pointer;border-radius:3px;font-size:10px;">↓ Z+</button>
+<button onclick="editorDelete()" style="background:#442222;color:#ff4444;border:1px solid #aa3333;padding:6px;cursor:pointer;border-radius:3px;font-size:10px;">🗑 Delete</button>
+<button onclick="editorSpawnAtSelected()" style="background:#335522;color:#8f8;border:1px solid #5a5;padding:6px;cursor:pointer;border-radius:3px;font-size:10px;">📍 Spawn Here</button>
+</div>
+<div style="margin-top:6px;padding:4px;background:rgba(50,40,30,0.8);border-radius:3px;font-size:9px;color:#aa8833;">
+💡 <b>Drag Mode:</b> Hold <b>Shift</b> and drag mouse to move selected object
+</div>
+</div>
+</div>
+<!-- Spawn Section -->
+<div style="margin-bottom:12px;">
+<div style="color:#aa8833;margin-bottom:6px;font-size:10px;text-transform:uppercase;">Spawn Object</div>
+<div style="display:flex;gap:4px;margin-bottom:6px;">
+<button onclick="setEditorType('enemy')" id="btn-enemy" class="editor-type-btn" style="flex:1;background:#554422;color:#ffd700;border:2px solid #aa8833;padding:6px;cursor:pointer;border-radius:4px;font-size:11px;font-weight:bold;">Enemy</button>
+<button onclick="setEditorType('building')" id="btn-building" class="editor-type-btn" style="flex:1;background:#332211;color:#aa8833;border:1px solid #554422;padding:6px;cursor:pointer;border-radius:4px;font-size:11px;">Building</button>
+<button onclick="setEditorType('loot')" id="btn-loot" class="editor-type-btn" style="flex:1;background:#332211;color:#aa8833;border:1px solid #554422;padding:6px;cursor:pointer;border-radius:4px;font-size:11px;">Loot</button>
+</div>
+<select id="editor-spawn-select" style="width:100%;background:#221100;color:#ffd700;border:2px solid #554422;padding:6px;border-radius:4px;font-size:11px;margin-bottom:6px;cursor:pointer;">
+</select>
+<button onclick="editorSpawn()" style="width:100%;background:#335522;color:#8f8;border:2px solid #5a5;padding:8px;cursor:pointer;border-radius:4px;font-size:12px;font-weight:bold;">📍 Spawn at Player Position</button>
+</div>
+<!-- World Objects List -->
+<div style="margin-bottom:12px;">
+<div style="color:#aa8833;margin-bottom:6px;font-size:10px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;">
+<span>World Objects (<span id="editor-count">0</span>)</span>
+<button onclick="editorRefreshList()" style="background:#443322;color:#ffd700;border:1px solid #aa8833;padding:4px 8px;cursor:pointer;border-radius:3px;font-size:9px;">Refresh</button>
+</div>
+<div id="editor-object-list" style="background:rgba(40,30,20,0.8);padding:6px;border-radius:4px;font-size:10px;max-height:200px;overflow-y:auto;border:1px solid #554422;">
+<span style="color:#665;">No objects loaded...</span>
+</div>
+</div>
+<!-- Snap & Save -->
+<div style="border-top:1px solid #554422;padding-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+<button onclick="editorSnapToggle()" id="btn-snap" style="background:#332211;color:#887;border:2px solid #554422;padding:6px 12px;cursor:pointer;border-radius:4px;font-size:10px;font-weight:bold;">📐 Snap: OFF</button>
+<button onclick="editorSaveWorld()" style="background:#335522;color:#8f8;border:2px solid #5a5;padding:6px 12px;cursor:pointer;border-radius:4px;font-size:10px;font-weight:bold;">💾 Save World</button>
+<button onclick="editorLoadWorld()" style="background:#443322;color:#ffd700;border:2px solid #aa8833;padding:6px 12px;cursor:pointer;border-radius:4px;font-size:10px;font-weight:bold;">📂 Load World</button>
+<button onclick="editorExport()" style="background:#224455;color:#8bf;border:2px solid #458;padding:6px 12px;cursor:pointer;border-radius:4px;font-size:10px;font-weight:bold;">📤 Export</button>
+</div>
+<div style="margin-top:10px;padding:8px;background:rgba(50,40,20,0.9);border-radius:4px;font-size:9px;color:#aa8833;line-height:1.5;border:1px solid #554422;">
+<b style="color:#ffd700;">📖 Editor Controls:</b><br>
+• <b>Click</b> object to select & focus camera<br>
+• <b>Shift+Drag</b> to move selected object<br>
+• <b>Arrow buttons</b> for precise movement<br>
+• <b>WASD</b> moves player, <b>Scroll</b> zooms<br>
+• Use <b>Bird's Eye</b> view for easy placement
+</div>
+</div>
+<!-- Visual indicator when editor active -->
+<div id="editor-cursor" style="position:fixed;top:50%;left:50%;width:24px;height:24px;transform:translate(-50%,-50%);pointer-events:none;z-index:10000;display:none;">
+<div style="width:2px;height:24px;background:#ffd700;position:absolute;left:11px;top:0;box-shadow:0 0 4px #000;"></div>
+<div style="width:24px;height:2px;background:#ffd700;position:absolute;left:0;top:11px;box-shadow:0 0 4px #000;"></div>
+</div>
+</div>
 
 <!-- === ESC PAUSE / OPTIONS MENU === -->
 <div id="esc-menu">
@@ -664,6 +755,9 @@ if(u.slot)return{desc:'Equippable gear — '+u.slot+' ['+u.uid+']',stats:'ATK +'
 if(u.atk||u.def||u.str)return{desc:'Item ['+u.uid+']',stats:'ATK +'+u.atk+' DEF +'+u.def+' STR +'+u.str,use:''}}
 const sl=typeof specialLoot!=='undefined'?specialLoot.find(l=>l.name===name):null;
 if(sl)return{desc:'Equippable gear — '+sl.slot,stats:'ATK +'+sl.atk+' DEF +'+sl.def+' STR +'+sl.str,use:'Click to equip'};
+// Check name-based gear detection
+const gearInfo=getGearSlotFromName(name);
+if(gearInfo)return{desc:'Equippable gear — '+gearInfo.slot,stats:'ATK +'+gearInfo.atk+' DEF +'+gearInfo.def+' STR +'+gearInfo.str,use:'Click to equip'};
 if(typeof skillItems!=='undefined'&&skillItems[name]){const sk=skillItems[name];const healInfo=sk.heal?'Heal '+sk.heal+' HP':'';return{desc:sk.skill+' resource'+(sk.heal?' — Food item':''),stats:healInfo+' +'+(sk.xp||10)+' '+sk.skill+' XP',use:sk.heal?'Click to eat and heal':'Click to use'}}
 if(name.indexOf('Oinscay')>=0)return{desc:'Currency',stats:'',use:'Gold coins'};
 if(name.indexOf('Onesbay')>=0)return{desc:'Prayer item — bury for XP',stats:'',use:'Click to bury'};
@@ -688,6 +782,31 @@ const ctxEquip=document.getElementById('ctx-equip');
 const ctxDrop=document.getElementById('ctx-drop');
 let ctxSlotIndex=null;
 function hideContextMenu(){ctxMenu.style.display='none';ctxSlotIndex=null}
+function getGearSlotFromName(name){
+const n=name.toLowerCase();
+// Helmets
+if(n.includes('helm')||n.includes('coif')||n.includes('hat')||n.includes('hood')||n.includes('cowl'))return{slot:'Helm',atk:0,def:3,str:0};
+// Chest
+if(n.includes('platebody')||n.includes('chainbody')||n.includes('robe top')||n.includes('shirt')||n.includes('chest'))return{slot:'Chest',atk:0,def:5,str:0};
+// Legs
+if(n.includes('platelegs')||n.includes('plateskirt')||n.includes('chaps')||n.includes('robe bottom')||n.includes('tassets')||n.includes('legs'))return{slot:'Legs',atk:0,def:4,str:0};
+// Weapon
+if(n.includes('sword')||n.includes('scimitar')||n.includes('dagger')||n.includes('mace')||n.includes('battleaxe')||n.includes('halberd')||n.includes('spear')||n.includes('whip')||n.includes('claws'))return{slot:'Weapon',atk:5,def:0,str:3};
+// Shield
+if(n.includes('shield')||n.includes('defender')||n.includes('buckler'))return{slot:'Shield',atk:0,def:5,str:0};
+// Boots
+if(n.includes('boots')||n.includes('shoes')||n.includes('sandals'))return{slot:'Boots',atk:0,def:1,str:0};
+// Gloves
+if(n.includes('gloves')||n.includes('gauntlets')||n.includes('vambraces')||n.includes('bracelet'))return{slot:'Gloves',atk:0,def:1,str:0};
+// Ring
+if(n.includes('ring')||n.includes('seers')||n.includes('warrior')||n.includes('archers'))return{slot:'Ring',atk:0,def:0,str:0};
+// Offhand
+if(n.includes('offhand')||n.includes('orb')||n.includes('book')||n.includes('torch'))return{slot:'OffHand',atk:0,def:2,str:0};
+// Cape
+if(n.includes('cape')||n.includes('cloak'))return{slot:'Cape',atk:0,def:1,str:0};
+// Ammo
+if(n.includes('arrow')||n.includes('bolt')||n.includes('dart')||n.includes('knife')||n.includes('throwing'))return{slot:'Ammo',atk:2,def:0,str:0};
+return null}
 function equipItem(index){
 const raw=inventory[index];if(!raw)return;
 const itemName=typeof raw==='string'?raw:raw.name;const itemUID=typeof raw==='object'?raw.uid:null;
@@ -704,6 +823,12 @@ if(sl){const old=equipped[sl.slot];equipped[sl.slot]={name:sl.name,atk:sl.atk,de
 inventory.splice(index,1);
 if(old&&old.name!=='None')inventory.push({name:old.name,uid:null});
 log('Equipped '+sl.name+' [ATK+'+sl.atk+' DEF+'+sl.def+' STR+'+sl.str+']','#0ff');updateInvUI();updateEqUI();return true}
+// Check name-based gear detection
+const gearInfo=getGearSlotFromName(itemName);
+if(gearInfo){const old=equipped[gearInfo.slot];equipped[gearInfo.slot]={name:itemName,atk:gearInfo.atk,def:gearInfo.def,str:gearInfo.str};
+inventory.splice(index,1);
+if(old&&old.name!=='None')inventory.push({name:old.name,uid:null});
+log('Equipped '+itemName+' [ATK+'+gearInfo.atk+' DEF+'+gearInfo.def+' STR+'+gearInfo.str+']','#0ff');updateInvUI();updateEqUI();return true}
 return false}
 function dropItem(index){
 const raw=inventory[index];if(!raw)return;
@@ -733,7 +858,7 @@ el.onmouseleave=hideTooltip;
 el.onmousemove=(ev)=>{const x=Math.min(ev.clientX+12,innerWidth-270);const y=Math.max(ev.clientY-80,8);ttEl.style.left=x+'px';ttEl.style.top=y+'px'};
 // Right-click context menu
 el.oncontextmenu=(ev)=>{ev.preventDefault();ctxSlotIndex=i;
-const isGear=(itemUID&&typeof itemDB!=='undefined'&&itemDB[itemUID]&&itemDB[itemUID].slot)||(typeof specialLoot!=='undefined'&&specialLoot.find(l=>l.name===itemName));
+const isGear=(itemUID&&typeof itemDB!=='undefined'&&itemDB[itemUID]&&itemDB[itemUID].slot)||(typeof specialLoot!=='undefined'&&specialLoot.find(l=>l.name===itemName))||getGearSlotFromName(itemName);
 ctxEquip.style.display=isGear?'block':'none';
 const x=Math.min(ev.clientX,innerWidth-140);const y=Math.min(ev.clientY,innerHeight-60);
 ctxMenu.style.left=x+'px';ctxMenu.style.top=y+'px';ctxMenu.style.display='block';};
@@ -751,6 +876,12 @@ if(sl){const old=equipped[sl.slot];equipped[sl.slot]={name:sl.name,atk:sl.atk,de
 inventory.splice(i,1);
 if(old&&old.name!=='None')inventory.push({name:old.name,uid:null});
 log('Equipped '+sl.name+' [ATK+'+sl.atk+' DEF+'+sl.def+' STR+'+sl.str+']','#0ff');hideTooltip();updateInvUI();updateEqUI();return}
+// Check name-based gear detection
+const gearInfo=getGearSlotFromName(itemName);
+if(gearInfo){const old=equipped[gearInfo.slot];equipped[gearInfo.slot]={name:itemName,atk:gearInfo.atk,def:gearInfo.def,str:gearInfo.str};
+inventory.splice(i,1);
+if(old&&old.name!=='None')inventory.push({name:old.name,uid:null});
+log('Equipped '+itemName+' [ATK+'+gearInfo.atk+' DEF+'+gearInfo.def+' STR+'+gearInfo.str+']','#0ff');hideTooltip();updateInvUI();updateEqUI();return}
 if(typeof skillItems!=='undefined'&&skillItems[itemName]){const sk=skillItems[itemName];inventory.splice(i,1);
 // If food item with heal, restore HP
 if(sk.heal&&player.hp<player.maxHp){player.hp=Math.min(player.hp+sk.heal,player.maxHp);hitFX(player.x,player.y+6,player.z,0x44cc44);log('Ate '+itemName+' +'+sk.heal+' HP','#4c4');}
@@ -790,15 +921,17 @@ const allAbilities=[
 {id:'parry',name:'Parry',ico:'🛡',cat:'Combat',desc:'Block/riposte',key:'2'},
 {id:'heal',name:'Heal',ico:'🍷',cat:'Combat',desc:'Estus Flask heal',key:'3'},
 {id:'bones',name:'Bury Bones',ico:'🦴',cat:'Prayer',desc:'Bury bones for XP',key:'4'},
-{id:'prayer',name:'Prayer',ico:'✝',cat:'Prayer',desc:'Open prayer tab',key:'Q'},
-{id:'gather',name:'Gather',ico:'⛏',cat:'Skilling',desc:'Gather resources',key:'F'},
-{id:'roll',name:'Roll',ico:'💨',cat:'Combat',desc:'Dodge roll',key:'Spc'},
-{id:'lock',name:'Lock On',ico:'🎯',cat:'Combat',desc:'Cycle target lock',key:'Tab'},
-{id:'map',name:'Map',ico:'🗺',cat:'Utility',desc:'World map',key:'M'},
-{id:'inv',name:'Inventory',ico:'🎒',cat:'Utility',desc:'Open inventory',key:'I'},
-{id:'skills',name:'Skills',ico:'⭐',cat:'Utility',desc:'Open skills',key:'K'},
-{id:'save',name:'Save',ico:'💾',cat:'Utility',desc:'Quick save',key:'F5'},
+{id:'prayer',name:'Prayer',ico:'✝',cat:'Prayer',desc:'Open prayer tab',key:'5'},
+{id:'gather',name:'Gather',ico:'⛏',cat:'Skilling',desc:'Gather resources',key:'6'},
+{id:'roll',name:'Roll',ico:'💨',cat:'Combat',desc:'Dodge roll',key:'7'},
+{id:'lock',name:'Lock On',ico:'🎯',cat:'Combat',desc:'Cycle target lock',key:'8'},
+{id:'map',name:'Map',ico:'🗺',cat:'Utility',desc:'World map',key:'9'},
+{id:'inv',name:'Inventory',ico:'🎒',cat:'Utility',desc:'Open inventory',key:'10'},
+{id:'skills',name:'Skills',ico:'⭐',cat:'Utility',desc:'Open skills',key:'11'},
+{id:'save',name:'Save',ico:'💾',cat:'Utility',desc:'Quick save',key:'12'},
 {id:'jump',name:'Jump',ico:'⬆',cat:'Combat',desc:'Jump',key:'Z'},
+{id:'dash_left',name:'Dash Left',ico:'⬅',cat:'Combat',desc:'Quick dash left',key:'Q'},
+{id:'dash_right',name:'Dash Right',ico:'➡',cat:'Combat',desc:'Quick dash right',key:'E'},
 {id:'teleport',name:'Teleport',ico:'⚡',cat:'Magic',desc:'Open teleport menu',key:'T'},
 {id:'autoloot',name:'Auto-Loot',ico:'💰',cat:'Utility',desc:'Toggle auto-loot',key:'L'},
 {id:'wind_strike',name:'Wind Strike',ico:'🌬',cat:'Magic',desc:'Lv1 wind spell',key:''},
@@ -833,7 +966,62 @@ const allAbilities=[
 {id:'mine',name:'Mine',ico:'⛏',cat:'Skilling',desc:'Mine rocks',key:''},
 {id:'smith',name:'Smith',ico:'🔨',cat:'Skilling',desc:'Smith bars at anvil',key:''},
 {id:'craft',name:'Craft',ico:'✂',cat:'Skilling',desc:'Craft items',key:''},
-{id:'fletch',name:'Fletch',ico:'🏹',cat:'Skilling',desc:'Fletch bows/arrows',key:''}
+{id:'fletch',name:'Fletch',ico:'🏹',cat:'Skilling',desc:'Fletch bows/arrows',key:''},
+// === WARRIOR ABILITIES (10) ===
+{id:'heroic_strike',name:'Heroic Strike',ico:'⚔',cat:'Combat',desc:'Warrior: Powerful melee strike',key:''},
+{id:'cleave',name:'Cleave',ico:'🪓',cat:'Combat',desc:'Warrior: Attack multiple enemies',key:''},
+{id:'whirlwind',name:'Whirlwind',ico:'🌪',cat:'Combat',desc:'Warrior: Spinning blade attack',key:''},
+{id:'thunder_clap',name:'Thunder Clap',ico:'⛈',cat:'Combat',desc:'Warrior: AoE thunder damage',key:''},
+{id:'battle_shout',name:'Battle Shout',ico:'📢',cat:'Combat',desc:'Warrior: Boost attack power',key:''},
+{id:'execute',name:'Execute',ico:'💀',cat:'Combat',desc:'Warrior: Finishing blow',key:''},
+{id:'slam',name:'Slam',ico:'🔨',cat:'Combat',desc:'Warrior: Heavy weapon slam',key:''},
+{id:'overpower',name:'Overpower',ico:'💪',cat:'Combat',desc:'Warrior: Counter attack',key:''},
+{id:'shield_slam',name:'Shield Slam',ico:'🛡',cat:'Combat',desc:'Warrior: Shield bash attack',key:''},
+{id:'recklessness',name:'Recklessness',ico:'😤',cat:'Combat',desc:'Warrior: Critical strike boost',key:''},
+// === KNIGHT ABILITIES (10) ===
+{id:'judgment',name:'Judgment',ico:'⚖',cat:'Combat',desc:'Knight: Holy strike',key:''},
+{id:'crusader_strike',name:'Crusader Strike',ico:'✝',cat:'Combat',desc:'Knight: Righteous attack',key:''},
+{id:'divine_protection',name:'Divine Protection',ico:'🛡',cat:'Combat',desc:'Knight: Damage reduction',key:''},
+{id:'consecration',name:'Consecration',ico:'✨',cat:'Combat',desc:'Knight: Holy ground AoE',key:''},
+{id:'holy_light',name:'Holy Light',ico:'💡',cat:'Combat',desc:'Knight: Heal spell',key:''},
+{id:'flash_light',name:'Flash of Light',ico:'⚡',cat:'Combat',desc:'Knight: Quick heal',key:''},
+{id:'blessing_might',name:'Blessing of Might',ico:'💪',cat:'Combat',desc:'Knight: Attack buff',key:''},
+{id:'divine_shield',name:'Divine Shield',ico:'🔮',cat:'Combat',desc:'Knight: Invulnerability',key:''},
+{id:'hammer_justice',name:'Hammer of Justice',ico:'🔨',cat:'Combat',desc:'Knight: Stun attack',key:''},
+{id:'exorcism',name:'Exorcism',ico:'👻',cat:'Combat',desc:'Knight: Undead damage',key:''},
+// === SORCERER ABILITIES (10) ===
+{id:'fireball',name:'Fireball',ico:'🔥',cat:'Magic',desc:'Sorcerer: Fire projectile',key:''},
+{id:'frostbolt',name:'Frostbolt',ico:'❄',cat:'Magic',desc:'Sorcerer: Ice slow spell',key:''},
+{id:'arcane_missiles',name:'Arcane Missiles',ico:'✦',cat:'Magic',desc:'Sorcerer: Multi-missile',key:''},
+{id:'blizzard',name:'Blizzard',ico:'🌨',cat:'Magic',desc:'Sorcerer: Ice storm AoE',key:''},
+{id:'fire_blast',name:'Fire Blast',ico:'💥',cat:'Magic',desc:'Sorcerer: Instant fire',key:''},
+{id:'pyroblast',name:'Pyroblast',ico:'☄',cat:'Magic',desc:'Sorcerer: Massive fireball',key:''},
+{id:'frost_nova',name:'Frost Nova',ico:'❄',cat:'Magic',desc:'Sorcerer: Ice nova root',key:''},
+{id:'blink',name:'Blink',ico:'💫',cat:'Magic',desc:'Sorcerer: Teleport dash',key:''},
+{id:'polymorph',name:'Polymorph',ico:'🐑',cat:'Magic',desc:'Sorcerer: Transform enemy',key:''},
+{id:'counterspell',name:'Counterspell',ico:'🚫',cat:'Magic',desc:'Sorcerer: Silence enemy',key:''},
+// === RANGER ABILITIES (10) ===
+{id:'steady_shot',name:'Steady Shot',ico:'🏹',cat:'Combat',desc:'Ranger: Precise arrow',key:''},
+{id:'aimed_shot',name:'Aimed Shot',ico:'🎯',cat:'Combat',desc:'Ranger: High damage shot',key:''},
+{id:'multi_shot',name:'Multi-Shot',ico:'📐',cat:'Combat',desc:'Ranger: Three arrows',key:''},
+{id:'arcane_shot',name:'Arcane Shot',ico:'⚡',cat:'Combat',desc:'Ranger: Magic arrow',key:''},
+{id:'serpent_sting',name:'Serpent Sting',ico:'🐍',cat:'Combat',desc:'Ranger: Poison arrow',key:''},
+{id:'hunters_mark',name:'Hunters Mark',ico:'👁',cat:'Combat',desc:'Ranger: Mark target',key:''},
+{id:'distracting_shot',name:'Distracting Shot',ico:'👋',cat:'Combat',desc:'Ranger: Taunt shot',key:''},
+{id:'rapid_fire',name:'Rapid Fire',ico:'🔥',cat:'Combat',desc:'Ranger: Speed boost',key:''},
+{id:'feign_death',name:'Feign Death',ico:'💀',cat:'Combat',desc:'Ranger: Drop aggro',key:''},
+{id:'explosive_trap',name:'Explosive Trap',ico:'💣',cat:'Combat',desc:'Ranger: Fire trap',key:''},
+// === GENERAL ABILITIES (10) ===
+{id:'first_aid',name:'First Aid',ico:'🩹',cat:'Utility',desc:'Heal over time',key:''},
+{id:'bandage',name:'Bandage',ico:'🤕',cat:'Utility',desc:'Quick heal',key:''},
+{id:'sharpen_weapon',name:'Sharpen Weapon',ico:'🔪',cat:'Utility',desc:'Weapon buff',key:''},
+{id:'mining_strike',name:'Mining Strike',ico:'⛏',cat:'Skilling',desc:'Strong mining hit',key:''},
+{id:'lumber_up',name:'Lumber Up',ico:'🌲',cat:'Skilling',desc:'Woodcutting boost',key:''},
+{id:'cooking_fire',name:'Cooking Fire',ico:'🔥',cat:'Skilling',desc:'Create campfire',key:''},
+{id:'fishing_cast',name:'Fishing Cast',ico:'🎣',cat:'Skilling',desc:'Long cast bonus',key:''},
+{id:'runecraft_focus',name:'Runecraft Focus',ico:'🔮',cat:'Skilling',desc:'Rune bonus XP',key:''},
+{id:'sneak_attack',name:'Sneak Attack',ico:'🗡',cat:'Combat',desc:'Thief backstab',key:''},
+{id:'agility_roll',name:'Agility Roll',ico:'🤸',cat:'Utility',desc:'Fast escape roll',key:''}
 ];
 const abCategories=['All','Combat','Magic','Prayer','Skilling','Utility'];
 // Action bar slot assignments (customizable)
@@ -906,10 +1094,26 @@ else if(id==='inv')switchTab('inventory');
 else if(id==='skills')switchTab('skills');
 else if(id==='save')document.dispatchEvent(new KeyboardEvent('keydown',{key:'F5'}));
 else if(id==='jump'){if(typeof player!=='undefined'&&player.grounded&&player.sta>10){player.vy=6.5;player.grounded=false;player.sta-=10}}
+else if(id==='dash_left'){if(typeof player!=='undefined'&&player.sta>15&&!player.dashing){
+const dashDist=6;
+const right=new THREE.Vector3(-Math.cos(camYaw),0,Math.sin(camYaw));
+player.x+=right.x*dashDist;player.z+=right.z*dashDist;
+player.sta-=15;player.dashing=true;player.dashT=12;player.dashDir=-1;
+hitFX(player.x+right.x*2,player.y+4,player.z+right.z*2,0x00ffff);
+hitFX(player.x+right.x*3,player.y+2,player.z+right.z*3,0x0088ff);
+log('Dash left!','#0ff');setTimeout(()=>player.dashing=false,200);}}
+else if(id==='dash_right'){if(typeof player!=='undefined'&&player.sta>15&&!player.dashing){
+const dashDist=6;
+const right=new THREE.Vector3(-Math.cos(camYaw),0,Math.sin(camYaw));
+player.x-=right.x*dashDist;player.z-=right.z*dashDist;
+player.sta-=15;player.dashing=true;player.dashT=12;player.dashDir=1;
+hitFX(player.x-right.x*2,player.y+4,player.z-right.z*2,0x00ffff);
+hitFX(player.x-right.x*3,player.y+2,player.z-right.z*3,0x0088ff);
+log('Dash right!','#0ff');setTimeout(()=>player.dashing=false,200);}}
 else if(id==='teleport')document.dispatchEvent(new KeyboardEvent('keydown',{key:'t'}));
 else if(id==='autoloot')document.dispatchEvent(new KeyboardEvent('keydown',{key:'l'}));
 else if(id==='spec_atk'){if(typeof player!=='undefined'&&!player._specCD){log('Special Attack!','#ff0');player._specCD=120}}
-else if(id==='shoot'){if(typeof player!=='undefined'&&!player._shootCD){player._shootCD=40;shootProjectile('arrow',12+skills.Ranged.lvl);log('Shot arrow!','#8a4');}}
+else if(id==='shoot'){if(typeof player!=='undefined'&&!player._shootCD){const cd=player._rapidFireActive?24:40;player._shootCD=cd;shootProjectile('arrow',12+skills.Ranged.lvl);log('Shot arrow!','#8a4');}}
 else if(id.indexOf('protect_')===0||id==='smite'||id==='piety'||id==='rigour'||id==='augury'){log('Activated: '+id.replace(/_/g,' '),'#4cf')}
 else if(id.indexOf('strike')>=0||id.indexOf('bolt')>=0||id.indexOf('blast')>=0||id.indexOf('wave')>=0||id.indexOf('surge')>=0){
 // Magic combat spells - fire projectile toward cursor
@@ -923,6 +1127,61 @@ else if(id==='bind'||id==='snare'||id==='entangle'){shootProjectile('spell',5,0x
 else if(id==='telegrab'){shootProjectile('spell',0,0xaa44ff);log('Telegrab spell cast','#48f');skills.Magic.xp+=15;updateXpBar();}
 else if(id==='superheat'){shootProjectile('spell',0,0xff8800);log('Superheat spell cast','#ff0');skills.Magic.xp+=35;updateXpBar();}
 else if(id==='bones2ban'){shootProjectile('spell',0,0xffdd44);log('Bones converted to bananas!','#ff0');skills.Magic.xp+=20;updateXpBar();}
+// === WARRIOR ABILITY EXECUTIONS ===
+else if(id==='heroic_strike'){if(typeof player!=='undefined'&&!player._heroicCD&&lockOn){player._heroicCD=60;const dmg=15+skills.Attack.lvl+skills.Strength.lvl;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0xff4400);log('Heroic Strike! '+dmg+' damage','#f44');skills.Attack.xp+=20;skills.Strength.xp+=15;updateXpBar();}else if(!lockOn){log('No target for Heroic Strike','#f80');}}
+else if(id==='cleave'){if(typeof player!=='undefined'&&!player._cleaveCD){player._cleaveCD=80;let hitCount=0;enemies.forEach(e=>{const dist=Math.hypot(e.x-player.x,e.z-player.z);if(dist<15){const dmg=8+skills.Strength.lvl;e.hp-=dmg;hitFX(e.mesh.position.x,e.mesh.position.y+5,e.mesh.position.z,0xff6600);hitCount++;}});log('Cleave hit '+hitCount+' enemies!','#f84');skills.Attack.xp+=15*hitCount;skills.Strength.xp+=10*hitCount;updateXpBar();}}
+else if(id==='whirlwind'){if(typeof player!=='undefined'&&!player._whirlCD&&player.sta>20){player._whirlCD=100;player.sta-=20;for(let i=0;i<3;i++){setTimeout(()=>{hitFX(player.x+Math.random()*8-4,player.y+3,player.z+Math.random()*8-4,0xffaa00);enemies.forEach(e=>{const dist=Math.hypot(e.x-player.x,e.z-player.z);if(dist<12){const dmg=5+skills.Attack.lvl;e.hp-=dmg;}});},i*200);}log('Whirlwind!','#fa0');skills.Attack.xp+=25;skills.Strength.xp+=20;updateXpBar();}}
+else if(id==='thunder_clap'){if(typeof player!=='undefined'&&!player._thunderCD){player._thunderCD=120;for(let i=0;i<20;i++){const ang=i*Math.PI*2/20;const tx=player.x+Math.cos(ang)*10;const tz=player.z+Math.sin(ang)*10;hitFX(tx,player.y+2,tz,0x4488ff);}enemies.forEach(e=>{const dist=Math.hypot(e.x-player.x,e.z-player.z);if(dist<12){const dmg=10+skills.Strength.lvl;e.hp-=dmg;e.staggered=true;e.staggerT=40;}});log('Thunder Clap! Enemies stunned','#48f');skills.Attack.xp+=20;skills.Strength.xp+=20;updateXpBar();}}
+else if(id==='battle_shout'){if(typeof player!=='undefined'&&!player._shoutCD){player._shoutCD=600;player._battleShoutActive=true;setTimeout(()=>player._battleShoutActive=false,30000);for(let i=0;i<15;i++){hitFX(player.x+Math.random()*6-3,player.y+8+i,player.z+Math.random()*6-3,0xffdd00);}log('Battle Shout! Attack power +20% for 30s','#fd0');skills.Attack.xp+=30;updateXpBar();}}
+else if(id==='execute'){if(typeof player!=='undefined'&&!player._executeCD&&lockOn){const enemyPct=lockOn.hp/lockOn.maxHp;if(enemyPct>0.2){log('Execute only works on enemies below 20% HP','#f80');}else{player._executeCD=90;const dmg=50+skills.Strength.lvl*2;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0x880000);log('EXECUTE! '+dmg+' damage!','#f00');skills.Attack.xp+=35;skills.Strength.xp+=30;updateXpBar();}}}
+else if(id==='slam'){if(typeof player!=='undefined'&&!player._slamCD&&lockOn){player._slamCD=70;const dmg=20+skills.Strength.lvl*1.5;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y,lockOn.mesh.position.z,0x884422);log('Slam! '+dmg+' damage','#a62');skills.Attack.xp+=22;skills.Strength.xp+=18;updateXpBar();}}
+else if(id==='overpower'){if(typeof player!=='undefined'&&!player._overpowerCD&&lockOn){player._overpowerCD=50;const dmg=12+skills.Attack.lvl;lockOn.hp-=dmg;lockOn.staggered=true;lockOn.staggerT=30;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0xff8800);log('Overpower! Counter attack '+dmg,'#f80');skills.Attack.xp+=18;skills.Strength.xp+=12;updateXpBar();}}
+else if(id==='shield_slam'){if(typeof player!=='undefined'&&!player._shieldCD&&lockOn){player._shieldCD=80;const dmg=15+skills.Defence.lvl;lockOn.hp-=dmg;lockOn.staggered=true;lockOn.staggerT=40;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0x6666aa);log('Shield Slam! '+dmg+' damage, enemy stunned','#66a');skills.Attack.xp+=20;skills.Defence.xp+=15;updateXpBar();}}
+else if(id==='recklessness'){if(typeof player!=='undefined'&&!player._reckCD){player._reckCD=900;player._reckActive=true;setTimeout(()=>player._reckActive=false,15000);for(let i=0;i<20;i++){hitFX(player.x+Math.random()*4-2,player.y+10+i*2,player.z+Math.random()*4-2,0xff0000);}log('Recklessness! Critical strikes +50% for 15s','#f00');skills.Attack.xp+=40;skills.Strength.xp+=20;updateXpBar();}}
+// === KNIGHT ABILITY EXECUTIONS ===
+else if(id==='judgment'){if(typeof player!=='undefined'&&!player._judgmentCD&&lockOn){player._judgmentCD=80;const dmg=18+skills.Attack.lvl+skills.Prayer.lvl;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+6,lockOn.mesh.position.z,0xffdd44);log('Judgment! Holy damage '+dmg,'#fd4');skills.Attack.xp+=20;skills.Prayer.xp+=15;updateXpBar();}}
+else if(id==='crusader_strike'){if(typeof player!=='undefined'&&!player._crusaderCD&&lockOn){player._crusaderCD=60;const dmg=14+skills.Attack.lvl;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0xffeeaa);log('Crusader Strike! '+dmg,'#fea');skills.Attack.xp+=18;skills.Prayer.xp+=12;updateXpBar();}}
+else if(id==='divine_protection'){if(typeof player!=='undefined'&&!player._divineProtCD){player._divineProtCD=300;player._divineProtActive=true;setTimeout(()=>player._divineProtActive=false,20000);for(let i=0;i<20;i++){hitFX(player.x+Math.random()*5-2.5,player.y+5+i,player.z+Math.random()*5-2.5,0xffff88);}log('Divine Protection! -50% damage for 20s','#ff8');skills.Defence.xp+=25;skills.Prayer.xp+=20;updateXpBar();}}
+else if(id==='consecration'){if(typeof player!=='undefined'&&!player._consecrateCD){player._consecrateCD=240;for(let i=0;i<30;i++){setTimeout(()=>{hitFX(player.x+Math.random()*16-8,player.y+1,player.z+Math.random()*16-8,0xffff44);enemies.forEach(e=>{const dist=Math.hypot(e.x-player.x,e.z-player.z);if(dist<12){const dmg=3+skills.Prayer.lvl*0.5;e.hp-=dmg;}});},i*100);}log('Consecration! Holy ground burning enemies','#ff4');skills.Prayer.xp+=30;updateXpBar();}}
+else if(id==='holy_light'){if(typeof player!=='undefined'&&!player._holyLightCD){player._holyLightCD=120;const heal=Math.round(player.maxHp*0.4+skills.Prayer.lvl*3);player.hp=Math.min(player.hp+heal,player.maxHp);for(let i=0;i<15;i++){hitFX(player.x,player.y+5+i,player.z,0xffffaa);}log('Holy Light! +'+heal+' HP','#ffa');skills.Prayer.xp+=25;updateXpBar();}}
+else if(id==='flash_light'){if(typeof player!=='undefined'&&!player._flashLightCD){player._flashLightCD=60;const heal=Math.round(player.maxHp*0.25+skills.Prayer.lvl*2);player.hp=Math.min(player.hp+heal,player.maxHp);hitFX(player.x,player.y+8,player.z,0xffffee);log('Flash of Light! +'+heal+' HP','#ffe');skills.Prayer.xp+=15;updateXpBar();}}
+else if(id==='blessing_might'){if(typeof player!=='undefined'&&!player._blessingCD){player._blessingCD=600;player._blessingActive=true;setTimeout(()=>player._blessingActive=false,60000);for(let i=0;i<15;i++){hitFX(player.x+Math.random()*4-2,player.y+12+i*2,player.z+Math.random()*4-2,0xffaa44);}log('Blessing of Might! +15% damage for 60s','#fa4');skills.Prayer.xp+=35;skills.Strength.xp+=10;updateXpBar();}}
+else if(id==='divine_shield'){if(typeof player!=='undefined'&&!player._bubbleCD){player._bubbleCD=600;player._bubbleActive=true;setTimeout(()=>player._bubbleActive=false,12000);for(let i=0;i<25;i++){hitFX(player.x+Math.cos(i*Math.PI*2/20)*6,player.y+5+Math.sin(i)*2,player.z+Math.sin(i*Math.PI*2/20)*6,0xffffdd);}log('Divine Shield! Invulnerable for 12s','#ffd');skills.Defence.xp+=30;skills.Prayer.xp+=35;updateXpBar();}}
+else if(id==='hammer_justice'){if(typeof player!=='undefined'&&!player._hammerCD&&lockOn){player._hammerCD=90;const dmg=12+skills.Attack.lvl+skills.Prayer.lvl;lockOn.hp-=dmg;lockOn.staggered=true;lockOn.staggerT=90;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+8,lockOn.mesh.position.z,0xffdd22);log('Hammer of Justice! Stunned for 3s','#fd2');skills.Attack.xp+=20;skills.Prayer.xp+=18;updateXpBar();}}
+else if(id==='exorcism'){if(typeof player!=='undefined'&&!player._exorcismCD&&lockOn){player._exorcismCD=70;const isUndead=lockOn.type.includes('skeleton')||lockOn.type.includes('zombie')||lockOn.type.includes('ghost')||lockOn.type.includes('shade');const dmg=(isUndead?40:20)+skills.Prayer.lvl*2;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+6,lockOn.mesh.position.z,0xffff00);log('Exorcism! '+dmg+(isUndead?' HOLY DAMAGE to undead!':' damage'),'#ff0');skills.Prayer.xp+=30;updateXpBar();}}
+// === SORCERER ABILITY EXECUTIONS ===
+else if(id==='fireball'){if(typeof player!=='undefined'&&!player._fireballCD){player._fireballCD=50;shootProjectile('spell',25+skills.Magic.lvl*1.5,0xff4400);log('Fireball!','#f40');skills.Magic.xp+=25;updateXpBar();}}
+else if(id==='frostbolt'){if(typeof player!=='undefined'&&!player._frostboltCD&&lockOn){player._frostboltCD=40;const dmg=18+skills.Magic.lvl;lockOn.hp-=dmg;lockOn.slowed=true;lockOn.slowT=180;shootProjectile('spell',dmg,0x88ccff);hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y,lockOn.mesh.position.z,0xaaddff);log('Frostbolt! '+dmg+' damage, enemy slowed','#acf');skills.Magic.xp+=22;updateXpBar();}}
+else if(id==='arcane_missiles'){if(typeof player!=='undefined'&&!player._missilesCD&&lockOn){player._missilesCD=90;let missiles=0;const int=setInterval(()=>{if(++missiles>3||!lockOn||lockOn.hp<=0){clearInterval(int);return;}const dmg=8+skills.Magic.lvl*0.8;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x+Math.random()*2-1,lockOn.mesh.position.y+5+Math.random()*3,lockOn.mesh.position.z+Math.random()*2-1,0xaa66ff);log('Arcane Missile '+missiles+'! '+dmg,'#a6f');},400);log('Arcane Missiles channeling!','#a6f');skills.Magic.xp+=30;updateXpBar();}}
+else if(id==='blizzard'){if(typeof player!=='undefined'&&!player._blizzardCD){player._blizzardCD=200;for(let i=0;i<50;i++){setTimeout(()=>{const tx=player.x+(Math.random()-.5)*40;const tz=player.z+(Math.random()-.5)*40;hitFX(tx,player.y+15,player.z,0xaaddff);enemies.forEach(e=>{const dist=Math.hypot(e.x-tx,e.z-tz);if(dist<8){const dmg=5+skills.Magic.lvl*0.5;e.hp-=dmg;}});},i*80);}log('Blizzard! Ice storm unleashed','#adf');skills.Magic.xp+=40;updateXpBar();}}
+else if(id==='fire_blast'){if(typeof player!=='undefined'&&!player._fireblastCD&&lockOn){player._fireblastCD=30;const dmg=15+skills.Magic.lvl;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0xff6600);log('Fire Blast! '+dmg,'#f60');skills.Magic.xp+=18;updateXpBar();}}
+else if(id==='pyroblast'){if(typeof player!=='undefined'&&!player._pyroCD){player._pyroCD=180;log('Pyroblast casting... (3s)','#f40');setTimeout(()=>{if(lockOn){const dmg=60+skills.Magic.lvl*2;lockOn.hp-=dmg;for(let i=0;i<30;i++){hitFX(lockOn.mesh.position.x+Math.random()*6-3,lockOn.mesh.position.y+5+Math.random()*8,lockOn.mesh.position.z+Math.random()*6-3,0xff2200);}log('PYROBLAST! '+dmg+' DAMAGE!','#f20');skills.Magic.xp+=50;updateXpBar();}},3000);}}
+else if(id==='frost_nova'){if(typeof player!=='undefined'&&!player._novaCD){player._novaCD=150;for(let i=0;i<20;i++){const ang=i*Math.PI*2/20;hitFX(player.x+Math.cos(ang)*8,player.y+2,player.z+Math.sin(ang)*8,0x88ddff);}let rooted=0;enemies.forEach(e=>{const dist=Math.hypot(e.x-player.x,e.z-player.z);if(dist<12){e.staggered=true;e.staggerT=180;rooted++;}});log('Frost Nova! '+rooted+' enemies rooted','#8df');skills.Magic.xp+=30;updateXpBar();}}
+else if(id==='blink'){if(typeof player!=='undefined'&&!player._blinkCD){player._blinkCD=90;const right=new THREE.Vector3(-Math.cos(camYaw),0,Math.sin(camYaw));const forward=new THREE.Vector3(Math.sin(camYaw),0,Math.cos(camYaw));player.x+=forward.x*20+right.x*5;player.z+=forward.z*20+right.z*5;for(let i=0;i<15;i++){hitFX(player.x-Math.cos(camYaw)*i*1.5,player.y+3,player.z+Math.sin(camYaw)*i*1.5,0xaa66ff);}log('Blink! Teleported','#a6f');skills.Magic.xp+=20;updateXpBar();}}
+else if(id==='polymorph'){if(typeof player!=='undefined'&&!player._polyCD&&lockOn){player._polyCD=300;lockOn.polymorphed=true;lockOn.polyT=600;lockOn.mesh.visible=false;const sheep=new THREE.Mesh(new THREE.BoxGeometry(2,1.5,3),new THREE.MeshStandardMaterial({color:0xffffff}));sheep.position.copy(lockOn.mesh.position);scene.add(sheep);lockOn.sheepMesh=sheep;log('Polymorph! Enemy is now a sheep','#fff');skills.Magic.xp+=35;updateXpBar();}}
+else if(id==='counterspell'){if(typeof player!=='undefined'&&!player._counterCD&&lockOn){player._counterCD=120;lockOn.counterspelled=true;lockOn.counterT=60;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+8,lockOn.mesh.position.z,0xff0000);log('Counterspell! Enemy casting interrupted','#f00');skills.Magic.xp+=25;updateXpBar();}}
+// === RANGER ABILITY EXECUTIONS ===
+else if(id==='steady_shot'){if(typeof player!=='undefined'&&!player._steadyCD){const cd=player._rapidFireActive?21:35;player._steadyCD=cd;shootProjectile('arrow',18+skills.Ranged.lvl*1.2,0xccaa88);log('Steady Shot!','#ca8');skills.Ranged.xp+=18;updateXpBar();}}
+else if(id==='aimed_shot'){if(typeof player!=='undefined'&&!player._aimedCD&&lockOn){const cd=player._rapidFireActive?48:80;player._aimedCD=cd;const dmg=30+skills.Ranged.lvl*1.5;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+6,lockOn.mesh.position.z,0xffaa44);log('Aimed Shot! '+dmg+' damage','#fa4');skills.Ranged.xp+=25;updateXpBar();}}
+else if(id==='multi_shot'){if(typeof player!=='undefined'&&!player._multiCD){const cd=player._rapidFireActive?60:100;player._multiCD=cd;for(let i=0;i<3;i++){setTimeout(()=>{shootProjectile('arrow',12+skills.Ranged.lvl,0xccaa88);},i*150);}log('Multi-Shot! Three arrows','#ca8');skills.Ranged.xp+=22;updateXpBar();}}
+else if(id==='arcane_shot'){if(typeof player!=='undefined'&&!player._arcaneCD){player._arcaneCD=50;shootProjectile('spell',20+skills.Ranged.lvl+skills.Magic.lvl,0xaa66ff);log('Arcane Shot! Magic arrow','#a6f');skills.Ranged.xp+=20;skills.Magic.xp+=10;updateXpBar();}}
+else if(id==='serpent_sting'){if(typeof player!=='undefined'&&!player._stingCD&&lockOn){player._stingCD=70;lockOn.serpentSting=true;lockOn.stingT=300;lockOn.stingDmg=3+skills.Ranged.lvl*0.3;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0x00aa44);log('Serpent Sting! Poison applied','#0a4');skills.Ranged.xp+=20;updateXpBar();}}
+else if(id==='hunters_mark'){if(typeof player!=='undefined'&&!player._markCD&&lockOn){player._markCD=180;lockOn.huntersMark=true;lockOn.markT=600;for(let i=0;i<10;i++){hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+12+i,lockOn.mesh.position.z,0xff0000);}log('Hunters Mark! +15% damage vs target','#f00');skills.Ranged.xp+=18;updateXpBar();}}
+else if(id==='distracting_shot'){if(typeof player!=='undefined'&&!player._distractCD&&lockOn){player._distractCD=60;lockOn.aggro=200;lockOn.target=player;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+8,lockOn.mesh.position.z,0xffff00);log('Distracting Shot! Taunted enemy','#ff0');skills.Ranged.xp+=15;skills.Defence.xp+=10;updateXpBar();}}
+else if(id==='rapid_fire'){if(typeof player!=='undefined'&&!player._rapidCD){player._rapidCD=300;player._rapidFireActive=true;setTimeout(()=>player._rapidFireActive=false,15000);for(let i=0;i<20;i++){hitFX(player.x+Math.random()*4-2,player.y+10+i*2,player.z+Math.random()*4-2,0xff6600);}log('Rapid Fire! +40% attack speed for 15s','#f60');skills.Ranged.xp+=30;updateXpBar();}}
+else if(id==='feign_death'){if(typeof player!=='undefined'&&!player._feignCD){player._feignCD=180;player._feignActive=true;enemies.forEach(e=>{if(e.target===player)e.target=null;e.aggro=0;});setTimeout(()=>player._feignActive=false,5000);for(let i=0;i<15;i++){hitFX(player.x,player.y+i,player.z,0x888888);}log('Feign Death! Enemies lost interest','#888');skills.Ranged.xp+=20;skills.Defence.xp+=15;updateXpBar();}}
+else if(id==='explosive_trap'){if(typeof player!=='undefined'&&!player._trapCD){player._trapCD=150;const tx=player.x+Math.sin(camYaw)*8;const tz=player.z+Math.cos(camYaw)*8;const trap={x:tx,z:tz,life:600,dmg:25+skills.Ranged.lvl};player.explosiveTrap=trap;hitFX(tx,player.y+2,tz,0xff4400);log('Explosive Trap set!','#f40');skills.Ranged.xp+=22;updateXpBar();}}
+// === GENERAL ABILITY EXECUTIONS ===
+else if(id==='first_aid'){if(typeof player!=='undefined'&&!player._aidCD){player._aidCD=300;player._firstAidActive=true;let ticks=0;const int=setInterval(()=>{if(++ticks>10||player.hp<=0){clearInterval(int);player._firstAidActive=false;return;}const heal=5+skills.Hitpoints.lvl*0.5;player.hp=Math.min(player.hp+heal,player.maxHp);hitFX(player.x,player.y+5,player.z,0x88ff88);},1000);log('First Aid! Healing over 10s','#8f8');skills.Hitpoints.xp+=20;updateXpBar();}}
+else if(id==='bandage'){if(typeof player!=='undefined'&&!player._bandageCD){player._bandageCD=120;const heal=15+skills.Hitpoints.lvl*2;player.hp=Math.min(player.hp+heal,player.maxHp);hitFX(player.x,player.y+6,player.z,0xffffff);log('Bandage! +'+heal+' HP','#fff');skills.Hitpoints.xp+=15;updateXpBar();}}
+else if(id==='sharpen_weapon'){if(typeof player!=='undefined'&&!player._sharpenCD){player._sharpenCD=300;player._sharpenActive=true;setTimeout(()=>player._sharpenActive=false,180000);for(let i=0;i<12;i++){hitFX(player.x+Math.random()*4-2,player.y+8+i,player.z+Math.random()*4-2,0xffaa00);}log('Sharpen Weapon! +10% melee damage for 3min','#fa0');skills.Attack.xp+=20;updateXpBar();}}
+else if(id==='mining_strike'){if(typeof player!=='undefined'&&!player._mineStrikeCD){player._mineStrikeCD=60;hitFX(player.x+Math.sin(camYaw)*4,player.y+2,player.z+Math.cos(camYaw)*4,0x664422);log('Mining Strike! Strong mining hit','#642');skills.Mining.xp+=25;updateXpBar();}}
+else if(id==='lumber_up'){if(typeof player!=='undefined'&&!player._lumberCD){player._lumberCD=120;player._lumberActive=true;setTimeout(()=>player._lumberActive=false,60000);for(let i=0;i<10;i++){hitFX(player.x+Math.random()*3-1.5,player.y+8+i*2,player.z+Math.random()*3-1.5,0x44aa44);}log('Lumber Up! +20% woodcutting speed for 60s','#4a4');skills.Woodcutting.xp+=20;updateXpBar();}}
+else if(id==='cooking_fire'){if(typeof player!=='undefined'&&!player._campfireCD){player._campfireCD=300;const tx=player.x+Math.sin(camYaw)*5;const tz=player.z+Math.cos(camYaw)*5;const fire=new THREE.Mesh(new THREE.CylinderGeometry(2,1,4,8),new THREE.MeshStandardMaterial({color:0xff4400,emissive:0xff2200,emissiveIntensity:2}));fire.position.set(tx,player.y,tz);scene.add(fire);setTimeout(()=>scene.remove(fire),60000);for(let i=0;i<20;i++){hitFX(tx,player.y+i*2,tz,0xff6600);}log('Cooking Fire! Campfire lit','#f60');skills.Cooking.xp+=15;skills.Firemaking.xp+=20;updateXpBar();}}
+else if(id==='fishing_cast'){if(typeof player!=='undefined'&&!player._fishCastCD){player._fishCastCD=90;hitFX(player.x,player.y+10,player.z,0x4488ff);log('Fishing Cast! Long cast bonus XP','#48f');skills.Fishing.xp+=25;updateXpBar();}}
+else if(id==='runecraft_focus'){if(typeof player!=='undefined'&&!player._focusCD){player._focusCD=180;player._runecraftActive=true;setTimeout(()=>player._runecraftActive=false,60000);for(let i=0;i<15;i++){hitFX(player.x+Math.random()*3-1.5,player.y+10+i*2,player.z+Math.random()*3-1.5,0xaa44ff);}log('Runecraft Focus! +30% Runecraft XP for 60s','#a4f');skills.Runecraft.xp+=30;updateXpBar();}}
+else if(id==='sneak_attack'){if(typeof player!=='undefined'&&!player._sneakCD&&lockOn){player._sneakCD=90;const dist=Math.hypot(lockOn.x-player.x,lockOn.z-player.z);const dmg=dist<8?(35+skills.Attack.lvl*2):(15+skills.Attack.lvl);lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0x444444);log('Sneak Attack! '+dmg+(dist<8?' BACKSTAB!':' damage'),'#444');skills.Attack.xp+=25;skills.Thieving.xp+=15;updateXpBar();}}
+else if(id==='agility_roll'){if(typeof player!=='undefined'&&!player._agiRollCD&&player.sta>15){player._agiRollCD=80;player.sta-=15;const rollDir=new THREE.Vector3(Math.sin(camYaw),0,Math.cos(camYaw));player.x+=rollDir.x*15;player.z+=rollDir.z*15;for(let i=0;i<10;i++){hitFX(player.x-rollDir.x*i*1.5,player.y+2,player.z-rollDir.z*i*1.5,0x44ffaa);}log('Agility Roll! Quick escape','#4fa');skills.Agility.xp+=20;updateXpBar();}}
 else log('Used ability: '+id,'#aa9')}
 // === SHOOT PROJECTILE (Arrow or Spell) ===
 function shootProjectile(type='arrow',dmg=15,col=0xccaa88){
@@ -936,17 +1195,25 @@ if(itemName.toLowerCase().includes('arrow')){
 hasAmmo=true;inventory.splice(i,1);updateInvUI();break;}}
 if(!hasAmmo){log('No arrows! Craft or retrieve arrows.','#f44');return;}}
 // Ranger gets infinite arrows - no ammo check needed
-// Calculate aim direction from camera through mouse cursor
+// Calculate aim direction: arrows auto-aim at locked target, spells always use cursor
+let targetX,targetZ;
+if(type==='arrow'&&lockOn&&lockOn.mesh){
+// Arrows: auto-aim at locked target
+const ePos=lockOn.mesh.position;
+targetX=ePos.x;targetZ=ePos.z;
+}else{
+// Spells AND arrows without lock: use mouse cursor for precise aiming
 const rc=new THREE.Raycaster();
 rc.setFromCamera({x:mouse.x,y:mouse.y},cam);
-// Find ground intersection point
+// Find ground intersection point for aiming
 const planeY=meshTerrainH(player.x,player.z);
 const plane=new THREE.Plane(new THREE.Vector3(0,1,0),-planeY);
 const target=new THREE.Vector3();
 rc.ray.intersectPlane(plane,target);
 if(!target)return;
+targetX=target.x;targetZ=target.z;}
 // Calculate direction and angle
-const dx=target.x-player.x;const dz=target.z-player.z;
+const dx=targetX-player.x;const dz=targetZ-player.z;
 const dist=Math.hypot(dx,dz);
 if(dist<1)return;
 // Create projectile (arrow or spell orb)
@@ -959,21 +1226,25 @@ const tip=new THREE.Mesh(new THREE.ConeGeometry(.06,.3,4),new MS({color:0x666666
 const fletch=new THREE.Mesh(new THREE.BoxGeometry(.12,.02,.3),new MS({color:0xaa2222,roughness:.9}));fletch.position.set(0,0,.2);arrowGrp.add(fletch);
 proj=arrowGrp;
 }else{
-// Spell orb
-proj=new THREE.Mesh(new THREE.SphereGeometry(.4,8,8),new MS({color:col,emissive:col,emissiveIntensity:2,transparent:true,opacity:.8}));
+// Spell orb - larger and more visible
+proj=new THREE.Mesh(new THREE.SphereGeometry(.6,12,12),new MS({color:col,emissive:col,emissiveIntensity:3,transparent:true,opacity:.9}));
 }
 // Position at player
 const startH=meshTerrainH(player.x,player.z);
 proj.position.set(player.x,startH+8,player.z);
-// Calculate velocity toward target with arc
+// Calculate velocity - different physics for arrows vs spells
 const angle=Math.atan2(dx,dz);
+if(type==='arrow'){
+// Arrows: slower with gravity arc
 const speed=0.8;const arcHeight=dist*0.15;
 proj.userData={vx:Math.sin(angle)*speed,vz:Math.cos(angle)*speed,vy:arcHeight*0.02,life:80,dmg:dmg,type:type,gravity:0.015};
-// Orient arrow to face target
-if(type==='arrow'){proj.rotation.y=angle;proj.rotation.z=-.3;}
-// Add trail effect
-if(type!=='arrow'){
-for(let i=0;i<5;i++){const tr=new THREE.Mesh(new THREE.SphereGeometry(.15,4,4),new MS({color:col,emissive:col,emissiveIntensity:1,transparent:true,opacity:.5}));tr.position.copy(proj.position);tr.userData={trail:true,idx:i,life:20};scene.add(tr);particles.push(tr);}}
+proj.rotation.y=angle;proj.rotation.z=-.3;
+}else{
+// Spells: faster, less gravity, longer life, more accurate straight shot
+const speed=2.5;const arcHeight=dist*0.05;
+proj.userData={vx:Math.sin(angle)*speed,vz:Math.cos(angle)*speed,vy:arcHeight*0.01,life:120,dmg:dmg,type:type,gravity:0.008};
+// Add bright trail for spells
+for(let i=0;i<8;i++){const tr=new THREE.Mesh(new THREE.SphereGeometry(.25,6,6),new MS({color:col,emissive:col,emissiveIntensity:2,transparent:true,opacity:.6}));tr.position.copy(proj.position);tr.userData={trail:true,idx:i,life:30};scene.add(tr);particles.push(tr);}}
 scene.add(proj);
 particles.push(proj);
 // Animation
@@ -1259,8 +1530,19 @@ function addSolid(mesh){solidMeshes.push(mesh)}
 function addCircleSolid(wx,wz,radius,minY,maxY){circleColliders.push({x:wx,z:wz,r:radius,minY:minY||0,maxY:maxY||999})}
 function buildColliders(){
 solidBoxes.length=0;
-for(const m of solidMeshes){m.updateMatrixWorld(true);
+// FIX: Filter out invisible or invalid meshes before building colliders
+const validMeshes=solidMeshes.filter(m=>m&&m.visible&&m.parent);
+for(const m of validMeshes){m.updateMatrixWorld(true);
 const b=new THREE.Box3().setFromObject(m);solidBoxes.push(b)}
+// FIX: Remove circle colliders that are no longer valid (no matching building)
+const validCircles=circleColliders.filter(c=>{
+// Check if there's still a building or mesh at this location
+const hasBuilding=enterableBuildings.some(b=>Math.hypot(b.x-c.x,b.z-c.z)<c.r);
+const hasMesh=scene.children.some(m=>m.visible&&Math.hypot(m.position.x-c.x,m.position.z-c.z)<c.r+5);
+return hasBuilding||hasMesh||c.maxY<500; // Keep if has building, mesh, or is intentional ground collider
+});
+circleColliders.length=0;
+circleColliders.push(...validCircles);
 log('Colliders: '+solidBoxes.length+' boxes, '+circleColliders.length+' circles','#0f0')}
 function pushOut(px,py,pz){
 let ox=px,oz=pz;
@@ -1283,6 +1565,28 @@ const minDist=c.r+pr;
 if(dist<minDist&&dist>0.01){const push=minDist-dist;
 ox+=dx/dist*push;oz+=dz/dist*push}}
 return{x:ox,z:oz}}
+// Debug collision visualization
+let collisionDebugMeshes=[];let collisionDebugActive=false;
+function toggleCollisionDebug(){
+if(collisionDebugActive){
+collisionDebugMeshes.forEach(m=>scene.remove(m));collisionDebugMeshes=[];collisionDebugActive=false;log('Collision debug OFF','#f80');return}
+collisionDebugActive=true;
+// Show box colliders as wireframes
+for(const b of solidBoxes){
+const geo=new THREE.BoxGeometry(b.max.x-b.min.x,Math.max(1,b.max.y-b.min.y),b.max.z-b.min.z);
+const mat=new THREE.MeshBasicMaterial({color:0xff0000,wireframe:true,transparent:true,opacity:0.5});
+const mesh=new THREE.Mesh(geo,mat);
+mesh.position.set((b.min.x+b.max.x)/2,(b.min.y+b.max.y)/2,(b.min.z+b.max.z)/2);
+scene.add(mesh);collisionDebugMeshes.push(mesh)}
+// Show circle colliders as rings
+for(const c of circleColliders){
+const geo=new THREE.RingGeometry(c.r-0.2,c.r+0.2,32);
+const mat=new THREE.MeshBasicMaterial({color:0x00ff00,side:THREE.DoubleSide,transparent:true,opacity:0.6});
+const mesh=new THREE.Mesh(geo,mat);
+mesh.rotation.x=-Math.PI/2;
+mesh.position.set(c.x,Math.max(c.minY+1,c.maxY-2),c.z);
+scene.add(mesh);collisionDebugMeshes.push(mesh)}
+log('Collision debug ON - Red=Boxes, Green=Rings','#0f0');}
 // Surface height: terrain or top of any walkable solid below the entity
 function surfaceH(px,pz,py){
 const th=meshTerrainH(px,pz);
@@ -1308,6 +1612,20 @@ let camYaw=0,camPitch=.35,camDist=60;
 let player={x:0,z:0,y:2,vx:0,vz:0,vy:0,speed:.42,hp:142,maxHp:142,sta:100,maxSta:100,poi:68,maxPoi:68,ang:0,rolling:false,rollT:0,atkCD:0,dead:false,deadTimer:0,blocking:false,grounded:true,isSprinting:false};
 let lockOn=null,lockIdx=-1;
 let showSkills=false,showInv=false;
+
+// === EDITOR MODE SYSTEM ===
+let editorMode=false;
+let editorSelected=null;
+let editorObjType='enemy';
+let editorSpawnList=[
+'goblin','skeleton','wolf','bear','spider','guard','mage','knight',
+'greendragon','bluedragon','reddragon','blackdragon',
+'barbarian','dwarf','elf','troll','ogre','demon','ghost',
+'hillgiant','mossgiant','chaos_ele','revenant','vampire'
+];
+let editorBuildings=['hut','house','tower','castle','tavern','forge','church','mill','barn'];
+let editorLoot=['Onzebray Ordssway','Ironway Ordssway','Eelstay Ordssway','Oinscay x100','Onesbay','Eadbray','Awray Eatmay','Ockpicklay'];
+let editorSnap=false;
 let gpAxes=[0,0,0,0],gpButtons={};
 
 const drops={goblin:[{i:"Onzebray Ordssway",c:.42},{i:"Oinscay x17",c:.68},{i:"Onesbay",c:1},{i:"Oblingay Ailmay",c:.08},{i:"Onzebray Ickaxepay",c:.05},{i:"Aturenay Uneray",c:.12},{i:"Efchay Athay",c:.03},{i:"Oblingay Ookbay",c:.02}],
@@ -1770,11 +2088,19 @@ const eyes=[];
 const neck=new THREE.Mesh(new THREE.CylinderGeometry(.5,.6,.8,8),mt_skinBase);neck.position.y=8.5;body.add(neck);
 // Torso
 const torso=new THREE.Mesh(new THREE.BoxGeometry(3.2,4,1.8),mt_skinBase);torso.position.y=5.8;body.add(torso);
-// Arms (bare)
-const buildArm=(side)=>{const arm=new THREE.Group();arm.position.set(side*2.4,7.8,0);
-const ua=new THREE.Mesh(new THREE.CylinderGeometry(.4,.38,3,8),mt_skinBase);ua.position.y=-2.2;arm.add(ua);
-const fa=new THREE.Mesh(new THREE.CylinderGeometry(.38,.32,2.8,8),mt_skinBase);fa.position.y=-5;arm.add(fa);
-const hand=new THREE.Mesh(new THREE.BoxGeometry(.6,.4,.7),mt_skinBase);hand.position.y=-6.6;arm.add(hand);
+// Arms with elbow joints for proper articulation
+const buildArm=(side)=>{
+const arm=new THREE.Group();arm.position.set(side*2.4,7.8,0);
+// Upper arm (shoulder to elbow)
+const ua=new THREE.Mesh(new THREE.CylinderGeometry(.4,.38,2.8,8),mt_skinBase);ua.position.y=-1.4;arm.add(ua);
+// Elbow group - pivot point for forearm
+const elbow=new THREE.Group();elbow.position.y=-2.8;arm.add(elbow);
+// Forearm (elbow to wrist)
+const fa=new THREE.Mesh(new THREE.CylinderGeometry(.38,.32,2.6,8),mt_skinBase);fa.position.y=-1.3;elbow.add(fa);
+// Hand
+const hand=new THREE.Mesh(new THREE.BoxGeometry(.6,.4,.7),mt_skinBase);hand.position.y=-2.8;elbow.add(hand);
+// Store elbow reference for animation
+arm.userData.elbow=elbow;
 return arm};
 const lArm=buildArm(-1);body.add(lArm);
 const rArm=buildArm(1);body.add(rArm);
@@ -1857,51 +2183,92 @@ const greave=new THREE.Mesh(new THREE.CylinderGeometry(.48,.42,3.1,8),mt.armorDk
 addBoot(lKnee);addBoot(rKnee);
 }
 function addShield(lArm){
+// Shield attaches to forearm (elbow group) so it moves with arm rotation
+if(lArm.userData&&lArm.userData.elbow){
+const shield=new THREE.Mesh(new THREE.BoxGeometry(.35,4,2.8),mt.armorDk);shield.position.set(-.5,-1.7,.3);lArm.userData.elbow.add(shield);
+const shBordV=new THREE.Mesh(new THREE.BoxGeometry(.38,.3,2.9),mt.armorLt);shBordV.position.set(-.5,.6,.3);lArm.userData.elbow.add(shBordV);
+const shBordB=new THREE.Mesh(new THREE.BoxGeometry(.38,.3,2.9),mt.armorLt);shBordB.position.set(-.5,-3.8,.3);lArm.userData.elbow.add(shBordB);
+const sBoss=new THREE.Mesh(new THREE.SphereGeometry(.45,8,8),mt.gold);sBoss.position.set(-.7,-1.7,.3);lArm.userData.elbow.add(sBoss);
+}else{
+// Fallback to arm if no elbow
 const shield=new THREE.Mesh(new THREE.BoxGeometry(.35,4,2.8),mt.armorDk);shield.position.set(-.5,-4.5,.3);lArm.add(shield);
 const shBordV=new THREE.Mesh(new THREE.BoxGeometry(.38,.3,2.9),mt.armorLt);shBordV.position.set(-.5,-2.6,.3);lArm.add(shBordV);
 const shBordB=new THREE.Mesh(new THREE.BoxGeometry(.38,.3,2.9),mt.armorLt);shBordB.position.set(-.5,-6.4,.3);lArm.add(shBordB);
-const sBoss=new THREE.Mesh(new THREE.SphereGeometry(.45,8,8),mt.gold);sBoss.position.set(-.7,-4.5,.3);lArm.add(sBoss);
+const sBoss=new THREE.Mesh(new THREE.SphereGeometry(.45,8,8),mt.gold);sBoss.position.set(-.7,-4.5,.3);lArm.add(sBoss);}
 }
 function addSword(rArm){
-const blade=new THREE.Mesh(new THREE.BoxGeometry(.2,.18,7.5),mt.swordBlade);blade.position.set(0,-7,3.8);blade.rotation.x=.06;rArm.add(blade);
-const fuller=new THREE.Mesh(new THREE.BoxGeometry(.06,.1,5.5),new MS({color:0x556,roughness:.15,metalness:.9}));fuller.position.set(0,-6.9,3.8);fuller.rotation.x=.06;rArm.add(fuller);
-const xguard=new THREE.Mesh(new THREE.BoxGeometry(1.6,.25,.25),mt.swordHilt);xguard.position.set(0,-7,.15);rArm.add(xguard);
-[-1,1].forEach(s=>{const tip=new THREE.Mesh(new THREE.SphereGeometry(.12,5,5),mt.gold);tip.position.set(s*.8,-7,.15);rArm.add(tip)});
-const hilt=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,1.4,6),mt.leather);hilt.position.set(0,-7,-.4);hilt.rotation.x=Math.PI/2;rArm.add(hilt);
-const pommel=new THREE.Mesh(new THREE.SphereGeometry(.2,6,6),mt.gold);pommel.position.set(0,-7,-1.1);rArm.add(pommel);
+// Sword attaches to hand (elbow group) so it rotates naturally with hand
+const attachTo=rArm.userData&&rArm.userData.elbow?rArm.userData.elbow:rArm;
+const handY=rArm.userData&&rArm.userData.elbow?-2.8:-6.5;
+const blade=new THREE.Mesh(new THREE.BoxGeometry(.2,.18,7.5),mt.swordBlade);blade.position.set(0,handY+4,3.8);blade.rotation.x=.06;attachTo.add(blade);
+const fuller=new THREE.Mesh(new THREE.BoxGeometry(.06,.1,5.5),new MS({color:0x556,roughness:.15,metalness:.9}));fuller.position.set(0,handY+4.1,3.8);fuller.rotation.x=.06;attachTo.add(fuller);
+const xguard=new THREE.Mesh(new THREE.BoxGeometry(1.6,.25,.25),mt.swordHilt);xguard.position.set(0,handY,.15);attachTo.add(xguard);
+[-1,1].forEach(s=>{const tip=new THREE.Mesh(new THREE.SphereGeometry(.12,5,5),mt.gold);tip.position.set(s*.8,handY,.15);attachTo.add(tip)});
+const hilt=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,1.4,6),mt.leather);hilt.position.set(0,handY,-.4);hilt.rotation.x=Math.PI/2;attachTo.add(hilt);
+const pommel=new THREE.Mesh(new THREE.SphereGeometry(.2,6,6),mt.gold);pommel.position.set(0,handY,-1.1);attachTo.add(pommel);
+// FIX: Reposition sword to actually be held in hand - blade extends outward from hand
+blade.position.set(0,handY-3.5,0.3);blade.rotation.set(Math.PI/2,0,0);
+fuller.position.set(0,handY-3.5,0.35);fuller.rotation.set(Math.PI/2,0,0);
+xguard.position.set(0,handY,0.3);
+[-1,1].forEach(s=>{const tip=attachTo.children[attachTo.children.length-4+s];if(tip)tip.position.set(s*.8,handY,0.3);});
+hilt.position.set(0,handY+0.2,0.3);hilt.rotation.set(Math.PI/2,0,0);
+pommel.position.set(0,handY+0.9,0.3);
 }
 function addStaff(rArm){
-const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.12,.1,10,6),mt.wd);shaft.position.set(0,-4,1.5);shaft.rotation.x=.1;rArm.add(shaft);
-const orb=new THREE.Mesh(new THREE.SphereGeometry(.5,8,8),new MS({color:0x6644cc,emissive:0x4422aa,emissiveIntensity:.8,roughness:.3}));orb.position.set(0,-4,6.8);rArm.add(orb);
-const orbRing=new THREE.Mesh(new THREE.TorusGeometry(.55,.06,6,12),mt.gold);orbRing.position.set(0,-4,6.8);rArm.add(orbRing);
+// Staff attaches to hand (elbow group) for natural hand rotation
+const attachTo=rArm.userData&&rArm.userData.elbow?rArm.userData.elbow:rArm;
+// Staff properly held in hand
+const staffGrp=new THREE.Group();staffGrp.position.set(0,-2.8,.3);staffGrp.rotation.x=0.2;attachTo.add(staffGrp);
+// Shaft extends upward from hand
+const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.1,.08,7,6),mt.wd);shaft.position.set(0,3.5,0);staffGrp.add(shaft);
+// Glowing orb at top of staff
+const orb=new THREE.Mesh(new THREE.SphereGeometry(.45,8,8),new MS({color:0x6644cc,emissive:0x4422aa,emissiveIntensity:1.2,roughness:.3}));orb.position.set(0,7,0);staffGrp.add(orb);
+// Gold ring around orb
+const orbRing=new THREE.Mesh(new THREE.TorusGeometry(.5,.05,6,12),mt.gold);orbRing.position.set(0,7,0);orbRing.rotation.x=Math.PI/2;staffGrp.add(orbRing);
+// Small gems on shaft
+for(let i=0;i<3;i++){const gem=new THREE.Mesh(new THREE.SphereGeometry(.08,6,6),new MS({color:0xaa88ff,emissive:0x6644cc,emissiveIntensity:.5}));gem.position.set(0,2+i*2,0);staffGrp.add(gem);}
 }
 function addBow(rArm){
-// Bow held in right hand (arrows drawn from back)
-const bowCurve=new THREE.Mesh(new THREE.TorusGeometry(1.2,.08,6,16,Math.PI),new MS({color:0x8a5a3a,roughness:.85}));bowCurve.position.set(0,-6,1);bowCurve.rotation.set(Math.PI/2,0,0);rArm.add(bowCurve);
-const bowString=new THREE.Mesh(new THREE.CylinderGeometry(.015,.015,2.4,4),new MS({color:0xdddddd,roughness:.9}));bowString.position.set(0,-6,.85);bowString.rotation.x=Math.PI/2;rArm.add(bowString);
-const bowGrip=new THREE.Mesh(new THREE.CylinderGeometry(.1,.12,.8,6),new MS({color:0x5a3a2a,roughness:.9}));bowGrip.position.set(0,-6,.2);bowGrip.rotation.x=Math.PI/2;rArm.add(bowGrip);
+// Bow held in right hand - attaches to elbow group for natural rotation
+const attachTo=rArm.userData&&rArm.userData.elbow?rArm.userData.elbow:rArm;
+const handY=rArm.userData&&rArm.userData.elbow?-2.8:-6;
+const bowCurve=new THREE.Mesh(new THREE.TorusGeometry(1.2,.08,6,16,Math.PI),new MS({color:0x8a5a3a,roughness:.85}));bowCurve.position.set(0,handY+3.2,1);bowCurve.rotation.set(Math.PI/2,0,0);attachTo.add(bowCurve);
+const bowString=new THREE.Mesh(new THREE.CylinderGeometry(.015,.015,2.4,4),new MS({color:0xdddddd,roughness:.9}));bowString.position.set(0,handY+3.2,1.85);bowString.rotation.x=Math.PI/2;attachTo.add(bowString);
+const bowGrip=new THREE.Mesh(new THREE.CylinderGeometry(.1,.12,.8,6),new MS({color:0x5a3a2a,roughness:.9}));bowGrip.position.set(0,handY+2.5,.5);bowGrip.rotation.x=Math.PI/2;attachTo.add(bowGrip);
 }
 function addCrossbow(rArm){
-// Crossbow - compact, can be dual wielded
-const stock=new THREE.Mesh(new THREE.BoxGeometry(.5,.4,3),new MS({color:0x5a3a2a,roughness:.85}));stock.position.set(0,-6,1);stock.rotation.x=Math.PI/2;rArm.add(stock);
-const prod=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,2.2,4),new MS({color:0x666666,roughness:.5}));prod.position.set(0,-6,2.2);prod.rotation.z=Math.PI/2;rArm.add(prod);
-const stringV=new THREE.Mesh(new THREE.CylinderGeometry(.015,.015,.8,4),new MS({color:0xdddddd,roughness:.9}));stringV.position.set(-.9,-6,2.2);stringV.rotation.x=Math.PI/2;rArm.add(stringV);
-const stringH=new THREE.Mesh(new THREE.CylinderGeometry(.015,.015,.8,4),new MS({color:0xdddddd,roughness:.9}));stringH.position.set(.9,-6,2.2);stringH.rotation.x=Math.PI/2;rArm.add(stringH);
+// Crossbow - attaches to hand (elbow group) for natural rotation
+const attachTo=rArm.userData&&rArm.userData.elbow?rArm.userData.elbow:rArm;
+const handY=rArm.userData&&rArm.userData.elbow?-2.8:-6;
+const stock=new THREE.Mesh(new THREE.BoxGeometry(.5,.4,3),new MS({color:0x5a3a2a,roughness:.85}));stock.position.set(0,handY+3.2,1);stock.rotation.x=Math.PI/2;attachTo.add(stock);
+const prod=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,2.2,4),new MS({color:0x666666,roughness:.5}));prod.position.set(0,handY+3.2,2.2);prod.rotation.z=Math.PI/2;attachTo.add(prod);
+const stringV=new THREE.Mesh(new THREE.CylinderGeometry(.015,.015,.8,4),new MS({color:0xdddddd,roughness:.9}));stringV.position.set(-.9,handY+3.2,2.2);stringV.rotation.x=Math.PI/2;attachTo.add(stringV);
+const stringH=new THREE.Mesh(new THREE.CylinderGeometry(.015,.015,.8,4),new MS({color:0xdddddd,roughness:.9}));stringH.position.set(.9,handY+3.2,2.2);stringH.rotation.x=Math.PI/2;attachTo.add(stringH);
 }
 function addSwordLeft(lArm){
-// Left hand sword (shorter for dual wielding)
-const blade=new THREE.Mesh(new THREE.BoxGeometry(.18,.16,5.5),mt.swordBlade);blade.position.set(0,-7,2.8);blade.rotation.x=.06;lArm.add(blade);
-const fuller=new THREE.Mesh(new THREE.BoxGeometry(.05,.08,4),new MS({color:0x556,roughness:.15,metalness:.9}));fuller.position.set(0,-6.9,2.8);fuller.rotation.x=.06;lArm.add(fuller);
-const xguard=new THREE.Mesh(new THREE.BoxGeometry(1.2,.2,.2),mt.swordHilt);xguard.position.set(0,-7,.1);lArm.add(xguard);
-const hilt=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,1.2,6),mt.leather);hilt.position.set(0,-7,-.3);hilt.rotation.x=Math.PI/2;lArm.add(hilt);
-const pommel=new THREE.Mesh(new THREE.SphereGeometry(.18,6,6),mt.gold);pommel.position.set(0,-7,-.9);lArm.add(pommel);
+// Left hand sword (shorter for dual wielding) - attaches to hand
+const attachTo=lArm.userData&&lArm.userData.elbow?lArm.userData.elbow:lArm;
+const handY=lArm.userData&&lArm.userData.elbow?-2.8:-6.5;
+const blade=new THREE.Mesh(new THREE.BoxGeometry(.18,.16,5.5),mt.swordBlade);blade.position.set(0,handY+2.8,2.8);blade.rotation.x=.06;attachTo.add(blade);
+const fuller=new THREE.Mesh(new THREE.BoxGeometry(.05,.08,4),new MS({color:0x556,roughness:.15,metalness:.9}));fuller.position.set(0,handY+2.9,2.8);fuller.rotation.x=.06;attachTo.add(fuller);
+const xguard=new THREE.Mesh(new THREE.BoxGeometry(1.2,.2,.2),mt.swordHilt);xguard.position.set(0,handY,.1);attachTo.add(xguard);
+const hilt=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,1.2,6),mt.leather);hilt.position.set(0,handY,-.3);hilt.rotation.x=Math.PI/2;attachTo.add(hilt);
+const pommel=new THREE.Mesh(new THREE.SphereGeometry(.18,6,6),mt.gold);pommel.position.set(0,handY,-.9);attachTo.add(pommel);
+// FIX: Reposition left sword to properly extend from hand
+blade.position.set(0,handY-2.5,0.3);blade.rotation.set(Math.PI/2,0,0);
+fuller.position.set(0,handY-2.5,0.35);fuller.rotation.set(Math.PI/2,0,0);
+xguard.position.set(0,handY,0.3);
+hilt.position.set(0,handY+0.2,0.3);hilt.rotation.set(Math.PI/2,0,0);
+pommel.position.set(0,handY+0.8,0.3);
 }
 function addDaggerLeft(lArm){
-// Left hand dagger for dual wield
-const blade=new THREE.Mesh(new THREE.ConeGeometry(.12,.8,4),mt.swordBlade);blade.position.set(0,-6.8,.4);blade.rotation.x=-Math.PI/2;lArm.add(blade);
-const guard=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.1,6),mt.swordHilt);guard.position.set(0,-6.8,-.1);lArm.add(guard);
-const hilt=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.6,6),mt.leather);hilt.position.set(0,-6.8,-.45);hilt.rotation.x=Math.PI/2;lArm.add(hilt);
-const pommel=new THREE.Mesh(new THREE.SphereGeometry(.15,6,6),mt.gold);pommel.position.set(0,-6.8,-.8);lArm.add(pommel);
+// Left hand dagger for dual wield - attaches to hand
+const attachTo=lArm.userData&&lArm.userData.elbow?lArm.userData.elbow:lArm;
+const handY=lArm.userData&&lArm.userData.elbow?-2.8:-6.8;
+const blade=new THREE.Mesh(new THREE.ConeGeometry(.12,.8,4),mt.swordBlade);blade.position.set(0,handY,.4);blade.rotation.x=-Math.PI/2;attachTo.add(blade);
+const guard=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.1,6),mt.swordHilt);guard.position.set(0,handY,-.1);attachTo.add(guard);
+const hilt=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.6,6),mt.leather);hilt.position.set(0,handY,-.45);hilt.rotation.x=Math.PI/2;attachTo.add(hilt);
+const pommel=new THREE.Mesh(new THREE.SphereGeometry(.15,6,6),mt.gold);pommel.position.set(0,handY,-.8);attachTo.add(pommel);
 }
 function addQuiver(back){
 // Quiver with arrows on back
@@ -1911,17 +2278,25 @@ for(let i=0;i<4;i++){const fletch=new THREE.Mesh(new THREE.BoxGeometry(.15,.02,.
 }
 function addPauldrons_Knight(lArm,rArm){
 [lArm,rArm].forEach(arm=>{
+// Pauldron (shoulder armor) - attaches to shoulder, moves with upper arm
 const paul=new THREE.Mesh(new THREE.SphereGeometry(1.3,10,8),mt.armorLt);paul.scale.set(1.1,.8,.95);arm.add(paul);
 const paulRim=new THREE.Mesh(new THREE.BoxGeometry(1.8,.2,1.6),mt.armorDk);paulRim.position.y=-.5;arm.add(paulRim);
-const ua=new THREE.Mesh(new THREE.CylinderGeometry(.55,.5,3,8),mt.armorWorn);ua.position.y=-2.4;arm.add(ua);
-const el=new THREE.Mesh(new THREE.SphereGeometry(.55,8,6),mt.armorDk);el.position.y=-4;arm.add(el);
-const fa=new THREE.Mesh(new THREE.CylinderGeometry(.5,.44,2.8,8),mt.armorDk);fa.position.y=-5.5;arm.add(fa);
-const gt=new THREE.Mesh(new THREE.BoxGeometry(.8,.5,1),mt.armorDk);gt.position.y=-7;arm.add(gt);
+// Upper arm armor (rerebrace) - covers upper arm only
+const ua=new THREE.Mesh(new THREE.CylinderGeometry(.55,.5,2.6,8),mt.armorWorn);ua.position.y=-1.4;arm.add(ua);
+// Elbow couter - attaches to elbow pivot
+if(arm.userData.elbow){
+const el=new THREE.Mesh(new THREE.SphereGeometry(.55,8,6),mt.armorDk);arm.userData.elbow.add(el);
+// Lower arm armor (vambrace) - attaches to forearm
+const fa=new THREE.Mesh(new THREE.CylinderGeometry(.5,.44,2.4,8),mt.armorDk);fa.position.y=-1.2;arm.userData.elbow.add(fa);
+// Gauntlet (hand armor)
+const gt=new THREE.Mesh(new THREE.BoxGeometry(.85,.5,1.1),mt.armorDk);gt.position.y=-2.8;arm.userData.elbow.add(gt);}
 });}
 function addGloves_Knight(lArm,rArm){
 [lArm,rArm].forEach(arm=>{
-const gt=new THREE.Mesh(new THREE.BoxGeometry(.85,.6,1.1),mt.armorDk);gt.position.y=-6.8;arm.add(gt);
-const knk=new THREE.Mesh(new THREE.BoxGeometry(.85,.15,.5),mt.armorLt);knk.position.set(0,-6.5,.3);arm.add(knk);
+// Gauntlets attach to elbow group (hand level)
+if(arm.userData.elbow){
+const gt=new THREE.Mesh(new THREE.BoxGeometry(.85,.6,1.1),mt.armorDk);gt.position.y=-2.8;arm.userData.elbow.add(gt);
+const knk=new THREE.Mesh(new THREE.BoxGeometry(.85,.15,.5),mt.armorLt);knk.position.set(0,0,.3);arm.userData.elbow.add(knk);}
 });}
 function addCape(bodyCenter,mat){
 mat=mat||mt.cape;
@@ -1943,6 +2318,7 @@ const hasGloves=eq&&eq.Gloves&&eq.Gloves.name!=='None';
 const hasWeapon=eq&&eq.Weapon&&eq.Weapon.name!=='None';
 const hasShield=eq&&eq.Shield&&eq.Shield.name!=='None';
 const hasOffHand=eq&&eq.OffHand&&eq.OffHand.name!=='None';
+const hasCape=eq&&eq.Cape&&eq.Cape.name!=='None';
 // Determine weapon types for dual wield logic
 const weaponName=hasWeapon?eq.Weapon.name.toLowerCase():'';
 const offHandName=hasOffHand?eq.OffHand.name.toLowerCase():'';
@@ -1956,53 +2332,62 @@ const offIsCrossbow=offHandName.includes('crossbow')||offHandName.includes('xbow
 const canDualWield=!isLongBow;// Crossbows and swords can dual wield
 const isDualWielding=hasOffHand&&canDualWield&&(!isBow||isCrossbow);
 if(cls==='knight'){
-// Knight: only shows armor when equipped, base character otherwise
-// Base hair (visible when no helm)
-const hair=new THREE.Mesh(new THREE.SphereGeometry(1.3,8,8),mt_hairDk);hair.position.y=.4;hair.scale.set(1.05,.5,1.05);headGroup.add(hair);
-// Armor only if equipped
+// Knight: DEPRIVED when no gear equipped, only shows what IS equipped
+// Hair only shows when NO helm equipped
+if(!hasHelm){
+const hair=new THREE.Mesh(new THREE.SphereGeometry(1.3,8,8),mt_hairDk);hair.position.y=.4;hair.scale.set(1.05,.5,1.05);headGroup.add(hair);}
+// Armor ONLY if equipped in that slot
 if(hasHelm)addHelm_Knight(headGroup);
 if(hasChest)addChest_Knight(bodyCenter);
+if(hasChest)addPauldrons_Knight(lArm,rArm); // Pauldrons are part of chest armor
 if(hasLegs)addLegs_Knight(lLeg,rLeg,bodyCenter);
 if(hasBoots)addBoots_Knight(lKnee,rKnee);
-if(hasGloves||hasChest||hasWeapon)addPauldrons_Knight(lArm,rArm);
 if(hasGloves)addGloves_Knight(lArm,rArm);
-// Right hand weapon
+// Cape ONLY if equipped
+if(hasCape)addCape(bodyCenter);
+// Right hand weapon ONLY if equipped
 if(hasWeapon){
 if(isCrossbow)addCrossbow(rArm);
 else if(isBow)addBow(rArm);
 else addSword(rArm);}
-// Left hand: shield OR off-hand weapon (sword/dagger/crossbow) for dual wield
+// Left hand: shield OR off-hand weapon ONLY if equipped
 if(hasShield&&!isDualWielding)addShield(lArm);
-else if(isDualWielding){
+else if(isDualWielding&&hasOffHand){
 if(offIsCrossbow)addCrossbow(lArm);
 else if(offHandName.includes('dagger'))addDaggerLeft(lArm);
 else addSwordLeft(lArm);}
-if(hasCape!==false)addCape(bodyCenter);
 }else if(cls==='warrior'){
-// Warrior: only shows armor when equipped
-// Head: open face with hair - attaches to headGroup
-const hair=new THREE.Mesh(new THREE.SphereGeometry(1.35,8,8),mt_hairDk);hair.position.y=.4;hair.scale.set(1.05,.55,1.05);headGroup.add(hair);
-if(hasHelm){// Warrior helm: open-face iron helm - attaches to headGroup
+// Warrior: DEPRIVED when no gear equipped, only shows what IS equipped
+// Hair only shows when NO helm equipped
+if(!hasHelm){
+const hair=new THREE.Mesh(new THREE.SphereGeometry(1.35,8,8),mt_hairDk);hair.position.y=.4;hair.scale.set(1.05,.55,1.05);headGroup.add(hair);}
+// Helm ONLY if equipped
+if(hasHelm){
 const wHelm=new THREE.Mesh(new THREE.SphereGeometry(1.45,10,10),mt.armorWorn);wHelm.position.y=.1;wHelm.scale.set(1.02,1.08,.92);headGroup.add(wHelm);
 const noseguard=new THREE.Mesh(new THREE.BoxGeometry(.18,1.6,.25),mt.armorLt);noseguard.position.set(0,-.25,.32);headGroup.add(noseguard);
 }
-// Chainmail chest - only if equipped
+// Chainmail chest - ONLY if equipped
 if(hasChest){
 const chainTorso=new THREE.Mesh(new THREE.BoxGeometry(3.5,4.2,2.1),mt_warChain);chainTorso.position.y=.6;bodyCenter.add(chainTorso);
 const belt=new THREE.Mesh(new THREE.BoxGeometry(3.7,.55,2.2),mt.leather);belt.position.y=-1.3;bodyCenter.add(belt);
 const buckle=new THREE.Mesh(new THREE.BoxGeometry(.65,.45,.3),mt.gold);buckle.position.set(0,-1.3,1.15);bodyCenter.add(buckle);
 }
-// Leather shoulders - only if chest or gloves equipped
-if(hasChest||hasGloves){
+// Pauldrons (shoulders) - ONLY if hasChest (part of chest set)
+if(hasChest){
 [lArm,rArm].forEach(arm=>{
-const paul=new THREE.Mesh(new THREE.SphereGeometry(1.05,8,6),mt_warLeather);paul.scale.set(1.05,.75,.92);arm.add(paul);
-const ua=new THREE.Mesh(new THREE.CylinderGeometry(.48,.44,3.2,8),mt_warLeather);ua.position.y=-2.3;arm.add(ua);
-const elb=new THREE.Mesh(new THREE.SphereGeometry(.5,8,6),mt_warLeather);elb.position.y=-4;arm.add(elb);
-const fa=new THREE.Mesh(new THREE.CylinderGeometry(.44,.38,2.9,8),mt_warChain);fa.position.y=-5.2;arm.add(fa);
-if(hasGloves){const glv=new THREE.Mesh(new THREE.BoxGeometry(.7,.5,.85),mt_warLeather);glv.position.y=-6.7;arm.add(glv);}
+const paul=new THREE.Mesh(new THREE.SphereGeometry(1.05,8,6),mt_warLeather);paul.scale.set(1.05,.75,.92);arm.add(paul);});
+}
+// Upper arm + elbow + forearm + gloves - ONLY if hasGloves
+if(hasGloves){
+[lArm,rArm].forEach(arm=>{
+const ua=new THREE.Mesh(new THREE.CylinderGeometry(.52,.48,2.6,8),mt_warLeather);ua.position.y=-1.4;arm.add(ua);
+if(arm.userData.elbow){
+const elb=new THREE.Mesh(new THREE.SphereGeometry(.52,8,6),mt_warLeather);arm.userData.elbow.add(elb);
+const fa=new THREE.Mesh(new THREE.CylinderGeometry(.48,.42,2.4,8),mt_warChain);fa.position.y=-1.2;arm.userData.elbow.add(fa);
+const glv=new THREE.Mesh(new THREE.BoxGeometry(.75,.55,.9),mt_warLeather);glv.position.y=-2.8;arm.userData.elbow.add(glv);}
 });
 }
-// Warrior legs: leather + chain - only if legs equipped
+// Warrior legs - ONLY if hasLegs
 if(hasLegs){
 const addWarriorLeg=(leg)=>{
 const cuisse=new THREE.Mesh(new THREE.CylinderGeometry(.58,.52,3.1,8),mt_warChain);cuisse.position.y=-1.5;leg.add(cuisse);
@@ -2011,7 +2396,7 @@ const shin=new THREE.Mesh(new THREE.CylinderGeometry(.5,.42,2.9,8),mt_warLeather
 };
 addWarriorLeg(lLeg);addWarriorLeg(rLeg);
 }
-// Boots: leather - only if boots equipped
+// Boots - ONLY if hasBoots
 if(hasBoots){
 const addWarriorBoot=(knee)=>{
 const boot=new THREE.Mesh(new THREE.BoxGeometry(.95,.75,1.6),mt_warLeather);boot.position.set(0,-.4,.1);knee.add(boot);
@@ -2019,67 +2404,92 @@ const toe=new THREE.Mesh(new THREE.BoxGeometry(.75,.3,.6),mt_warLeather);toe.pos
 };
 addWarriorBoot(lKnee);addWarriorBoot(rKnee);
 }
-// Right hand weapon
+// Right hand weapon ONLY if equipped
 if(hasWeapon){
 if(isCrossbow)addCrossbow(rArm);
 else if(isBow)addBow(rArm);
 else addSword(rArm);}
-// Left hand: shield OR off-hand weapon for dual wield
+// Left hand: shield OR off-hand weapon ONLY if equipped
 if(hasShield&&!isDualWielding)addShield(lArm);
-else if(isDualWielding){
+else if(isDualWielding&&hasOffHand){
 if(offIsCrossbow)addCrossbow(lArm);
 else if(offHandName.includes('dagger'))addDaggerLeft(lArm);
 else addSwordLeft(lArm);}
 }else if(cls==='sorcerer'){
-// Sorcerer: flowing robes, hood, staff
-// Hood - attaches to headGroup for head movement
+// Sorcerer: DEPRIVED when no gear, shows robes/hood only when equipped
+// Hood ONLY if hasHelm (hood counts as head armor)
+if(hasHelm){
 const hood=new THREE.Mesh(new THREE.SphereGeometry(1.65,10,10),mt_robeHood);hood.position.y=.1;hood.scale.set(1.02,1.18,.97);headGroup.add(hood);
-// Shadow under hood (face hidden)
 const faceShadow=new THREE.Mesh(new THREE.SphereGeometry(1,8,8),new MS({color:0x0a0a0a,roughness:1}));faceShadow.position.set(0,-.45,.05);faceShadow.scale.set(.6,.5,.3);headGroup.add(faceShadow);
-// Glowing eyes
 const glowEye=new MS({color:0x6644ff,emissive:0x6644ff,emissiveIntensity:2});
 [-1,1].forEach(s=>{const eye=new THREE.Mesh(new THREE.SphereGeometry(.12,5,5),glowEye);eye.position.set(s*.35,-.35,.15);headGroup.add(eye)});
-// Robe torso - attaches to bodyCenter for breathing animation
+}
+// Robes ONLY if hasChest (robes count as chest armor)
+if(hasChest){
+// Robe torso
 const robeTorso=new THREE.Mesh(new THREE.BoxGeometry(3.5,4.6,2.1),mt_robe);robeTorso.position.y=.4;bodyCenter.add(robeTorso);
-// Gold trim on robe
 const trim1=new THREE.Mesh(new THREE.BoxGeometry(3.55,.18,2.12),mt_robeGold);trim1.position.y=2.6;bodyCenter.add(trim1);
 const trim2=new THREE.Mesh(new THREE.BoxGeometry(.22,4.6,.18),mt_robeGold);trim2.position.set(0,.4,1.08);bodyCenter.add(trim2);
-// Robe skirt (long, covers legs) - attaches to bodyCenter
-const robeSkirt=new THREE.Mesh(new THREE.CylinderGeometry(1.25,2.25,5.2,10),mt_robe);robeSkirt.position.y=-4.1;bodyCenter.add(robeSkirt);
-const skirtTrim=new THREE.Mesh(new THREE.TorusGeometry(2.2,.08,6,16),mt_robeGold);skirtTrim.position.y=-6.6;skirtTrim.rotation.x=Math.PI/2;bodyCenter.add(skirtTrim);
-// Robe sleeves - attach to animated arms
-[lArm,rArm].forEach(arm=>{
-const sleeve=new THREE.Mesh(new THREE.CylinderGeometry(.65,.82,5.2,8),mt_robe);sleeve.position.y=-3.6;arm.add(sleeve);
-const cuff=new THREE.Mesh(new THREE.TorusGeometry(.78,.07,6,10),mt_robeGold);cuff.position.y=-6.1;cuff.rotation.x=Math.PI/2;arm.add(cuff);
-});
-// Sash/belt - attaches to bodyCenter
+// Segmented robe skirt
+const robeSkirtSegs=[];
+const skirtTop=new THREE.Mesh(new THREE.CylinderGeometry(1.15,1.5,1.8,10),mt_robe);skirtTop.position.y=-2.2;bodyCenter.add(skirtTop);
+const skirtTopTrim=new THREE.Mesh(new THREE.TorusGeometry(1.5,.06,6,12),mt_robeGold);skirtTopTrim.position.y=-3.1;skirtTopTrim.rotation.x=Math.PI/2;bodyCenter.add(skirtTopTrim);
+const skirtMid=new THREE.Mesh(new THREE.CylinderGeometry(1.5,2,1.8,10),mt_robe);skirtMid.position.y=-4.0;bodyCenter.add(skirtMid);
+const skirtMidTrim=new THREE.Mesh(new THREE.TorusGeometry(2,.07,6,14),mt_robeGold);skirtMidTrim.position.y=-4.9;skirtMidTrim.rotation.x=Math.PI/2;bodyCenter.add(skirtMidTrim);
+const skirtBot=new THREE.Mesh(new THREE.CylinderGeometry(2,2.6,1.8,10),mt_robe);skirtBot.position.y=-5.8;bodyCenter.add(skirtBot);
+const skirtBotTrim=new THREE.Mesh(new THREE.TorusGeometry(2.6,.08,6,16),mt_robeGold);skirtBotTrim.position.y=-6.7;skirtBotTrim.rotation.x=Math.PI/2;bodyCenter.add(skirtBotTrim);
+robeSkirtSegs.push({mesh:skirtMid,swayAmt:.03},{mesh:skirtBot,swayAmt:.06});
+bodyCenter.userData.robeSkirtSegs=robeSkirtSegs;bodyCenter.userData.robeSkirt=skirtBot;
+bodyCenter.userData.robeTorso=robeTorso;
+// Sash/belt
 const sash=new THREE.Mesh(new THREE.BoxGeometry(3.65,.45,2.15),mt_robeGold);sash.position.y=-1.6;bodyCenter.add(sash);
-// Staff only if weapon equipped
+}
+// Robe sleeves - ONLY if hasGloves (sleeve armor)
+if(hasGloves){
+const robeSleeves=[];
+[lArm,rArm].forEach((arm,side)=>{
+const upSleeve=new THREE.Mesh(new THREE.CylinderGeometry(.72,.65,2.6,8),mt_robe);upSleeve.position.y=-1.4;arm.add(upSleeve);
+const upTrim=new THREE.Mesh(new THREE.TorusGeometry(.68,.06,6,10),mt_robeGold);upTrim.position.y=-2.7;upTrim.rotation.x=Math.PI/2;arm.add(upTrim);
+if(arm.userData.elbow){
+const loSleeve=new THREE.Mesh(new THREE.CylinderGeometry(.82,.9,2.4,8),mt_robe);loSleeve.position.y=-1.2;arm.userData.elbow.add(loSleeve);
+const cuff=new THREE.Mesh(new THREE.TorusGeometry(.88,.07,6,10),mt_robeGold);cuff.position.y=-2.4;cuff.rotation.x=Math.PI/2;arm.userData.elbow.add(cuff);
+const sleeveEnd=new THREE.Mesh(new THREE.CylinderGeometry(.9,1.2,.8,8),mt_robe);sleeveEnd.position.y=-2.8;arm.userData.elbow.add(sleeveEnd);
+robeSleeves.push(upSleeve,loSleeve,sleeveEnd);}
+});
+bodyCenter.userData.robeSleeves=robeSleeves;
+}
+// Staff ONLY if weapon equipped
 if(hasWeapon)addStaff(rArm);
-// Left hand: magic book or off-hand weapon for dual wield
-if(isDualWielding){
+// Left hand: off-hand weapon ONLY if equipped (no default book)
+if(isDualWielding&&hasOffHand){
 if(offIsCrossbow)addCrossbow(lArm);
 else if(offHandName.includes('dagger'))addDaggerLeft(lArm);
 else addSwordLeft(lArm);}
-else{
-// Magic book in left hand (default for sorcerer)
-const book=new THREE.Mesh(new THREE.BoxGeometry(.8,1,.5),new MS({color:0x3a1a0a,roughness:.8}));book.position.set(0,-6.5,.5);lArm.add(book);
-const pages=new THREE.Mesh(new THREE.BoxGeometry(.75,.85,.1),new MS({color:0xeeddaa,roughness:.9}));pages.position.set(0,-6.5,.78);lArm.add(pages);}
 }else if(cls==='ranger'){
-// Ranger: leather armor, hood, bow & quiver
-// Hood - attaches to headGroup for head movement
-const hood=new THREE.Mesh(new THREE.SphereGeometry(1.4,10,10),mt_robeHood);hood.position.y=.1;hood.scale.set(1.02,1.1,.97);headGroup.add(hood);
-// Leather tunic - attaches to bodyCenter for breathing animation
+// Ranger: DEPRIVED when no gear, shows gear only when equipped
+// Hood ONLY if hasHelm equipped
+if(hasHelm){
+const hood=new THREE.Mesh(new THREE.SphereGeometry(1.4,10,10),mt_robeHood);hood.position.y=.1;hood.scale.set(1.02,1.1,.97);headGroup.add(hood);}
+// Leather tunic - ONLY if hasChest
+if(hasChest){
 const tunic=new THREE.Mesh(new THREE.BoxGeometry(3.2,4,1.8),mt_warLeather);tunic.position.y=.6;bodyCenter.add(tunic);
 const belt=new THREE.Mesh(new THREE.BoxGeometry(3.4,.4,1.9),new MS({color:0x3a2a1a,roughness:.9}));belt.position.y=-1.4;bodyCenter.add(belt);
-// Leather vambraces - attach to animated arms
+}
+// Leather shoulders - ONLY if hasChest
+if(hasChest){
 [lArm,rArm].forEach(arm=>{
-const vam=new THREE.Mesh(new THREE.SphereGeometry(1.0,8,6),mt_warLeather);vam.scale.set(1.05,.75,.92);arm.add(vam);
-const ua=new THREE.Mesh(new THREE.CylinderGeometry(.45,.42,3.2,8),mt_warLeather);ua.position.y=-2.3;arm.add(ua);
-const glv=new THREE.Mesh(new THREE.BoxGeometry(.65,.45,.8),mt_warLeather);glv.position.y=-6.7;arm.add(glv);
+const vam=new THREE.Mesh(new THREE.SphereGeometry(1.0,8,6),mt_warLeather);vam.scale.set(1.05,.75,.92);arm.add(vam);});
+}
+// Vambraces and gloves - ONLY if hasGloves
+if(hasGloves){
+[lArm,rArm].forEach(arm=>{
+const ua=new THREE.Mesh(new THREE.CylinderGeometry(.45,.42,2.6,8),mt_warLeather);ua.position.y=-1.4;arm.add(ua);
+if(arm.userData.elbow){
+const glv=new THREE.Mesh(new THREE.BoxGeometry(.7,.5,.85),mt_warLeather);glv.position.y=-2.8;arm.userData.elbow.add(glv);}
 });
-// Ranger legs: leather - attach to animated legs
-if(hasLegs||true){
+}
+// Ranger legs - ONLY if hasLegs
+if(hasLegs){
 const addRangerLeg=(leg)=>{
 const cuisse=new THREE.Mesh(new THREE.CylinderGeometry(.55,.5,3.1,8),mt_warLeather);cuisse.position.y=-1.5;leg.add(cuisse);
 const poleyn=new THREE.Mesh(new THREE.SphereGeometry(.52,8,6),mt_warLeather);poleyn.position.y=-3;leg.add(poleyn);
@@ -2087,27 +2497,26 @@ const shin=new THREE.Mesh(new THREE.CylinderGeometry(.48,.42,2.9,8),mt_warLeathe
 };
 addRangerLeg(lLeg);addRangerLeg(rLeg);
 }
-// Boots: leather
-if(hasBoots||true){
+// Boots - ONLY if hasBoots
+if(hasBoots){
 const addRangerBoot=(knee)=>{
 const boot=new THREE.Mesh(new THREE.BoxGeometry(.9,.7,1.5),mt_warLeather);boot.position.set(0,-.4,.1);knee.add(boot);
 const toe=new THREE.Mesh(new THREE.BoxGeometry(.7,.28,.55),mt_warLeather);toe.position.set(0,-.52,.72);knee.add(toe);
 };
 addRangerBoot(lKnee);addRangerBoot(rKnee);
 }
-// Bow/crossbow with dual wield logic
-// Rangers CANNOT dual wield long/short bows, but CAN dual wield crossbows
+// Bow/crossbow - ONLY if weapon equipped (no default)
 if(hasWeapon){
 if(isCrossbow)addCrossbow(rArm);
 else if(isBow)addBow(rArm);
 else addSword(rArm);}
-else addBow(rArm);// Default bow for ranger
-addQuiver(bodyCenter);
-// Left hand: shield OR off-hand weapon for dual wield (crossbow only for ranger)
+// Quiver ONLY if hasBow equipped
+if(hasWeapon&&isBow)addQuiver(bodyCenter);
+// Left hand: shield OR off-hand weapon ONLY if equipped
 if(hasShield&&!isDualWielding)addShield(lArm);
-else if(isDualWielding&&offIsCrossbow)addCrossbow(lArm);
-else if(isDualWielding){
-if(offHandName.includes('dagger'))addDaggerLeft(lArm);
+else if(isDualWielding&&hasOffHand){
+if(offIsCrossbow)addCrossbow(lArm);
+else if(offHandName.includes('dagger'))addDaggerLeft(lArm);
 else addSwordLeft(lArm);}
 }else if(cls==='deprived'){
 // Deprived: bare skin, loincloth only
@@ -2217,6 +2626,13 @@ d.lArm.rotation.z=0.1+sway;
 d.rArm.rotation.z=-0.1-sway;
 // Head bob with breath
 if(d.headGroup)d.headGroup.rotation.x=breath*0.3;
+// Robe/skirt sway for sorcerer
+if(d.bodyCenter.userData.robeSkirt){
+const skirt=d.bodyCenter.userData.robeSkirt;
+skirt.rotation.x=breath*0.3;
+skirt.rotation.z=Math.sin(t*1.2)*0.02;}
+if(d.bodyCenter.userData.robeTorso){
+d.bodyCenter.userData.robeTorso.rotation.x=breath*0.2;}
 break;}
 case 'walk':{
 const walkCycle=t*8*animSpeed; // Speed-matched animation
@@ -2230,12 +2646,27 @@ d.rLeg.rotation.x=Math.sin(walkCycle+Math.PI)*legAmp*walkFactor;
 d.lKnee.rotation.x=Math.max(0,Math.sin(walkCycle-0.5)*0.8*walkFactor);
 d.rKnee.rotation.x=Math.max(0,Math.sin(walkCycle+Math.PI-0.5)*0.8*walkFactor);
 // Arms - opposite to legs
-d.lArm.rotation.x=Math.sin(walkCycle+Math.PI)*armAmp*walkFactor;
-d.rArm.rotation.x=Math.sin(walkCycle)*armAmp*walkFactor;
+const lArmRot=Math.sin(walkCycle+Math.PI)*armAmp*walkFactor;
+const rArmRot=Math.sin(walkCycle)*armAmp*walkFactor;
+d.lArm.rotation.x=lArmRot;
+d.rArm.rotation.x=rArmRot;
+// Elbow bend - arms flex at elbow when swinging
+if(d.lArm.userData&&d.lArm.userData.elbow)d.lArm.userData.elbow.rotation.x=Math.abs(lArmRot)*0.5;
+if(d.rArm.userData&&d.rArm.userData.elbow)d.rArm.userData.elbow.rotation.x=Math.abs(rArmRot)*0.5;
 // Body bounce proportional to speed
 const bounce=Math.abs(Math.sin(walkCycle))*0.15*walkFactor;
 d.bodyCenter.position.y=5+bounce;
 d.bodyCenter.rotation.x=bounce*0.3;
+// Robe/skirt sway with leg movement - segmented skirt animation
+if(d.bodyCenter.userData.robeSkirt){
+d.bodyCenter.userData.robeSkirt.rotation.x=bounce*0.5+Math.sin(walkCycle)*0.05;
+d.bodyCenter.userData.robeSkirt.rotation.z=Math.sin(walkCycle*0.5)*0.03;}
+if(d.bodyCenter.userData.robeSkirtSegs){
+d.bodyCenter.userData.robeSkirtSegs.forEach((seg,si)=>{
+if(seg&&seg.mesh)seg.mesh.rotation.z=Math.sin(walkCycle*0.5+si*0.5)*seg.swayAmt;});}
+if(d.bodyCenter.userData.robeSleeves){
+d.bodyCenter.userData.robeSleeves.forEach((sleeve,si)=>{
+if(sleeve)sleeve.rotation.x=Math.sin(walkCycle+si*Math.PI)*0.1*walkFactor;});}
 break;}
 case 'run':{
 const runCycle=t*12*animSpeed; // Speed-matched animation
@@ -2248,14 +2679,30 @@ d.rLeg.rotation.x=Math.sin(runCycle+Math.PI)*legAmp;
 d.lKnee.rotation.x=Math.max(0,Math.sin(runCycle-0.3)*1.2);
 d.rKnee.rotation.x=Math.max(0,Math.sin(runCycle+Math.PI-0.3)*1.2);
 // Arms pumping
-d.lArm.rotation.x=Math.sin(runCycle+Math.PI)*armAmp;
-d.rArm.rotation.x=Math.sin(runCycle)*armAmp;
+const lRunArm=Math.sin(runCycle+Math.PI)*armAmp;
+const rRunArm=Math.sin(runCycle)*armAmp;
+d.lArm.rotation.x=lRunArm;
+d.rArm.rotation.x=rRunArm;
 d.lArm.rotation.z=0.2;
 d.rArm.rotation.z=-0.2;
+// Elbow bend more when running
+if(d.lArm.userData&&d.lArm.userData.elbow)d.lArm.userData.elbow.rotation.x=0.3+Math.abs(lRunArm)*0.4;
+if(d.rArm.userData&&d.rArm.userData.elbow)d.rArm.userData.elbow.rotation.x=0.3+Math.abs(rRunArm)*0.4;
 // Body lean forward
 const lean=0.3;
 d.bodyCenter.rotation.x=lean;
 d.bodyCenter.position.y=5+Math.sin(runCycle*2)*0.1;
+// Robe/skirt flows back when running - segmented animation
+if(d.bodyCenter.userData.robeSkirt){
+d.bodyCenter.userData.robeSkirt.rotation.x=lean*0.8+Math.sin(runCycle)*0.1;
+d.bodyCenter.userData.robeSkirt.rotation.z=Math.sin(runCycle*0.7)*0.05;}
+if(d.bodyCenter.userData.robeSkirtSegs){
+d.bodyCenter.userData.robeSkirtSegs.forEach((seg,si)=>{
+if(seg&&seg.mesh){seg.mesh.rotation.x=lean*(0.2+si*0.15);
+seg.mesh.rotation.z=Math.sin(runCycle*0.7+si*0.3)*seg.swayAmt*1.5;}});}
+if(d.bodyCenter.userData.robeSleeves){
+d.bodyCenter.userData.robeSleeves.forEach((sleeve,si)=>{
+if(sleeve)sleeve.rotation.x=Math.sin(runCycle+si*Math.PI)*0.15;});}
 break;}
 case 'attack':{
 // Attack handled separately per-weapon, this is generic
@@ -2439,7 +2886,8 @@ g.position.set(x,meshTerrainH(x,z),z);g.rotation.y=rot||0;scene.add(g)}
 // === WORLD BUILDER HELPERS ===
 function wall(x,z,w,h,rot){const bY=meshTerrainH(x,z);const g=new THREE.Group();
 const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,3),mt.st);m.position.y=h/2;m.castShadow=true;g.add(m);
-addCircleSolid(x,z,w/2+2,bY,bY+h);
+// Add to solid meshes for accurate box collision that matches wall shape and rotation
+addSolid(m);
 // Crenellations
 const cN=Math.max(2,Math.floor(w/4));for(let i=0;i<cN;i++){if(i%2===0){const cr=new THREE.Mesh(new THREE.BoxGeometry(w/cN*.8,2,3.2),mt.stD);cr.position.set(-w/2+w/cN*(i+.5),h+1,0);cr.castShadow=true;g.add(cr)}}
 // Arrow slits
@@ -2449,7 +2897,8 @@ const base=new THREE.Mesh(new THREE.BoxGeometry(w+1,1,3.8),mt.stD);base.position
 g.position.set(x,bY,z);g.rotation.y=rot||0;scene.add(g)}
 function wallW(x,z,w,h,rot){const bY=meshTerrainH(x,z);const g=new THREE.Group();
 const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,3),mt.stW);m.position.y=h/2;m.castShadow=true;g.add(m);
-addCircleSolid(x,z,w/2+2,bY,bY+h);
+// Add to solid meshes for accurate box collision that matches wall shape and rotation
+addSolid(m);
 const cN=Math.max(2,Math.floor(w/4));for(let i=0;i<cN;i++){if(i%2===0){const cr=new THREE.Mesh(new THREE.BoxGeometry(w/cN*.8,2,3.2),mt.stW);cr.position.set(-w/2+w/cN*(i+.5),h+1,0);cr.castShadow=true;g.add(cr)}}
 const slitN=Math.max(1,Math.floor(w/8));for(let i=0;i<slitN;i++){const sl=new THREE.Mesh(new THREE.BoxGeometry(.4,2,.2),new MS({color:0x0a0a0a,roughness:1}));sl.position.set(-w/2+w/(slitN+1)*(i+1),h*.6,1.6);g.add(sl)}
 const base=new THREE.Mesh(new THREE.BoxGeometry(w+1,1,3.8),mt.stD);base.position.y=.5;g.add(base);
@@ -3590,6 +4039,7 @@ const segLen=wallR*2*Math.PI/wallSegs;
 const wm=new THREE.Mesh(new THREE.BoxGeometry(segLen,wallH,wallT),mt.stGoth);
 wm.position.set((Math.cos(a)+Math.cos(a2))/2*wallR,wallH/2,(Math.sin(a)+Math.sin(a2))/2*wallR);
 wm.rotation.y=-(a+a2)/2+Math.PI/2;wm.castShadow=true;g.add(wm);
+addSolid(wm);
 // Battlements on top
 for(let b=0;b<3;b++){const bOff=(b-1)*segLen/3;
 const merlon=new THREE.Mesh(new THREE.BoxGeometry(3*sc,4*sc,wallT+1),mt.stD);
@@ -3601,6 +4051,7 @@ const cseed=Math.abs(Math.sin(i*127.1+cx*31.7+cz*47.3)*43758.5453)%1;
 const tH=(45+cseed*25)*sc;const tR=(9+cseed*4)*sc;const tTopR=(8+cseed*3)*sc;
 const tSides=8+Math.floor(cseed*8);const cRoofStyle=Math.floor(cseed*3);
 const tBase=new THREE.Mesh(new THREE.CylinderGeometry(tTopR,tR+2*sc,tH,tSides),mt.stGoth);tBase.position.set(tx,tH/2,tz);tBase.castShadow=true;g.add(tBase);
+addSolid(tBase);
 if(cRoofStyle===0){const tRoof=new THREE.Mesh(new THREE.ConeGeometry(tTopR+2*sc,(14+cseed*10)*sc,tSides),mt.rfSlate);tRoof.position.set(tx,tH+(7+cseed*5)*sc,tz);tRoof.castShadow=true;g.add(tRoof)}
 else if(cRoofStyle===1){const dome=new THREE.Mesh(new THREE.SphereGeometry(tTopR+1*sc,tSides,8,0,Math.PI*2,0,Math.PI/2),mt.rfSlate);dome.position.set(tx,tH,tz);g.add(dome)}
 else{const flatR=new THREE.Mesh(new THREE.CylinderGeometry(tTopR+1*sc,tTopR+1*sc,.8*sc,tSides),mt.stD);flatR.position.set(tx,tH+.4*sc,tz);g.add(flatR)}
@@ -3613,6 +4064,7 @@ merlon.position.set(tx+Math.cos(ba)*(tTopR+.5*sc),tH+2*sc,tz+Math.sin(ba)*(tTopR
 // --- KEEP (central massive tower) ---
 const keepW=50*sc,keepD=40*sc,keepH=80*sc;
 const keep=new THREE.Mesh(new THREE.BoxGeometry(keepW,keepH,keepD),mt.stGoth);keep.position.y=keepH/2;keep.castShadow=true;g.add(keep);
+addSolid(keep);
 // Keep roof
 const keepRoof=new THREE.Mesh(new THREE.BoxGeometry(keepW+6*sc,4*sc,keepD+6*sc),mt.rfSlate);keepRoof.position.y=keepH+2*sc;keepRoof.castShadow=true;g.add(keepRoof);
 // Keep battlements
@@ -3646,7 +4098,9 @@ const wFrame=new THREE.Mesh(new THREE.BoxGeometry(3*sc,9*sc,.3),mt.stD);wFrame.p
 // --- GATEHOUSE (front entrance with working portcullis) ---
 const ghW=20*sc,ghH=35*sc,ghD=14*sc;
 const ghL=new THREE.Mesh(new THREE.BoxGeometry(ghW/2-3*sc,ghH,ghD),mt.stGoth);ghL.position.set(-ghW/4-1.5*sc,ghH/2,wallR);ghL.castShadow=true;g.add(ghL);
+addSolid(ghL);
 const ghR=ghL.clone();ghR.position.x=ghW/4+1.5*sc;g.add(ghR);
+addSolid(ghR);
 // Portcullis arch
 const ghArch=new THREE.Mesh(new THREE.BoxGeometry(7*sc,4*sc,ghD),mt.stD);ghArch.position.set(0,ghH-2*sc,wallR);g.add(ghArch);
 // Working portcullis (iron gate that can be opened)
@@ -3668,11 +4122,13 @@ doors.push({pivot:cDoorPivot,x:cx,z:cz+wallR,openAng:-Math.PI/2,cur:0});
 // Gatehouse towers
 [-1,1].forEach(s=>{const gt=new THREE.Mesh(new THREE.CylinderGeometry(7*sc,8*sc,ghH+10*sc,10),mt.stGoth);
 gt.position.set(s*12*sc,(ghH+10*sc)/2,wallR);gt.castShadow=true;g.add(gt);
+addSolid(gt);
 const gtRoof=new THREE.Mesh(new THREE.ConeGeometry(9*sc,14*sc,10),mt.rfSlate);gtRoof.position.set(s*12*sc,ghH+12*sc,wallR);g.add(gtRoof)});
 // --- INNER COURTYARD FEATURES ---
 // Great hall with interior
 const hallW=36*sc,hallH=30*sc,hallD=60*sc;
 const hall=new THREE.Mesh(new THREE.BoxGeometry(hallW,hallH,hallD),mt.stD);hall.position.set(0,hallH/2,-30*sc);hall.castShadow=true;g.add(hall);
+addSolid(hall);
 const hallRoof=new THREE.Mesh(new THREE.BoxGeometry(hallW+4*sc,3*sc,hallD+4*sc),mt.rfSlate);hallRoof.position.set(0,hallH+1.5*sc,-30*sc);g.add(hallRoof);
 // Hall door
 const hDoorW=6*sc,hDoorH=8*sc;
@@ -3886,42 +4342,79 @@ for(let i=0;i<5;i++){const bx=(Math.random()-.5)*4000,bz=(Math.random()-.5)*4000
 
 playerGroup=buildPlayerModel(playerClass);scene.add(playerGroup);
 
-// === FIRELINK SHRINE (Spawn Hub at 0,5) — Gothic Ruin ===
+// === ADVENTURER'S GUILD HALL (Spawn Hub at 0,5) — Welcoming Courtyard ===
 const fH=meshTerrainH(0,5);
-// Circular stone base (larger, weathered)
-const shrBase=new THREE.Mesh(new THREE.CylinderGeometry(22,24,4,16),mt.stGoth);shrBase.position.set(0,fH+2,5);shrBase.receiveShadow=true;scene.add(shrBase);
-const shrFloor=new THREE.Mesh(new THREE.CylinderGeometry(20,20,1.5,16),mt.stD);shrFloor.position.set(0,fH+4.2,5);scene.add(shrFloor);
-// Broken gothic pillars (varying heights - some crumbled)
-const pillarHeights=[18,14,18,10,18,14,18];
-for(let i=0;i<7;i++){const px=-18+i*6;const ph=pillarHeights[i];
-const pil=new THREE.Mesh(new THREE.CylinderGeometry(1,1.3,ph,8),mt.stGoth);pil.position.set(px,fH+ph/2+3.5,5-16);pil.castShadow=true;scene.add(pil);addSolid(pil);
-// Capital on intact pillars
-if(ph>12){const cap=new THREE.Mesh(new THREE.BoxGeometry(3,1.5,3),mt.st);cap.position.set(px,fH+ph+4,5-16);cap.castShadow=true;scene.add(cap)}}
-// Grand back wall
-const bWall=new THREE.Mesh(new THREE.BoxGeometry(40,18,3),mt.stGoth);bWall.position.set(0,fH+12,5-18);bWall.castShadow=true;scene.add(bWall);
-// Pointed arch above entrance
-const sArchL=new THREE.Mesh(new THREE.BoxGeometry(4,22,3),mt.st);sArchL.position.set(-8,fH+14,-12);sArchL.castShadow=true;scene.add(sArchL);
-const sArchR=sArchL.clone();sArchR.position.x=8;scene.add(sArchR);
-const sArchTop=new THREE.Mesh(new THREE.ConeGeometry(9,8,4),mt.stGoth);sArchTop.position.set(0,fH+27,-12);sArchTop.rotation.y=Math.PI/4;sArchTop.castShadow=true;scene.add(sArchTop);
-// Side walls (thicker, taller)
-const lW=new THREE.Mesh(new THREE.BoxGeometry(3,16,30),mt.stD);lW.position.set(-20,fH+11,5-2);lW.castShadow=true;scene.add(lW);
-const rW=lW.clone();rW.position.x=20;scene.add(rW);
-// Grand staircase leading down
-for(let i=0;i<6;i++){const step=new THREE.Mesh(new THREE.BoxGeometry(12+i*2,1.2,3.5),mt.stGoth);step.position.set(0,fH+3.5-i*1,14+i*3.5);step.receiveShadow=true;scene.add(step)}
-// Thrones (gothic high-backed)
-[-10,10].forEach(sx=>{const seat=new THREE.Mesh(new THREE.BoxGeometry(4,5,2.5),mt.stD);seat.position.set(sx,fH+6,5-12);seat.castShadow=true;scene.add(seat);
-const back=new THREE.Mesh(new THREE.BoxGeometry(4,10,.8),mt.stGoth);back.position.set(sx,fH+10,5-13);scene.add(back);
-const finial=new THREE.Mesh(new THREE.ConeGeometry(1.2,3,4),mt.stD);finial.position.set(sx,fH+16,5-13);scene.add(finial)});
-// Blacksmith anvil
-const anvil=new THREE.Mesh(new THREE.BoxGeometry(2.5,2.5,2),mt.armorDk);anvil.position.set(14,fH+5.5,5);anvil.castShadow=true;scene.add(anvil);
-// Shrine bonfire (larger, brighter)
-const shrFire=new THREE.Mesh(new THREE.SphereGeometry(3,10,10),mt.fl);shrFire.position.set(0,fH+7,5);scene.add(shrFire);
-torchPositions.push({x:0,y:fH+8,z:5,mesh:shrFire,ph:0,big:true});
-// Scattered rubble for atmosphere
-for(let i=0;i<15;i++){const rb=new THREE.Mesh(new THREE.IcosahedronGeometry(.5+Math.random()*1.5,0),mt.rkD);
-rb.position.set((Math.random()-.5)*30,fH+Math.random()*2,5+(Math.random()-.5)*20);rb.rotation.set(Math.random(),Math.random(),Math.random());scene.add(rb)}
-// Register Firelink Shrine solids
-addSolid(shrBase);addSolid(shrFloor);addSolid(bWall);addSolid(lW);addSolid(rW);addSolid(sArchL);addSolid(sArchR);addSolid(anvil);
+// Main courtyard - octagonal paved plaza
+const plazaR=35;
+const plaza=new THREE.Mesh(new THREE.CylinderGeometry(plazaR,plazaR+2,2,8),mt.st);plaza.position.set(0,fH+1,5);plaza.receiveShadow=true;scene.add(plaza);
+// Patterned center circle
+const plazaCenter=new THREE.Mesh(new THREE.CylinderGeometry(15,15,2.2,16),new MS({color:0x6a5a4a,roughness:.8}));plazaCenter.position.set(0,fH+1.1,5);scene.add(plazaCenter);
+// Decorative ring inlay
+const plazaRing=new THREE.Mesh(new THREE.TorusGeometry(12,.8,8,32),new MS({color:0x8a7a6a,roughness:.9}));plazaRing.rotation.x=-Math.PI/2;plazaRing.position.set(0,fH+2.2,5);scene.add(plazaRing);
+// Guild Hall building (front entrance)
+const hallW=30,hallD=20,hallH=18;
+const guildHall=new THREE.Mesh(new THREE.BoxGeometry(hallW,hallH,hallD),mt.stGoth);guildHall.position.set(0,fH+hallH/2,5-25);guildHall.castShadow=true;scene.add(guildHall);
+// Hall roof (peaked)
+const hallRoof=new THREE.Mesh(new THREE.ConeGeometry(hallW*.7,10,4),mt.rfSlate);hallRoof.position.set(0,fH+hallH+5,5-25);hallRoof.rotation.y=Math.PI/4;hallRoof.castShadow=true;scene.add(hallRoof);
+// Grand entrance archway
+const archW=12,archH=14;
+const archFrame=new THREE.Mesh(new THREE.BoxGeometry(archW,archH,4),mt.st);archFrame.position.set(0,fH+archH/2,5-11);scene.add(archFrame);
+// Open doorway (negative space visual)
+const doorway=new THREE.Mesh(new THREE.BoxGeometry(8,10,4.2),new MS({color:0x1a1510,roughness:1}));doorway.position.set(0,fH+5,5-11);scene.add(doorway);
+// Wooden double doors (open)
+[-1,1].forEach(s=>{
+const doorPanel=new THREE.Mesh(new THREE.BoxGeometry(3.5,9,.3),mt.wd);doorPanel.position.set(s*4,fH+5,5-8.5);doorPanel.rotation.y=s*.5;scene.add(doorPanel);});
+// Guild banner/sign
+const signY=fH+hallH+2;
+const signBoard=new THREE.Mesh(new THREE.BoxGeometry(16,4,1),mt.wd);signBoard.position.set(0,signY,5-34);scene.add(signBoard);
+// Pillars framing the entrance (4 symmetrical columns)
+[[-12,-12],[12,-12],[-12,12],[12,12]].forEach(([px,pz])=>{
+const pillar=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.5,14,8),mt.stGoth);pillar.position.set(px,fH+8,5+pz);pillar.castShadow=true;scene.add(pillar);
+const pCapital=new THREE.Mesh(new THREE.BoxGeometry(3,1.8,3),mt.st);pCapital.position.set(px,fH+15.5,5+pz);scene.add(pCapital);});
+// Central Bonfire Altar - welcoming spawn point
+const altarBase=new THREE.Mesh(new THREE.CylinderGeometry(5,6,3,8),mt.st);altarBase.position.set(0,fH+1.5,5);scene.add(altarBase);
+const altar=new THREE.Mesh(new THREE.CylinderGeometry(3.5,3.5,1.5,8),new MS({color:0x5a4a3a,roughness:.9}));altar.position.set(0,fH+3.5,5);scene.add(altar);
+// The bonfire (player spawn/respawn point)
+const bonfireLogs=new THREE.Mesh(new THREE.CylinderGeometry(2,2.2,1.5,6),mt.wd);bonfireLogs.position.set(0,fH+4.2,5);scene.add(bonfireLogs);
+const bfFlame=new THREE.Mesh(new THREE.SphereGeometry(2.5,12,12),mt.fl);bfFlame.position.set(0,fH+6,5);scene.add(bfFlame);
+const bfCore=new THREE.Mesh(new THREE.SphereGeometry(1.5,8,8),mt.flEmber);bfCore.position.set(0,fH+5.5,5);scene.add(bfCore);
+torchPositions.push({x:0,y:fH+8,z:5,mesh:bfFlame,ph:0,big:true});
+// Animated embers around bonfire
+for(let i=0;i<6;i++){const ember=new THREE.Mesh(new THREE.SphereGeometry(.3,4,4),mt.flEmber);
+const ang=i/6*Math.PI*2;ember.position.set(Math.cos(ang)*2.5,fH+5+Math.random(),5+Math.sin(ang)*2.5);scene.add(ember);}
+// Training dummies (for new players to practice)
+[[-20,15],[20,15]].forEach(([dx,dz])=>{
+const dummyBase=new THREE.Mesh(new THREE.CylinderGeometry(1.5,2,1,6),mt.st);dummyBase.position.set(dx,fH+.5,5+dz);scene.add(dummyBase);
+const dummyPost=new THREE.Mesh(new THREE.CylinderGeometry(.4,.5,8,6),mt.wd);dummyPost.position.set(dx,fH+4.5,5+dz);scene.add(dummyPost);
+const dummyBody=new THREE.Mesh(new THREE.CylinderGeometry(1.8,1.5,4,8),new MS({color:0x8a7a5a,roughness:.9}));dummyBody.position.set(dx,fH+8,5+dz);scene.add(dummyBody);
+const dummyHead=new THREE.Mesh(new THREE.SphereGeometry(1.2,8,8),new MS({color:0x9a8a6a,roughness:.9}));dummyHead.position.set(dx,fH+11,5+dz);scene.add(dummyHead);
+// Target circle painted on ground
+const targetRing=new THREE.Mesh(new THREE.RingGeometry(3,3.2,32),new MS({color:0xaa4444}));targetRing.rotation.x=-Math.PI/2;targetRing.position.set(dx,fH+.05,5+dz);scene.add(targetRing);});
+// Weapon racks along sides
+[-1,1].forEach(s=>{
+const rack=new THREE.Mesh(new THREE.BoxGeometry(1,6,8),mt.wd);rack.position.set(s*28,fH+4,5-5);rack.castShadow=true;scene.add(rack);
+for(let i=0;i<4;i++){
+const weapon=new THREE.Mesh(new THREE.BoxGeometry(.2,3,.1),mt.armorLt);weapon.position.set(s*28+.6,fH+5+i*.5,5-8+i*2);weapon.rotation.z=s*.3;weapon.rotation.x=.2;scene.add(weapon);}});
+// Info signposts
+[[-25,0],[25,0]].forEach(([sx,sz])=>{
+const post=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,5,6),mt.wd);post.position.set(sx,fH+2.5,5+sz);scene.add(post);
+const sign=new THREE.Mesh(new THREE.BoxGeometry(4,3,.2),mt.wd);sign.position.set(sx,fH+5,5+sz);sign.rotation.y=sx>0?-.3:.3;scene.add(sign);});
+// Lantern posts around perimeter (8 lanterns)
+for(let i=0;i<8;i++){const ang=i/8*Math.PI*2;
+const lx=Math.cos(ang)*30,lz=Math.sin(ang)*30;
+const lPost=new THREE.Mesh(new THREE.CylinderGeometry(.3,.4,8,6),mt.iron);lPost.position.set(lx,fH+5,5+lz);scene.add(lPost);
+const lantern=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.5,1.2),mt.iron);lantern.position.set(lx,fH+9,5+lz);scene.add(lantern);
+const lGlass=new THREE.Mesh(new THREE.SphereGeometry(.6,6,6),new MS({color:0xffaa44,emissive:0xff8800,emissiveIntensity:1.5}));lGlass.position.set(lx,fH+9,5+lz);scene.add(lGlass);
+torchPositions.push({x:lx,y:fH+10,z:5+lz,mesh:lGlass,ph:i,big:false});}
+// Decorative planters with flowers
+[[-15,-15],[15,-15],[-15,20],[15,20]].forEach(([px,pz])=>{
+const planter=new THREE.Mesh(new THREE.BoxGeometry(4,2,4),mt.st);planter.position.set(px,fH+1,5+pz);scene.add(planter);
+const bush=new THREE.Mesh(new THREE.SphereGeometry(2,6,6),mt.lf);bush.position.set(px,fH+3,5+pz);scene.add(bush);});
+// Welcome mat text area (visual only - different colored stones)
+for(let i=0;i<5;i++){const stone=new THREE.Mesh(new THREE.BoxGeometry(2,.3,1),new MS({color:0x7a6a5a}));
+stone.position.set(-4+i*2,fH+2.2,5+18);scene.add(stone);}
+// Register Guild Hall solids
+addSolid(plaza);addSolid(guildHall);addSolid(archFrame);addSolid(altarBase);addSolid(altar);
 
 // === DUNGEON SYSTEM ===
 console.log('INIT: cities+waterfalls+caves+bones done, starting dungeons');
@@ -4173,6 +4666,8 @@ function exitDungeon(){if(!inDungeon)return;
 if(inDungeon.portalMesh)inDungeon.portalMesh.visible=true;
 if(dungeonGroup){scene.remove(dungeonGroup);dungeonGroup=null}
 player.x=inDungeon.x;player.z=inDungeon.z+10;player.y=meshTerrainH(player.x,player.z)+2;inDungeon=null;
+// FIX: Rebuild colliders to remove dungeon walls and prevent invisible barriers
+buildColliders();
 log('Exited dungeon.','#0f0')}
 
 // === BUILDING INTERIOR SYSTEM ===
@@ -4314,12 +4809,16 @@ const inLight=new THREE.PointLight(0xffaa66,.8,Math.max(w,l)*.8,1.5);inLight.pos
 scene.add(buildingGroup);
 // Position player inside
 player.x=0;player.y=1002;player.z=l/4;
+// FIX: Rebuild colliders to set up interior collision properly
+buildColliders();
 log('Entered '+b.name,'#0f0');}
 
 function exitBuilding(){if(!insideBuilding)return;
 if(buildingGroup){scene.remove(buildingGroup);buildingGroup=null}
 // Return to outside position
 player.x=insideBuilding.outsideX;player.z=insideBuilding.outsideZ+3;player.y=meshTerrainH(player.x,player.z)+2;
+// FIX: Rebuild colliders to remove interior walls and prevent invisible barriers
+buildColliders();
 log('Exited '+insideBuilding.name,'#0f0');insideBuilding=null;}
 
 // Generate dungeons at key locations
@@ -4378,8 +4877,22 @@ else if(insideBuilding&&insideBuilding.name===b.name){log('Press E (or X/□) to
 if(interactBtn){exitBuilding();break}}}};};
 
 console.log('INIT: dungeons done, spawning enemies');
+// === MIGRATE OLD SAVES TO NEW SLOT SYSTEM ===
+migrateOldSave();
 // === SPAWN ENEMIES PER REGION ===
 regions.forEach(rg=>{rg.en.forEach(et=>{const cnt=Math.max(2,Math.round(rg.r/80));for(let i=0;i<cnt;i++){const ex=rg.x+(Math.random()-.5)*rg.r*1.4,ez=rg.z+(Math.random()-.5)*rg.r*1.4;spawnE(et,ex,ez,rg.lv)}})});
+// === SPAWN VISIBLE DRAGONS NEAR START ===
+// Add a few dragons flying near spawn so players see them immediately
+const dragonTypes=['greendragon','bluedragon','reddragon'];
+for(let i=0;i<3;i++){
+const angle=(i/3)*Math.PI*2;
+const dist=200+Math.random()*100;
+const dx=Math.cos(angle)*dist;
+const dz=Math.sin(angle)*dist;
+const dType=dragonTypes[i%dragonTypes.length];
+spawnE(dType,dx,dz,15);
+console.log('Spawned '+dType+' at ('+dx.toFixed(0)+','+dz.toFixed(0)+')');}
+log('Dragons spotted flying in the distance...','#f84');
 
 // === DYNAMIC LIGHT POOL (only 8 active PointLights) ===
 for(let i=0;i<MAX_LIGHTS;i++){const l=new THREE.PointLight(0xff8833,0,60,1.5);scene.add(l);lightPool.push(l)}
@@ -4420,6 +4933,13 @@ if(c===ground||c===riverMesh||c===dustPts||c===playerGroup||c.isLight||c.isPoint
 if(c.parent&&noCull.has(c.parent))noCull.add(c);
 });
 scene.children.forEach(c=>{if(c.geometry&&c.geometry.type==='SphereGeometry'&&c.geometry.parameters.radius>=4000)noCull.add(c)});
+// Dragons should never be culled - they need to be visible flying from far away
+// Mark all enemy meshes with isDragon flag for no-culling
+const originalBuildEnemy=buildEnemy;buildEnemy=function(type,lv){
+const g=originalBuildEnemy(type,lv);
+const isDragon=type==='dragon'||type==='bluedragon'||type==='greendragon'||type==='reddragon'||type==='blackdragon'||type==='irondragon'||type==='steeldragon'||type==='mithdragon'||type==='bronzedragon'||type==='runedragon'||type==='adamdragon'||type==='hydra'||type==='vorkath'||type==='rev_dragon';
+if(isDragon){g.traverse(c=>{if(c.isMesh)c.userData.isDragon=true;});noCull.add(g);}
+return g;}
 
 distanceCull=function(){
 const px=player.x,pz=player.z;
@@ -4576,42 +5096,172 @@ const bodyCenter=new THREE.Group();bodyCenter.position.y=4.5;g.add(bodyCenter);
 g.userData.bodyCenter=bodyCenter;
 // Animation state init
 g.userData.animState='idle';g.userData.animTime=0;}
-// === WEAPONS (per type) ===
-if(type==='demon'||type==='revenant'||type==='whiteknight'||type==='guard'||type==='knight'){
-// Sword with crossguard
-const blade=new THREE.Mesh(new THREE.BoxGeometry(.15,.12,5.5),new MS({color:0xbbbbdd,roughness:.1,metalness:.95}));blade.position.set(2,2,2.5);blade.rotation.x=.15;g.add(blade);
-const xguard=new THREE.Mesh(new THREE.BoxGeometry(1,.15,.15),new MS({color:0x5a4020,roughness:.6,metalness:.4}));xguard.position.set(2,2,.1);g.add(xguard);
-const hilt=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.9,5),new MS({color:0x4a3018,roughness:.8}));hilt.position.set(2,2,-.3);hilt.rotation.x=Math.PI/2;g.add(hilt);
-// Shield for knights/guards
+// === ENEMY EQUIPMENT SYSTEM ===
+// Store equipped gear for loot drops
+g.userData.equippedGear=[];
+// Weapon attachment helper - attaches to right hand for proper animation
+const attachToHand=(mesh,rotX=0,rotY=0,rotZ=0)=>{
+if(g.userData.rArm){
+mesh.position.set(.3,-5.5,0);// Relative to hand position
+mesh.rotation.set(rotX,rotY,rotZ);
+g.userData.rArm.children[3].add(mesh);// Add to hand mesh
+return true;}return false;};
+// === WEAPONS (per type) - Attached to hand for animation ===
+if(type==='demon'||type==='revenant'||type==='whiteknight'||type==='guard'||type==='knight'||type==='skeleton'||type==='warrior'){
+// Sword with crossguard - attached to hand
+const swordGrp=new THREE.Group();
+const blade=new THREE.Mesh(new THREE.BoxGeometry(.15,.12,5.5),mt.swordBlade);blade.position.set(0,0,2.5);swordGrp.add(blade);
+const xguard=new THREE.Mesh(new THREE.BoxGeometry(1,.15,.15),mt.swordHilt);xguard.position.set(0,0,-.2);swordGrp.add(xguard);
+const hilt=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.9,5),mt.swordHilt);hilt.position.set(0,0,-.9);hilt.rotation.x=Math.PI/2;swordGrp.add(hilt);
+const pommel=new THREE.Mesh(new THREE.SphereGeometry(.12,6,6),mt.gold);pommel.position.set(0,0,-1.4);swordGrp.add(pommel);
+attachToHand(swordGrp,0.3,0,0);
+// Shield for knights/guards - attached to left arm
 if(type==='whiteknight'||type==='guard'||type==='knight'){
-const sh=new THREE.Mesh(new THREE.BoxGeometry(.25,3,2),matD);sh.position.set(-2,3.5,.5);g.add(sh);
-const shBoss=new THREE.Mesh(new THREE.SphereGeometry(.3,6,6),new MS({color:0xc8a050,roughness:.4,metalness:.7}));shBoss.position.set(-2.2,3.5,.5);g.add(shBoss);
-const shRim=new THREE.Mesh(new THREE.BoxGeometry(.26,.2,2.1),matLt);shRim.position.set(-2,4.9,.5);g.add(shRim)}}
-if(type==='barbarian'||type==='pirate'||type==='warrior'||type==='troll'||type==='ogre'){
-// Axe with handle
-const handle=new THREE.Mesh(new THREE.CylinderGeometry(.1,.12,4.5,4),new MS({color:0x5a4530,roughness:.9}));handle.position.set(2,3.5,.5);handle.rotation.x=.3;g.add(handle);
-const axeH=new THREE.Mesh(new THREE.BoxGeometry(.9,1.8,.15),new MS({color:0x888899,roughness:.25,metalness:.85}));axeH.position.set(2,5.5,1.2);g.add(axeH)}
-if(type==='mage'||type==='darkwiz'||type==='cultist'||type==='elf'){
-// Staff with orb
-const staff=new THREE.Mesh(new THREE.CylinderGeometry(.08,.1,6,5),new MS({color:0x4a3828,roughness:.9}));staff.position.set(1.8,4.5,0);staff.castShadow=true;g.add(staff);
-const orb=new THREE.Mesh(new THREE.SphereGeometry(.4,8,8),new MS({color:type==='darkwiz'?0x6a1a8a:0x2a6a8a,emissive:type==='darkwiz'?0x4a0a6a:0x1a4a6a,emissiveIntensity:2,roughness:.2,metalness:.5}));orb.position.set(1.8,7.8,0);g.add(orb)}
+const shieldGrp=new THREE.Group();
+const sh=new THREE.Mesh(new THREE.BoxGeometry(.25,3,2),matD);shieldGrp.add(sh);
+const shBoss=new THREE.Mesh(new THREE.SphereGeometry(.3,6,6),mt.gold);shBoss.position.x=-.2;shieldGrp.add(shBoss);
+const shRim=new THREE.Mesh(new THREE.BoxGeometry(.26,.2,2.1),matLt);shRim.position.y=1.9;shieldGrp.add(shRim);
+// Attach to left arm
+if(g.userData.lArm){shieldGrp.position.set(-.3,-5.5,.5);shieldGrp.rotation.set(0,0,-.3);g.userData.lArm.children[3].add(shieldGrp);}
+g.userData.equippedGear.push({slot:'Shield',name:type==='whiteknight'?'Iteway Ieldshay':'Ironway Ieldshay',def:type==='whiteknight'?15:8,atk:0,str:0});}
+g.userData.equippedGear.push({slot:'Weapon',name:type==='whiteknight'?'Ithrilmay Ordssway':type==='knight'?'Eelstay Ordssway':'Ironway Ordssway',atk:type==='whiteknight'?25:type==='knight'?18:12,def:0,str:type==='whiteknight'?15:type==='knight'?10:5});}
+if(type==='barbarian'||type==='pirate'||type==='warrior'||type==='troll'||type==='ogre'||type==='hillgiant'||type==='mossgiant'){
+// Axe attached to hand
+const axeGrp=new THREE.Group();
+const handle=new THREE.Mesh(new THREE.CylinderGeometry(.1,.12,4.5,4),mt.wd);handle.position.set(0,-1.5,0);handle.rotation.x=Math.PI/2;axeGrp.add(handle);
+const axeHead=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.8,.15),mt.armorLt);axeHead.position.set(0,1.2,.2);axeGrp.add(axeHead);
+const axeBack=new THREE.Mesh(new THREE.BoxGeometry(.8,1.2,.15),mt.armorLt);axeBack.position.set(0,-.5,-.1);axeGrp.add(axeBack);
+attachToHand(axeGrp,0.5,0,0);
+g.userData.equippedGear.push({slot:'Weapon',name:'Eelstay Atchethay',atk:22,def:0,str:18});}
+if(type==='mage'||type==='darkwiz'||type==='cultist'||type==='elf'||type==='mummy'||type==='tomb_mage'){
+// Staff with orb - attached to hand
+const staffGrp=new THREE.Group();
+const staff=new THREE.Mesh(new THREE.CylinderGeometry(.08,.1,6,5),mt.wd);staff.position.set(0,1,0);staffGrp.add(staff);
+const orb=new THREE.Mesh(new THREE.SphereGeometry(.35,8,8),new MS({color:type==='darkwiz'?0x6a1a8a:type==='mummy'?0xaa4400:0x2a6a8a,emissive:type==='darkwiz'?0x4a0a6a:type==='mummy'?0xff4400:0x1a4a6a,emissiveIntensity:2,roughness:.2,metalness:.5}));orb.position.set(0,4.2,0);staffGrp.add(orb);
+attachToHand(staffGrp,0.2,0,0);
+g.userData.equippedGear.push({slot:'Weapon',name:type==='darkwiz'?'Affstay ofway Airway':type==='mummy'?'Agicsmay Affstay':'Ierdway Affstay',atk:8,def:0,str:0,magic:type==='darkwiz'?20:type==='mummy'?15:12});}
+if(type==='archer'||type==='tomb_ranger'||type==='spiritual_rang'||type==='pirate'){
+// Bow attached to hand
+const bowGrp=new THREE.Group();
+const bowStave=new THREE.Mesh(new THREE.CylinderGeometry(.06,.08,5,4),mt.wd);bowStave.position.set(0,0,0);bowStave.rotation.z=.3;bowGrp.add(bowStave);
+const bowString=new THREE.Mesh(new THREE.BoxGeometry(.02,4.2,.02),new MS({color:0xdddddd}));bowString.position.set(-.6,0,0);bowGrp.add(bowString);
+attachToHand(bowGrp,0,0,.5);
+g.userData.equippedGear.push({slot:'Weapon',name:'Owbay',atk:5,def:0,str:0,ranged:15});}
+if(type==='thief'||type==='mugger'||type==='bandit'){
+// Dagger attached to hand
+const daggerGrp=new THREE.Group();
+const dBlade=new THREE.Mesh(new THREE.BoxGeometry(.1,.08,2),mt.swordBlade);dBlade.position.set(0,0,.8);daggerGrp.add(dBlade);
+const dHilt=new THREE.Mesh(new THREE.CylinderGeometry(.06,.05,.4,4),mt.wd);dHilt.position.set(0,0,-.3);dHilt.rotation.x=Math.PI/2;daggerGrp.add(dHilt);
+attachToHand(daggerGrp,0.3,0,0);
+g.userData.equippedGear.push({slot:'Weapon',name:'Aggerdray',atk:8,def:0,str:3});}
+if(type==='dwarf'||type==='tribesman'){
+// Pickaxe attached to hand
+const pickGrp=new THREE.Group();
+const pHandle=new THREE.Mesh(new THREE.CylinderGeometry(.08,.1,3.5,4),mt.wd);pHandle.position.set(0,-1,0);pHandle.rotation.x=Math.PI/2;pickGrp.add(pHandle);
+const pHead=new THREE.Mesh(new THREE.ConeGeometry(.4,.8,4),mt.armorDk);pHead.position.set(0,1,.3);pHead.rotation.x=-.5;pickGrp.add(pHead);
+attachToHand(pickGrp,0.4,0,0);
+g.userData.equippedGear.push({slot:'Weapon',name:'Onzebray Ickaxepay',atk:10,def:0,str:8});}
+if(type==='skeleton'){
+// Add shield for skeleton warriors
+if(Math.random()>.5){
+const skShield=new THREE.Mesh(new THREE.BoxGeometry(.2,2.5,1.8),matD);
+if(g.userData.lArm){skShield.position.set(-.3,-5.5,.3);skShield.rotation.set(0,0,-.2);g.userData.lArm.children[3].add(skShield);}
+g.userData.equippedGear.push({slot:'Shield',name:'Ullskay Uckbray',def:5,atk:0,str:0});}}
 if(type==='spider'){
 // Extra legs
 for(let i=0;i<4;i++){[-1,1].forEach(s=>{const sleg=new THREE.Mesh(new THREE.CylinderGeometry(.1,.08,3,4),matD);sleg.position.set(s*1.5,2.5,-1+i*.8);sleg.rotation.z=s*.8;sleg.rotation.x=(i-.5)*.2;g.add(sleg)})}}
 // === TAIL for beasts ===
 if(type==='wolf'||type==='bear'||type==='lizard'||type==='hellhound'){
 const tail=new THREE.Mesh(new THREE.CylinderGeometry(.15,.08,2.5,4),mat);tail.position.set(0,3,-3);tail.rotation.x=-.5;g.add(tail)}
-// === WINGS for bat/demon/dragon ===
+// === WINGS for bat/demon ===
 if(type==='bat'||isDemon){
 [-1,1].forEach(s=>{const wing=new THREE.Mesh(new THREE.PlaneGeometry(3,2.5),new MS({color:col,roughness:.8,side:THREE.DoubleSide,transparent:true,opacity:.7}));wing.position.set(s*2.5,5.5,-.5);wing.rotation.y=s*.4;g.add(wing)})}
+// === FULL DRAGON ANATOMY ===
 if(isDragon){
-[-1,1].forEach(s=>{const wing=new THREE.Mesh(new THREE.PlaneGeometry(5,4),new MS({color:col,roughness:.7,side:THREE.DoubleSide,transparent:true,opacity:.8}));wing.position.set(s*3.5,5,-.5);wing.rotation.y=s*.5;wing.rotation.z=s*.2;g.add(wing)})}
+// Dragon color scheme based on type
+let dCol=col,dGlow=0xff4400;
+if(type==='bluedragon'||type==='dragon'){dCol=0x2244aa;dGlow=0x4488ff;}
+else if(type==='greendragon'){dCol=0x228822;dGlow=0x44ff44;}
+else if(type==='reddragon'||type==='dragon'){dCol=0xaa2222;dGlow=0xff4444;}
+else if(type==='blackdragon'){dCol=0x1a1a1a;dGlow=0x440000;}
+else if(type==='irondragon'){dCol=0x666666;dGlow=0xffaa44;}
+else if(type==='steeldragon'){dCol=0x444466;dGlow=0x8888aa;}
+else if(type==='mithdragon'){dCol=0x4466aa;dGlow=0x88aaff;}
+else if(type==='bronzedragon'){dCol=0x8b4513;dGlow=0xcd853f;}
+else if(type==='runedragon'){dCol=0x4a0066;dGlow=0xaa44ff;}
+else if(type==='adamdragon'){dCol=0x228b22;dGlow=0x90ee90;}
+const dMat=new MS({color:dCol,roughness:.6,metalness:.2});
+const dMatBelly=new MS({color:0xddccaa,roughness:.7});
+const dMatGlow=new MS({color:dGlow,emissive:dGlow,emissiveIntensity:1.5});
+// Large scaled body (elongated)
+const body=new THREE.Mesh(new THREE.CylinderGeometry(1.8,1.4,6,8),dMat);body.position.set(0,4,0);body.rotation.x=Math.PI/2;body.scale.set(1,1.4,1);body.castShadow=true;g.add(body);
+// Belly scales (lighter underbelly)
+const belly=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1,5,8),dMatBelly);belly.position.set(0,3.5,0);belly.rotation.x=Math.PI/2;belly.scale.set(1,1.35,1);g.add(belly);
+// Body spikes along spine
+for(let i=0;i<6;i++){const spike=new THREE.Mesh(new THREE.ConeGeometry(.3,1.2,4),dMat);spike.position.set(0,5.5,-2.5+i*.9);spike.rotation.x=-.3;g.add(spike);}
+// Large articulated wings
+const wingGroups=[];
+[-1,1].forEach((s,wi)=>{
+const wRoot=new THREE.Group();wRoot.position.set(s*2,5,.5);wRoot.rotation.y=s*.3;g.add(wRoot);
+// Wing arm (thick bone)
+const wArm=new THREE.Mesh(new THREE.CylinderGeometry(.25,.2,3,5),dMat);wArm.position.set(s*1.5,0,-1);wArm.rotation.z=s*.4;wArm.rotation.x=-.3;wRoot.add(wArm);
+// Wing membrane segments
+for(let i=0;i<3;i++){
+const membrane=new THREE.Mesh(new THREE.PlaneGeometry(2.5,1.8),new MS({color:dCol,roughness:.7,side:THREE.DoubleSide,transparent:true,opacity:.75}));
+membrane.position.set(s*(3+i*1.2),-.5-i*.3,-1.5-i*.8);
+membrane.rotation.y=s*.2;membrane.rotation.x=-.4;wRoot.add(membrane);}
+// Wing tip
+const wTip=new THREE.Mesh(new THREE.ConeGeometry(.15,.8,4),dMat);wTip.position.set(s*4.5,-1.2,-3.5);wTip.rotation.z=s*.5;wRoot.add(wTip);
+wingGroups.push(wRoot);g.userData['wing'+wi]=wRoot;});
+g.userData.wings=wingGroups;
+// Long serpentine neck
+const neckGroup=new THREE.Group();neckGroup.position.set(0,4.5,4);g.add(neckGroup);g.userData.neck=neckGroup;
+const neckSegs=[];
+for(let i=0;i<5;i++){
+const nSeg=new THREE.Mesh(new THREE.CylinderGeometry(.8-i*.1,.9-i*.1,1.5,6),dMat);nSeg.position.set(0,i*.6,i*.8);nSeg.rotation.x=-.4;neckGroup.add(nSeg);neckSegs.push(nSeg);
+// Small neck spikes
+if(i<4){const nSpike=new THREE.Mesh(new THREE.ConeGeometry(.2,.6,4),dMat);nSpike.position.set(0,i*.6+1,i*.8-.3);nSpike.rotation.x=-.5;neckGroup.add(nSpike);}}
+// Dragon head
+const headG=new THREE.Group();headG.position.set(0,3.5,4.5);neckGroup.add(headG);g.userData.head=headG;
+const headBase=new THREE.Mesh(new THREE.SphereGeometry(1.3,10,8),dMat);headBase.position.y=0;headBase.scale.set(1,.8,1.4);headG.add(headBase);
+// Snout
+const snout=new THREE.Mesh(new THREE.CylinderGeometry(.7,.5,1.8,6),dMat);snout.position.set(0,-.2,1.8);snout.rotation.x=Math.PI/2;headG.add(snout);
+// Jaw (lower)
+const jaw=new THREE.Mesh(new THREE.BoxGeometry(1,1.2,.8),dMat);jaw.position.set(0,-.8,1.2);headG.add(jaw);g.userData.jaw=jaw;
+// Eyes (glowing)
+[-1,1].forEach(s=>{const eye=new THREE.Mesh(new THREE.SphereGeometry(.25,6,6),dMatGlow);eye.position.set(s*.6,.3,.8);headG.add(eye);});
+// Horns
+[-1,1].forEach(s=>{const horn=new THREE.Mesh(new THREE.ConeGeometry(.2,1.5,5),dMat);horn.position.set(s*.7,.8,-.2);horn.rotation.z=s*.4;horn.rotation.x=-.3;headG.add(horn);});
+// Long tail (segmented)
+const tailGroup=new THREE.Group();tailGroup.position.set(0,3,-3);g.add(tailGroup);g.userData.tail=tailGroup;
+const tailSegs=[];
+for(let i=0;i<8;i++){
+const tSeg=new THREE.Mesh(new THREE.CylinderGeometry(.9-i*.1,.8-i*.1,1.2,6),dMat);tSeg.position.set(0,-i*.15,-1-i*.9);tSeg.rotation.x=-.2+i*.05;tailGroup.add(tSeg);tailSegs.push(tSeg);
+if(i%2===0){const tSpike=new THREE.Mesh(new THREE.ConeGeometry(.25,.8,4),dMat);tSpike.position.set(0,-i*.15+.8,-1-i*.9);tSpike.rotation.x=-.5;tailGroup.add(tSpike);}}
+// Tail tip
+const tailTip=new THREE.Mesh(new THREE.ConeGeometry(.3,1.2,4),dMat);tailTip.position.set(0,-1.2,-8);tailTip.rotation.x=-.8;tailGroup.add(tailTip);
+// Four sturdy legs
+const dLegs=[];
+[[-1.5,2],[1.5,2],[-1.5,-1],[1.5,-1]].forEach(([lx,lz],li)=>{
+const lGroup=new THREE.Group();lGroup.position.set(lx,2,lz);g.add(lGroup);
+const thigh=new THREE.Mesh(new THREE.CylinderGeometry(.5,.4,2,6),dMat);thigh.position.y=-1;thigh.castShadow=true;lGroup.add(thigh);
+const knee=new THREE.Group();knee.position.y=-2;lGroup.add(knee);
+const shin=new THREE.Mesh(new THREE.CylinderGeometry(.4,.3,1.8,6),dMat);shin.position.y=-.9;shin.castShadow=true;knee.add(shin);
+const claw=new THREE.Mesh(new THREE.BoxGeometry(.6,.3,1),dMat);claw.position.set(0,-1.8,.2);knee.add(claw);
+lGroup.userData.knee=knee;dLegs.push(lGroup);
+if(li<2)g.userData['frontLeg'+(li===0?'L':'R')]=lGroup;
+else g.userData['backLeg'+(li===2?'L':'R')]=lGroup;});
+g.userData.dragonLegs=dLegs;
+// Store animation parts
+g.userData.neckSegs=neckSegs;g.userData.tailSegs=tailSegs;
+// Dragon is flying by default
+g.userData.isFlying=true;g.userData.flyHeight=40+Math.random()*20;}
 if(isGiant){const club=new THREE.Mesh(new THREE.CylinderGeometry(.3,.5,5,5),new MS({color:0x5a4020,roughness:.9}));club.position.set(2,4,.5);club.rotation.x=.3;g.add(club)}
 // === GHOST transparency ===
 if(type==='ghost'||type==='shade'){
 g.traverse(c=>{if(c.isMesh&&c.material){c.material=c.material.clone();c.material.transparent=true;c.material.opacity=.5}})}
 // HP bar above head
-const barY=isBeast?6:10.5;
+const barY=isDragon?14:isBeast?6:10.5;
 const barBg=new THREE.Mesh(new THREE.PlaneGeometry(3,.35),new MS({color:0x220000,side:THREE.DoubleSide}));barBg.position.y=barY;g.add(barBg);
 const barFg=new THREE.Mesh(new THREE.PlaneGeometry(3,.3),new MS({color:0x00cc00,side:THREE.DoubleSide}));barFg.position.y=barY;barFg.position.z=.01;g.add(barFg);
 g.userData.hpBar=barFg;
@@ -4622,7 +5272,7 @@ nCtx.font='bold 24px "Times New Roman",serif';nCtx.textAlign='center';nCtx.textB
 nCtx.fillStyle='#ffdd88';nCtx.fillText(type.replace(/_/g,' ').toUpperCase()+' (Lv'+(lv||1)+')',128,32);
 const nameTex=new THREE.CanvasTexture(nameCanvas);nameTex.magFilter=THREE.NearestFilter;
 const nameSprite=new THREE.Sprite(new THREE.SpriteMaterial({map:nameTex,transparent:true}));
-nameSprite.position.y=barY+0.8;nameSprite.scale.set(4,1,1);g.add(nameSprite);g.userData.nameLabel=nameSprite;
+nameSprite.position.y=isDragon?15:barY+0.8;nameSprite.scale.set(isDragon?6:4,isDragon?1.5:1,1);g.add(nameSprite);g.userData.nameLabel=nameSprite;
 g.scale.setScalar(sc);
 return g;
 }
@@ -4676,10 +5326,19 @@ anc_zygomite:'magic',gorak:'smash',revenant2:'magic',rev_dragon:'breath',rev_kni
 const eAtkRange={slash:10,chop:11,smash:12,bite:8,swipe:10,charge:14,peck:6,magic:28,breath:22};
 function spawnE(type,x,z,lv){const hp=eHP[type]||40;const mesh=buildEnemy(type,lv||1);
 const style=eAtkStyles[type]||'slash';const range=eAtkRange[style]||10;
+const isDragon=type==='dragon'||type==='bluedragon'||type==='greendragon'||type==='reddragon'||type==='blackdragon'||type==='irondragon'||type==='steeldragon'||type==='mithdragon'||type==='bronzedragon'||type==='runedragon'||type==='adamdragon'||type==='hydra'||type==='vorkath'||type==='rev_dragon';
 const e={mesh,hp,maxHp:hp,poi:30,x,z,type,lv:lv||1,atkCD:0,aggro:50+(lv||1)*2,dmg:Math.max(5,8+(lv||1)*2),
 atkStyle:style,atkRange:range,windUp:0,swingT:0,strafeAng:Math.random()*Math.PI*2,strafeCW:Math.random()>.5?1:-1,
-staggered:false,staggerT:0};
-const h=meshTerrainH(x,z);e.mesh.position.set(x,h,z);scene.add(e.mesh);enemies.push(e)}
+staggered:false,staggerT:0,target:null};
+const h=meshTerrainH(x,z);
+// Dragons spawn flying high above ground
+if(isDragon){
+const flyHeight=50+Math.random()*30;e.mesh.userData.isFlying=true;e.mesh.userData.flyHeight=flyHeight;
+e.mesh.userData.landing=false;e.mesh.userData.landTimer=0;e.mesh.userData.flyAng=Math.random()*Math.PI*2;
+e.mesh.position.set(x,h+flyHeight,z);
+log(type+' (Lv'+(lv||1)+') appears flying overhead!','#f84');}
+else{e.mesh.position.set(x,h,z);}
+scene.add(e.mesh);enemies.push(e)}
 
 function calcHit(a,d){const g=totalGear();const ab=a===player?40+g.atk:22+((a.lv||1)*1.5);const db=d===player?30+g.def:15;return Math.random()<Math.max(.08,Math.min(.94,(ab/(db+12))*.82))}
 
@@ -4709,7 +5368,19 @@ function createDropItem(name,rarity){
 const uid=genUID();const item={uid,name,atk:0,def:0,str:0,slot:null,rarity:rarity||'common'};
 itemDB[uid]=item;return item}
 function spawnLoot(x,z,e){
-// Gear drop with unique ID and stat variation
+// === EQUIPPED GEAR DROPS ===
+// Drop the enemy's visible equipped weapons/shields as loot
+if(e.mesh.userData.equippedGear&&e.mesh.userData.equippedGear.length>0){
+for(const gear of e.mesh.userData.equippedGear){
+const ox=x+(Math.random()-.5)*8,oz=z+(Math.random()-.5)*8;
+const gearItem=createUniqueItem(gear.name,gear.atk||1,gear.def||0,gear.str||0,gear.slot,'gear');
+const col=gear.slot==='Weapon'?0xffaa00:gear.slot==='Shield'?0x4488ff:0xffd700;
+const mGear=makeLootMesh(col,1.0);
+mGear.position.set(ox,meshTerrainH(ox,oz)+4,oz);
+mGear.userData={vx:(Math.random()-.5)*4,vz:(Math.random()-.5)*4,vy:8,life:1800,item:gear.name,uid:gearItem.uid,gear:gearItem,rarity:'gear',settled:false};
+scene.add(mGear);lootArr.push(mGear);
+log(e.type+' dropped '+gear.name+'!','#ff0');}}
+// Standard gear drop with unique ID
 const slot=gearSlots[Math.floor(Math.random()*gearSlots.length)];
 const cur=equipped[slot];const boost=1.01;
 const baseAtk=Math.ceil(Math.max(cur.atk*boost,cur.atk+1));
@@ -4855,7 +5526,8 @@ if(!mouse.mid){
 if(lockOn&&lockOn.mesh){
 // When locked on, camera faces the target (Dark Souls style)
 const tx=lockOn.mesh.position.x,tz=lockOn.mesh.position.z;
-const targetYaw=Math.atan2(tx-player.x,tz-player.z);
+// Calculate angle FROM target TO player (so camera orbits behind player facing target)
+const targetYaw=Math.atan2(player.x-tx,player.z-tz);
 let yd=targetYaw-camYaw;while(yd>Math.PI)yd-=Math.PI*2;while(yd<-Math.PI)yd+=Math.PI*2;
 camYaw+=yd*.08 // Smoothly turn toward target
 }else{
@@ -4875,6 +5547,7 @@ if(isSprinting)player.sta=Math.max(0,player.sta-0.05);
 
 let spd=player.speed;
 if(player.rolling){player.rollT--;if(player.rollT<=0)player.rolling=false;spd*=3.6}
+else if(player.dashing){player.dashT--;if(player.dashT<=0)player.dashing=false;spd*=4}
 else if(isSprinting){spd*=1.8} // Sprint 80% faster
 
 // Track previous position for velocity calculation
@@ -4973,6 +5646,15 @@ if(playerGroup.userData.lLeg)playerGroup.userData.lLeg.rotation.x=-0.5;
 if(playerGroup.userData.rLeg)playerGroup.userData.rLeg.rotation.x=-0.5;
 if(playerGroup.userData.lKnee)playerGroup.userData.lKnee.rotation.x=1.0;
 if(playerGroup.userData.rKnee)playerGroup.userData.rKnee.rotation.x=1.0;
+}else if(player.dashing){
+// Dash animation - side tilt with lean
+const dPct=1-player.dashT/12;
+const leanDir=player.dashDir||1;
+playerGroup.rotation.z=leanDir*Math.sin(dPct*Math.PI)*0.4;
+playerGroup.position.y+=Math.sin(dPct*Math.PI)*0.5;
+// Legs in running pose
+if(playerGroup.userData.lLeg)playerGroup.userData.lLeg.rotation.x=leanDir*0.8;
+if(playerGroup.userData.rLeg)playerGroup.userData.rLeg.rotation.x=-leanDir*0.8;
 }else{
 // New unified character animation system
 animateCharacter(playerGroup,0.016);}
@@ -4986,22 +5668,155 @@ cam.position.x+=(camX-cam.position.x)*.1;cam.position.z+=(camZ-cam.position.z)*.
 cam.lookAt(player.x,player.y+8,player.z);
 
 for(let i=enemies.length-1;i>=0;i--){let e=enemies[i];
+// === STATUS EFFECTS PROCESSING ===
+// Serpent Sting DoT
+if(e.serpentSting&&e.stingT>0){e.stingT--;if(e.stingT%60===0){e.hp-=e.stingDmg||3;hitFX(e.mesh.position.x,e.mesh.position.y+6,e.mesh.position.z,0x00aa44);}if(e.stingT<=0)e.serpentSting=false;}
+// Polymorph (sheep transform)
+if(e.polymorphed&&e.polyT>0){e.polyT--;if(e.polyT<=0){e.polymorphed=false;if(e.sheepMesh){scene.remove(e.sheepMesh);e.sheepMesh=null;}e.mesh.visible=true;}}
+// Slow effect from frostbolt
+if(e.slowed&&e.slowT>0){e.slowT--;if(e.slowT<=0)e.slowed=false;}
+// Counterspell silence
+if(e.counterspelled&&e.counterT>0){e.counterT--;if(e.counterT<=0)e.counterspelled=false;}
+// Hunter's Mark damage bonus tracking
+if(e.huntersMark&&e.markT>0){e.markT--;if(e.markT<=0)e.huntersMark=false;}
 // Skip movement/AI if enemy is staggered from parry (but still animate/draw)
 if(e.staggered&&e.staggerT>0){e.staggerT--;e.mesh.position.y=Math.sin(time*20)*0.2;// Stagger shake
 if(e.staggerT<=0)e.staggered=false;e.mesh.userData.animState='hit';animateCharacter(e.mesh,0.016);continue}
 let dx=player.x-e.mesh.position.x,dz=player.z-e.mesh.position.z,dist=Math.hypot(dx,dz);
 const faceAng=Math.atan2(dx,dz);
+// === DRAGON AI: Flying and NPC Hunting ===
+const isDragon=e.type==='dragon'||e.type==='bluedragon'||e.type==='greendragon'||e.type==='reddragon'||e.type==='blackdragon'||e.type==='irondragon'||e.type==='steeldragon'||e.type==='mithdragon'||e.type==='bronzedragon'||e.type==='runedragon'||e.type==='adamdragon'||e.type==='hydra'||e.type==='vorkath'||e.type==='rev_dragon';
+if(isDragon){
+const ud=e.mesh.userData;
+// Initialize dragon state
+if(typeof ud.isFlying==='undefined'){ud.isFlying=true;ud.flyHeight=40+Math.random()*20;ud.landing=false;ud.landTimer=0;}
+const groundY=meshTerrainH(e.mesh.position.x,e.mesh.position.z);
+// Dragons hunt NPCs - find nearest enemy target (not player, not other dragons)
+let target=null;let targetDist=Infinity;
+for(const other of enemies){
+if(other===e)continue;// Skip self
+const isOtherDragon=other.type==='dragon'||other.type==='bluedragon'||other.type==='greendragon'||other.type==='reddragon'||other.type==='blackdragon'||other.type==='irondragon'||other.type==='steeldragon'||other.type==='mithdragon'||other.type==='bronzedragon'||other.type==='runedragon'||other.type==='adamdragon'||other.type==='hydra'||other.type==='vorkath'||other.type==='rev_dragon';
+if(isOtherDragon)continue;// Skip other dragons
+const odx=other.mesh.position.x-e.mesh.position.x,odz=other.mesh.position.z-e.mesh.position.z;
+const odist=Math.hypot(odx,odz);
+if(odist<targetDist&&odist<150){targetDist=odist;target=other;}}
+// Also consider player as target if no NPC found or player is closer
+if(!target||dist<targetDist){target={mesh:{position:{x:player.x,y:player.y,z:player.z}},hp:player.hp,type:'player'};targetDist=dist;}
+// Calculate direction to target
+let tdx=target.mesh.position.x-e.mesh.position.x,tdz=target.mesh.position.z-e.mesh.position.z;
+let tDist=Math.hypot(tdx,tdz);const tFaceAng=Math.atan2(tdx,tdz);
+// Flying behavior - ALWAYS ACTIVE regardless of player distance
+if(ud.isFlying){
+const flyY=groundY+ud.flyHeight;e.mesh.position.y+=(flyY-e.mesh.position.y)*.05;
+e.mesh.position.y+=Math.sin(time*2)*.2;// Bobbing
+// Dragons always roam/patrol - expanded patrol radius and speed
+ud.flyAng=(ud.flyAng||0)+.01; // Constant rotation
+const patrolRadius=80+Math.sin(ud.flyAng*0.3)*40; // Varying radius
+// Large roaming circle centered on spawn point
+const targetX=e.x+Math.cos(ud.flyAng)*patrolRadius;
+const targetZ=e.z+Math.sin(ud.flyAng)*patrolRadius;
+// Smooth movement toward patrol point
+const moveSpd=.12;
+e.mesh.position.x+=(targetX-e.mesh.position.x)*moveSpd;
+e.mesh.position.z+=(targetZ-e.mesh.position.z)*moveSpd;
+// Face movement direction
+const moveAng=Math.atan2(targetX-e.mesh.position.x,targetZ-e.mesh.position.z);
+e.mesh.rotation.y+=((moveAng-e.mesh.rotation.y)*.05);
+// If target in range, chase it while maintaining altitude
+if(tDist<e.aggro*1.5){
+const chaseSpd=.18;e.mesh.position.x+=Math.cos(tFaceAng)*chaseSpd;e.mesh.position.z+=Math.sin(tFaceAng)*chaseSpd;
+e.mesh.rotation.y+=((tFaceAng-e.mesh.rotation.y)*.08);}}
+// Wing animation
+if(ud.wings){
+const flapSpeed=ud.isFlying?10:4;const flapAmp=ud.isFlying?.8:.2;
+ud.wings.forEach((w,wi)=>{w.rotation.z=(wi===0?1:-1)*Math.sin(time*flapSpeed)*flapAmp;});}
+// Neck and tail animation
+if(ud.neckSegs){ud.neckSegs.forEach((ns,ni)=>{ns.rotation.x=-.4+Math.sin(time*3+ni*.5)*.1;});}
+if(ud.tailSegs){ud.tailSegs.forEach((ts,ti)=>{ts.rotation.x=-.2+ti*.05+Math.sin(time*2+ti*.3)*.15;});}
+// Aerial fire breath attack
+if(ud.isFlying&&tDist<e.atkRange&&e.atkCD<=0&&e.swingT<=0){
+e.windUp++;
+const windUpTime=25;
+if(e.windUp>=windUpTime){
+e.swingT=12;e.windUp=0;e.atkCD=40+Math.floor(Math.random()*20);
+const dCol=e.type==='bluedragon'?0x4488ff:e.type==='greendragon'?0x44ff44:e.type==='blackdragon'?0x440000:e.type==='irondragon'?0xffaa44:e.type==='steeldragon'?0x8888aa:0xff4400;
+const proj=new THREE.Mesh(new THREE.SphereGeometry(1.5,8,8),new MS({color:dCol,emissive:dCol,emissiveIntensity:3,transparent:true,opacity:.8}));
+proj.position.copy(e.mesh.position);proj.position.y-=2;
+const pAng=Math.atan2(target.mesh.position.z-e.mesh.position.z,target.mesh.position.x-e.mesh.position.x);
+proj.userData={vx:Math.cos(pAng)*2,vz:Math.sin(pAng)*2,life:100,dmg:e.dmg*1.2,owner:e,target:target};
+scene.add(proj);particles.push(proj);
+hitFX(e.mesh.position.x,e.mesh.position.y-2,e.mesh.position.z,dCol);
+if(target.type!=='player')log(e.type+' fire breath attacks '+target.type+'!','#f84');}}
+else{// Ground combat
+if(dist<e.aggro){
+const stopDist=e.atkRange*.8;
+// Chase player on ground
+if(dist>stopDist&&e.swingT<=0){
+const a=Math.atan2(dz,dx);const spd=.35;// Dragons move faster on ground
+const targetX=e.mesh.position.x+Math.cos(a)*spd;
+const targetZ=e.mesh.position.z+Math.sin(a)*spd;
+e.mesh.position.x=targetX;e.mesh.position.z=targetZ;
+// Push out of collision
+const eco=pushOut(e.mesh.position.x,e.mesh.position.y,e.mesh.position.z);
+e.mesh.position.x=eco.x;e.mesh.position.z=eco.z;
+} else if(dist<stopDist*1.2&&e.swingT<=0){
+// Circle when in melee range
+e.strafeAng+=.012*e.strafeCW;
+const sx=Math.cos(e.strafeAng)*.1,sz=Math.sin(e.strafeAng)*.1;
+e.mesh.position.x+=sx;e.mesh.position.z+=sz;}
+// Ground height adjustment
+e.mesh.position.y=groundY+2;
+e.mesh.rotation.y=faceAng;
+// Attack logic
+if(dist<e.atkRange&&e.atkCD<=0&&e.swingT<=0){
+e.windUp++;
+// Open jaw during windup
+if(ud.jaw){ud.jaw.rotation.x=.3+Math.min(e.windUp*.02,.5);}
+const windUpTime=24;
+if(e.windUp>=windUpTime){
+e.swingT=15;e.windUp=0;e.atkCD=40+Math.floor(Math.random()*16);
+// Fire breath attack
+const dCol=e.type==='bluedragon'?0x4488ff:e.type==='greendragon'?0x44ff44:e.type==='blackdragon'?0x440000:e.type==='irondragon'?0xffaa44:e.type==='steeldragon'?0x8888aa:0xff4400;
+const proj=new THREE.Mesh(new THREE.SphereGeometry(1.2,8,8),new MS({color:dCol,emissive:dCol,emissiveIntensity:3,transparent:true,opacity:.8}));
+proj.position.copy(e.mesh.position);proj.position.y+=3;
+const pAng=Math.atan2(player.z-e.mesh.position.z,player.x-e.mesh.position.x);
+proj.userData={vx:Math.cos(pAng)*1.8,vz:Math.sin(pAng)*1.8,life:90,dmg:e.dmg,owner:e};
+scene.add(proj);particles.push(proj);
+hitFX(e.mesh.position.x,e.mesh.position.y+3,e.mesh.position.z,dCol);
+log(e.type+' breathes fire!','#f44');
+// Close jaw after attack
+if(ud.jaw){ud.jaw.rotation.x=0;}}}
+else{e.windUp=Math.max(0,e.windUp-1);if(ud.jaw){ud.jaw.rotation.x*=0.9;}}}
+// Swing animation on ground
+if(e.swingT>0){e.swingT--;
+if(ud.neck){ud.neck.rotation.x=.5*(1-e.swingT/15);}}}
+// Update cooldowns
+e.atkCD=Math.max(0,e.atkCD-1);
+// HP bar positioning for dragons
+if(e.mesh.userData.hpBar){const pct=Math.max(0,e.hp/e.maxHp);e.mesh.userData.hpBar.scale.x=pct;e.mesh.userData.hpBar.material.color.set(pct>.5?0x00cc00:pct>.25?0xccaa00:0xcc0000);
+const barY=isDragon?14:10.5;e.mesh.userData.hpBar.position.y=barY;e.mesh.userData.hpBar.lookAt(cam.position)}
+if(e.mesh.userData.nameLabel){e.mesh.userData.nameLabel.lookAt(cam.position)}
+if(e.hp<=0){spawnLoot(e.mesh.position.x,e.mesh.position.z,e);scene.remove(e.mesh);enemies.splice(i,1);if(lockOn===e)lockOn=null;
+const xpMult=Math.max(1,(e.lv||1)*.8);skills.Attack.xp+=Math.round(15*xpMult);skills.Strength.xp+=Math.round(12*xpMult);skills.Hitpoints.xp+=Math.round(10*xpMult);
+log(e.type+' (Lv'+(e.lv||1)+') slain! +'+Math.round(37*xpMult)+'xp','#fa4');
+updateXpBar();
+const rt=e.type,rx=e.x,rz=e.z,rlv=getReg(rx,rz).lv;setTimeout(()=>{if(scene)spawnE(rt,rx+(Math.random()-.5)*30,rz+(Math.random()-.5)*30,rlv)},15000)}continue;}
+// === END DRAGON AI ===
 if(dist<e.aggro){
 const isMelee=e.atkStyle==='slash'||e.atkStyle==='chop'||e.atkStyle==='smash'||e.atkStyle==='bite'||e.atkStyle==='swipe'||e.atkStyle==='charge'||e.atkStyle==='peck';
 const stopDist=isMelee?e.atkRange*.7:e.atkRange*.85;
 // Movement: approach until in range, then circle-strafe
 if(dist>stopDist&&e.swingT<=0){
-const a=Math.atan2(dz,dx);const spd=e.atkStyle==='charge'&&e.windUp>15?.6:.2;
+const a=Math.atan2(dz,dx);let spd=e.atkStyle==='charge'&&e.windUp>15?.6:.2;
+if(e.slowed)spd*=0.5;// Frostbolt slow effect
+if(e.polymorphed)spd=0;// Polymorphed enemies can't move
 e.mesh.position.x+=Math.cos(a)*spd;e.mesh.position.z+=Math.sin(a)*spd;
 } else if(dist<stopDist*1.3&&e.swingT<=0&&isMelee){
 // Circle-strafe when in range and not attacking
-e.strafeAng+=.015*e.strafeCW;
-const sx=Math.cos(e.strafeAng)*.12,sz=Math.sin(e.strafeAng)*.12;
+let strafeSpd=e.slowed?0.007:0.015;e.strafeAng+=strafeSpd*e.strafeCW;
+if(e.polymorphed){e.strafeAng+=0;}// Polymorphed enemies don't strafe
+let sx=Math.cos(e.strafeAng)*.12,sz=Math.sin(e.strafeAng)*.12;
+if(e.slowed){sx*=0.5;sz*=0.5;}// Slow affects strafe too
 e.mesh.position.x+=sx;e.mesh.position.z+=sz;
 }
 const eco=pushOut(e.mesh.position.x,e.mesh.position.y,e.mesh.position.z);e.mesh.position.x=eco.x;e.mesh.position.z=eco.z;
@@ -5033,8 +5848,9 @@ const windUpTime=e.atkStyle==='magic'||e.atkStyle==='breath'?24:e.atkStyle==='sm
 if(e.windUp>=windUpTime){
 // Execute attack
 e.swingT=12;e.windUp=0;e.atkCD=36+Math.floor(Math.random()*16);
-// Ranged: spawn projectile
-if(e.atkStyle==='magic'||e.atkStyle==='breath'){
+// Check counterspell for magic attacks
+if(e.counterspelled&&e.atkStyle==='magic'){hitFX(e.mesh.position.x,e.mesh.position.y+8,e.mesh.position.z,0xff0000);log('Enemy spell interrupted by Counterspell!','#f00');e.swingT=0;}
+else if(e.atkStyle==='magic'||e.atkStyle==='breath'){
 const pc=e.atkStyle==='magic'?0x6a1aaa:0xff4400;const pe=e.atkStyle==='magic'?0x4a0a8a:0xff2200;
 const proj=new THREE.Mesh(new THREE.SphereGeometry(e.atkStyle==='breath'?1.2:.7,6,6),new MS({color:pc,emissive:pe,emissiveIntensity:3,transparent:true,opacity:.8}));
 proj.position.copy(e.mesh.position);proj.position.y+=6;
@@ -5044,10 +5860,15 @@ scene.add(proj);particles.push(proj);
 } else {
 // Melee: damage if still in range
 if(dist<e.atkRange*1.15){
-if(calcHit(e,player)){const gd=totalGear();let blockMult=player.blocking?.65:.3;const blocked=Math.floor(gd.def*blockMult);const realDmg=Math.max(1,e.dmg-blocked);
+if(calcHit(e,player)){const gd=totalGear();let blockMult=player.blocking?.65:.3;const blocked=Math.floor(gd.def*blockMult);let realDmg=Math.max(1,e.dmg-blocked);
+// Divine Shield makes player invulnerable
+if(player._bubbleActive){hitFX(player.x,player.y+8,player.z,0xffffdd);log('Divine Shield absorbed all damage!','#ffd');}
+else{
+// Divine Protection reduces damage by 50%
+if(player._divineProtActive)realDmg=Math.floor(realDmg*0.5);
 player.hp-=realDmg;
 if(player.blocking){player.sta-=8;skills.Defence.xp+=4;updateXpBar();hitFX(player.x,player.y+8,player.z,0x4488ff);log(`BLOCKED ${e.type}! -${realDmg} (absorbed ${blocked})`,'#48f')}
-else{hitFX(player.x,player.y+8,player.z);log(`${e.type} hit for ${realDmg} (blocked ${blocked})`,'#f44')}}}}
+else{hitFX(player.x,player.y+8,player.z);log(`${e.type} hit for ${realDmg} (blocked ${blocked})`,'#f44');}}}}}
 }} else {e.windUp=Math.max(0,e.windUp-1)}
 // Swing animation
 if(e.swingT>0){e.swingT--;
@@ -5067,19 +5888,33 @@ log(e.type+' (Lv'+(e.lv||1)+') slain! +'+Math.round(37*xpMult)+'xp','#fa4');
 updateXpBar();
 const rt=e.type,rx=e.x,rz=e.z,rlv=getReg(rx,rz).lv;setTimeout(()=>{if(scene)spawnE(rt,rx+(Math.random()-.5)*30,rz+(Math.random()-.5)*30,rlv)},15000)}}
 
+// === DAMAGE BUFF CALCULATIONS (at attack time) ===
+let dmgMult=1.0;if(player._battleShoutActive)dmgMult+=0.2;if(player._blessingActive)dmgMult+=0.15;if(player._sharpenActive)dmgMult+=0.1;if(player._reckActive)dmgMult+=0.5;
 if((mouse.down||gpButtons.rt||gpButtons.x||keys['1'])&&player.atkCD<=0&&player.sta>19){player.atkCD=14;player.sta-=19;
-const gStats=totalGear();const pDmg=Math.max(12,10+gStats.atk+gStats.str);
+const gStats=totalGear();let pDmg=Math.max(12,10+gStats.atk+gStats.str)*dmgMult;
+if(lockOn&&lockOn.huntersMark)pDmg*=1.15;// Hunter's Mark bonus
 if(lockOn&&lockOn.hp>0&&Math.hypot(lockOn.mesh.position.x-player.x,lockOn.mesh.position.z-player.z)<6){
-lockOn.hp-=pDmg;lockOn.poi-=16;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+6,lockOn.mesh.position.z);
+lockOn.hp-=Math.round(pDmg);lockOn.poi-=16;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+6,lockOn.mesh.position.z);
 log('Hit '+lockOn.type+' for '+pDmg,'#ff8');
 if(lockOn.poi<=0){lockOn.hp-=Math.round(pDmg*.5);lockOn.poi=30;log('POISE BREAK!','#ff4')}}
 else{for(let i=enemies.length-1;i>=0;i--){let e=enemies[i],edx=e.mesh.position.x-player.x,edz=e.mesh.position.z-player.z;
 if(Math.hypot(edx,edz)<6){const eAng=Math.atan2(edx,edz);let ad=eAng-player.ang;while(ad>Math.PI)ad-=Math.PI*2;while(ad<-Math.PI)ad+=Math.PI*2;
-if(Math.abs(ad)<1.2&&calcHit(player,e)){e.hp-=pDmg;hitFX(e.mesh.position.x,e.mesh.position.y+6,e.mesh.position.z);log('Hit '+e.type+' for '+pDmg,'#ff8')}}}}}
+if(Math.abs(ad)<1.2&&calcHit(player,e)){let finalDmg=pDmg;if(e.huntersMark)finalDmg*=1.15;e.hp-=Math.round(finalDmg);hitFX(e.mesh.position.x,e.mesh.position.y+6,e.mesh.position.z);log('Hit '+e.type+' for '+Math.round(finalDmg),'#ff8')}}}}}
 player.atkCD=Math.max(0,player.atkCD-1);if(player._parryCD)player._parryCD--;if(player._estusCD)player._estusCD--;if(player._shootCD)player._shootCD--;
+// === WARRIOR COOLDOWNS ===
+if(player._heroicCD)player._heroicCD--;if(player._cleaveCD)player._cleaveCD--;if(player._whirlCD)player._whirlCD--;if(player._thunderCD)player._thunderCD--;if(player._shoutCD)player._shoutCD--;if(player._executeCD)player._executeCD--;if(player._slamCD)player._slamCD--;if(player._overpowerCD)player._overpowerCD--;if(player._shieldCD)player._shieldCD--;if(player._reckCD)player._reckCD--;
+// === KNIGHT COOLDOWNS ===
+if(player._judgmentCD)player._judgmentCD--;if(player._crusaderCD)player._crusaderCD--;if(player._divineProtCD)player._divineProtCD--;if(player._consecrateCD)player._consecrateCD--;if(player._holyLightCD)player._holyLightCD--;if(player._flashLightCD)player._flashLightCD--;if(player._blessingCD)player._blessingCD--;if(player._bubbleCD)player._bubbleCD--;if(player._hammerCD)player._hammerCD--;if(player._exorcismCD)player._exorcismCD--;
+// === SORCERER COOLDOWNS ===
+if(player._fireballCD)player._fireballCD--;if(player._frostboltCD)player._frostboltCD--;if(player._missilesCD)player._missilesCD--;if(player._blizzardCD)player._blizzardCD--;if(player._fireblastCD)player._fireblastCD--;if(player._pyroCD)player._pyroCD--;if(player._novaCD)player._novaCD--;if(player._blinkCD)player._blinkCD--;if(player._polyCD)player._polyCD--;if(player._counterCD)player._counterCD--;
+// === RANGER COOLDOWNS ===
+if(player._steadyCD)player._steadyCD--;if(player._aimedCD)player._aimedCD--;if(player._multiCD)player._multiCD--;if(player._arcaneCD)player._arcaneCD--;if(player._stingCD)player._stingCD--;if(player._markCD)player._markCD--;if(player._distractCD)player._distractCD--;if(player._rapidCD)player._rapidCD--;if(player._feignCD)player._feignCD--;if(player._trapCD)player._trapCD--;
+// === GENERAL COOLDOWNS ===
+if(player._aidCD)player._aidCD--;if(player._bandageCD)player._bandageCD--;if(player._sharpenCD)player._sharpenCD--;if(player._mineStrikeCD)player._mineStrikeCD--;if(player._lumberCD)player._lumberCD--;if(player._campfireCD)player._campfireCD--;if(player._fishCastCD)player._fishCastCD--;if(player._focusCD)player._focusCD--;if(player._sneakCD)player._sneakCD--;if(player._agiRollCD)player._agiRollCD--;
 // Update parry/block system
 updateParrySystem()
-
+// === EXPLOSIVE TRAP CHECKING ===
+if(player.explosiveTrap&&player.explosiveTrap.life>0){player.explosiveTrap.life--;enemies.forEach(e=>{const dist=Math.hypot(e.x-player.explosiveTrap.x,e.z-player.explosiveTrap.z);if(dist<8){e.hp-=player.explosiveTrap.dmg;hitFX(e.mesh.position.x,e.mesh.position.y+5,e.mesh.position.z,0xff4400);player.explosiveTrap.life=0;}});if(player.explosiveTrap.life<=0){player.explosiveTrap=null;log('Explosive Trap triggered!','#f40');}}
 // Loot label overlay — clear each frame
 lootLabelCtx.clearRect(0,0,lootLabelCanvas.width,lootLabelCanvas.height);
 let closestLoot=null,closestDist=Infinity;
@@ -5134,9 +5969,19 @@ scene.remove(l);const idx=lootArr.indexOf(l);if(idx>=0)lootArr.splice(idx,1)}}
 else{lootPromptEl.classList.remove('active')}
 
 for(let i=particles.length-1;i>=0;i--){let p=particles[i];
-// Enemy projectiles move straight (no gravity) and check player hit
+// Enemy projectiles move straight (no gravity) and check player/NPC hit
 if(p.userData.dmg&&!p.userData.type){
 p.position.x+=p.userData.vx;p.position.z+=p.userData.vz;p.userData.life--;
+// Check if dragon projectile (has target in userData)
+if(p.userData.target&&p.userData.target.type!=='player'){
+// Dragon fire breath hitting NPC
+const target=p.userData.target;
+if(target.hp>0){
+const hitDist=Math.hypot(p.position.x-target.mesh.position.x,p.position.z-target.mesh.position.z);
+if(hitDist<5){target.hp-=p.userData.dmg||20;hitFX(target.mesh.position.x,target.mesh.position.y+6,target.mesh.position.z,0xff4400);
+log(p.userData.owner.type+' fire breath hits '+target.type+'!','#f84');
+p.userData.life=0;}}}
+// Check player hit
 const pd=Math.hypot(p.position.x-player.x,p.position.z-player.z);
 if(pd<4&&!player.rolling){const gd=totalGear();let blockMult=player.blocking?.65:.3;const blocked=Math.floor(gd.def*blockMult);const realDmg=Math.max(1,p.userData.dmg-blocked);
 player.hp-=realDmg;hitFX(player.x,player.y+8,player.z,0x8844ff);
@@ -5173,7 +6018,9 @@ const ex=e.mesh.position.x,ey=e.mesh.position.y+6,ez=e.mesh.position.z;
 const dist=Math.hypot(p.position.x-ex,p.position.y-ey,p.position.z-ez);
 if(dist<4&&e.hp>0){
 // Hit enemy
-const dmg=p.userData.dmg||15;
+let dmg=p.userData.dmg||15;
+// Apply damage buffs to arrows
+if(p.userData.type==='arrow'){let dmgMult=1.0;if(player._battleShoutActive)dmgMult+=0.2;if(player._blessingActive)dmgMult+=0.15;if(player._sharpenActive)dmgMult+=0.1;if(player._reckActive)dmgMult+=0.5;if(player._rapidFireActive)dmgMult+=0.2;if(e.huntersMark)dmgMult*=1.15;dmg=Math.round(dmg*dmgMult);}
 e.hp-=dmg;e.poi-=10;hitFX(ex,ey,ez,0xff4400);
 log((p.userData.type==='arrow'?'Arrow':'Spell')+' hit '+e.type+'! -'+dmg,'#8a4');
 p.userData.life=0;break;}}
@@ -5229,27 +6076,30 @@ log('Combat Level Up! Now Lv '+newBaseLvl,'#ffd700');
 if(leveledUp||combatLeveledUp)updateSkillUI();
 // Total combat XP is sum of all combat skill XP
 const totalCmbXp=skills.Attack.xp+skills.Strength.xp+skills.Defence.xp+skills.Hitpoints.xp+skills.Prayer.xp+skills.Magic.xp+skills.Ranged.xp;
-// XP needed for current combat level
+// Calculate combat level
 const curCL=Math.max(1,newBaseLvl);
-const curAvgSkill=(curCL*4)/7;
-const curSkillXpNeeded=Math.pow(Math.max(1,curAvgSkill-1),2)*50;
-const curTotalXpNeeded=curSkillXpNeeded*7;
-// XP needed for next combat level
-const nxtCL=curCL+1;
-const nxtAvgSkill=(nxtCL*4)/7;
-const nxtSkillXpNeeded=Math.pow(Math.max(1,nxtAvgSkill-1),2)*50;
-const nxtTotalXpNeeded=nxtSkillXpNeeded*7;
-// Calculate progress to next level
-let xpInCurrentLevel=Math.max(0,totalCmbXp-curTotalXpNeeded);
-let xpNeededForNext=Math.max(1,nxtTotalXpNeeded-curTotalXpNeeded);
+// XP formula: XP for level L = ((L-1)^2) * 50
+// For combat level, it's based on average of 7 skills, so total XP needed = 7 * ((avgSkill-1)^2 * 50)
+// Where avgSkill = combatLevel * 4 / 7 (OSRS formula)
+function getTotalXpForCombatLevel(cmbLv){
+const avgSkill=(cmbLv*4)/7;
+return Math.floor(7*Math.pow(Math.max(0,avgSkill-1),2)*50);}
+// Get XP thresholds
+const curLevelXpNeeded=getTotalXpForCombatLevel(curCL);
+const nextLevelXpNeeded=getTotalXpForCombatLevel(curCL+1);
+// Calculate progress
+let xpInCurrentLevel=Math.max(0,totalCmbXp-curLevelXpNeeded);
+let xpNeededForNextLevel=Math.max(1,nextLevelXpNeeded-curLevelXpNeeded);
+// Handle case where player has enough XP for next level but level hasn't updated yet
+if(totalCmbXp>=nextLevelXpNeeded&&curCL<99){xpInCurrentLevel=0;xpNeededForNextLevel=1;}
 // Calculate percentage
-let pct=Math.min(100,Math.max(0,xpInCurrentLevel/xpNeededForNext*100));
+let pct=Math.min(100,Math.max(0,xpInCurrentLevel/xpNeededForNextLevel*100));
 // If we're at 100% or more, force level up check for next iteration
 if(pct>=99.9&&curCL<99){pct=100;}
 // Update display
 const xpFill=document.getElementById('xp-bar-fill');const xpText=document.getElementById('xp-bar-text');
 if(xpFill)xpFill.style.width=pct+'%';
-if(xpText){const displayHave=Math.floor(xpInCurrentLevel);const displayNeed=Math.floor(xpNeededForNext);xpText.textContent='Combat Lv '+curCL+' ('+Math.floor(pct)+'%) - '+displayHave+'/'+displayNeed+' XP'}}
+if(xpText){const displayHave=Math.floor(xpInCurrentLevel);const displayNeed=Math.floor(xpNeededForNextLevel);xpText.textContent='Combat Lv '+curCL+' ('+Math.floor(pct)+'%) - '+displayHave+'/'+displayNeed+' XP'}}
 
 // Periodic UI updates (no level checks - handled in updateXpBar)
 if(time*60%30<1){updateSkillUI();updateEqUI();
@@ -5269,6 +6119,7 @@ else if(a==='heal')cd=player._estusCD>0;
 else if(a==='parry')cd=player._parryCD>0;
 else if(a==='roll')cd=player.rolling;
 else if(a==='shoot')cd=player._shootCD>0;
+else if(a==='dash_left'||a==='dash_right')cd=player.dashing;
 if(cd)s.classList.add('on-cd');else s.classList.remove('on-cd')});
 drawMinimap()}
 
@@ -5291,13 +6142,19 @@ if(k==='tab'){e.preventDefault();cycleLock()}
 if(k==='f'&&gameStarted){e.preventDefault();toggleLock()}
 if(k==='i'){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));document.querySelector('[data-tab="inventory"]').classList.add('active');document.getElementById('tp-inventory').classList.add('active')}
 if(k==='k'){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));document.querySelector('[data-tab="skills"]').classList.add('active');document.getElementById('tp-skills').classList.add('active')}
-if(k==='f5'){e.preventDefault();if(gameStarted)saveGame()}
-// Action bar hotkeys 1-5 - execute assigned abilities
-if(k==='1'||k==='2'||k==='3'||k==='4'||k==='5'){
+if(k==='f5'){e.preventDefault();if(gameStarted)openSaveSlotMenu()}
+// Action bar hotkeys 1-9 and 0(=10) for abilities
+if(k>='1'&&k<='9'){
 const slotIdx=parseInt(k)-1;// Convert '1' to slot 0, '2' to slot 1, etc.
 if(typeof abAssign!=='undefined'&&abAssign[slotIdx]){
 const abilityId=abAssign[slotIdx];
 if(abilityId&&typeof execAbility==='function'){execAbility(abilityId);}}}
+// Key 0 = slot 10 (Inventory)
+if(k==='0'){if(typeof abAssign!=='undefined'&&abAssign[9]){execAbility(abAssign[9]);}}
+// Key - = slot 11 (Skills)
+if(k==='-'||k==='_'){if(typeof abAssign!=='undefined'&&abAssign[10]){execAbility(abAssign[10]);}}
+// Key = = slot 12 (Save)
+if(k==='='||k==='+'){if(typeof abAssign!=='undefined'&&abAssign[11]){execAbility(abAssign[11]);}}
 // Legacy hardcoded keys for backwards compatibility (only if slot not assigned)
 if(k==='2'&&!player._parryCD&&(!abAssign[1]||abAssign[1]==='parry')){doParry()}
 if(k==='3'&&!player._estusCD&&(!abAssign[2]||abAssign[2]==='heal')){const heal=Math.round(player.maxHp*.3);player.hp=Math.min(player.hp+heal,player.maxHp);log('Used Estus Flask: +'+heal+' HP','#0f0');player._estusCD=90}
@@ -5306,7 +6163,13 @@ if(k==='4'&&(!abAssign[3]||abAssign[3]==='bones')){
 if(typeof player!=='undefined'&&!player._shootCD){player._shootCD=40;shootProjectile('arrow',12+skills.Ranged.lvl);log('Shot arrow!','#8a4');}
 else if(player._shootCD){log('Arrow on cooldown','#887');}}
 if(k==='l'){autoLoot=!autoLoot;log('Auto-Loot: '+(autoLoot?'ON — items picked up automatically':'OFF — press E near items to pick up'),'#ffd700')}
-if(k==='q'){e.preventDefault();document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));document.querySelector('[data-tab="prayer"]').classList.add('active');document.getElementById('tp-prayer').classList.add('active')}
+// Debug: Toggle collision visualization with backslash
+if(k==='\\'||k==='|'){toggleCollisionDebug();}
+// FIX: Rebuild colliders to fix invisible barriers (Ctrl+R)
+if(k==='r'&&e.ctrlKey){e.preventDefault();buildColliders();log('Colliders rebuilt - invisible barriers should be fixed','#0f0');}
+// Q = Dash Left, E = Dash Right
+if(k==='q'){e.preventDefault();execAbility('dash_left');}
+if(k==='e'){e.preventDefault();execAbility('dash_right');}
 if(k==='t'&&gameStarted){e.preventDefault();showTeleport=!showTeleport;
 let tp=document.getElementById('teleport-menu');
 if(!tp){tp=document.createElement('div');tp.id='teleport-menu';tp.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(10,10,20,0.92);border:2px solid #aa8833;border-radius:8px;padding:12px;z-index:999;max-height:70vh;overflow-y:auto;min-width:260px;color:#ddd;font-family:monospace;';
@@ -5325,10 +6188,12 @@ else{tp.style.display=showTeleport?'block':'none'}}
 if(k==='p'){const ab=document.getElementById('ability-browser');ab.classList.toggle('active')}
 if(k==='o'){const sb=document.getElementById('spell-book');sb.classList.toggle('active')}
 if(k==='m'){const wm=document.getElementById('world-map');if(wm.classList.contains('active')){wm.classList.remove('active')}else{wm.classList.add('active');drawWorldMap()}}
+if(k==='insert'){e.preventDefault();toggleEditorMode()}
 if(k==='escape'){
+const ed=document.getElementById('editor-mode');if(ed&&ed.style.display==='block'){toggleEditorMode();return}
 const wm=document.getElementById('world-map');if(wm.classList.contains('active')){wm.classList.remove('active');return}
 const sbr=document.getElementById('spell-book');if(sbr&&sbr.classList.contains('active')){sbr.classList.remove('active');return}
-const abr=document.getElementById('ability-browser');if(abr.classList.contains('active')){abr.classList.remove('active');return}
+const abr=document.getElementById('ability-browser');if(abr&&abr.classList.contains('active')){abr.classList.remove('active');return}
 const tp=document.getElementById('teleport-menu');if(tp&&showTeleport){showTeleport=false;tp.style.display='none';return}
 const em=document.getElementById('esc-menu');em.classList.toggle('active');
 if(em.classList.contains('active'))e.preventDefault()}
@@ -5366,8 +6231,8 @@ document.getElementById('ep-'+btn.dataset.page).classList.add('active')})});
 // Resume
 function closeEscMenu(){em.classList.remove('active')}
 document.getElementById('esc-resume-btn').onclick=closeEscMenu;
-document.getElementById('esc-save-btn').onclick=()=>{if(typeof saveGame==='function')saveGame();log('Game saved!','#0f0')};
-document.getElementById('esc-savequit-btn').onclick=()=>{if(typeof saveGame==='function')saveGame();log('Saved!','#0f0')};
+document.getElementById('esc-save-btn').onclick=()=>{openSaveSlotMenu()};
+document.getElementById('esc-savequit-btn').onclick=()=>{openSaveSlotMenu(true)};
 document.getElementById('esc-quit-btn').onclick=()=>{if(typeof saveGame==='function')saveGame();location.reload()};
 document.getElementById('esc-map-btn').onclick=()=>{closeEscMenu();const wm=document.getElementById('world-map');wm.classList.add('active');if(typeof drawWorldMap==='function')drawWorldMap()};
 document.getElementById('esc-tele-btn').onclick=()=>{closeEscMenu();const t=document.getElementById('teleport-menu');if(t)t.style.display='block'};
@@ -5398,6 +6263,18 @@ makeHudToggle('ui-tframe','#target-frame');
 makeToggle('ui-rpos',['Right','Left'],(i)=>{const rp=document.getElementById('osrs-panel');if(rp){rp.style.right=i===0?'0':'auto';rp.style.left=i===0?'auto':'0'}});
 makeToggle('ui-abpos',['Bottom Center','Bottom Left','Bottom Right'],(i)=>{const ab=document.getElementById('action-bar');if(ab){ab.style.left=i===0?'50%':i===1?'8px':'auto';ab.style.right=i===2?'8px':'auto';ab.style.transform=i===0?'translateX(-50%)':'none'}});
 makeToggle('ui-font',['Normal','Large','Small'],(i)=>{document.documentElement.style.fontSize=i===0?'':''+[16,19,13][i]+'px'});
+
+// === ACTION BAR CLICK HANDLERS ===
+document.querySelectorAll('.ab-slot').forEach(slot=>{
+slot.addEventListener('click',()=>{
+const action=slot.dataset.action;
+if(action==='save'&&gameStarted){openSaveSlotMenu();}
+else if(action==='map'){const wm=document.getElementById('world-map');if(wm.classList.contains('active')){wm.classList.remove('active')}else{wm.classList.add('active');if(typeof drawWorldMap==='function')drawWorldMap()}}
+else if(action==='inv'){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));document.querySelector('[data-tab="inventory"]').classList.add('active');document.getElementById('tp-inventory').classList.add('active')}
+else if(action==='skills'){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));document.querySelector('[data-tab="skills"]').classList.add('active');document.getElementById('tp-skills').classList.add('active')}
+});
+});
+
 // Keybind rebinder
 const kbDefs=[['move_fwd','Move Forward','w'],['move_back','Move Back','s'],['move_left','Strafe Left','a'],['move_right','Strafe Right','d'],['jump','Jump','shift'],['roll','Roll / Dodge',' '],['attack','Attack','1'],['parry','Parry / Block','2'],['heal','Heal (Estus)','3'],['gather','Gather','g'],['lockon','Lock-On Toggle','f'],['interact','Interact','e'],['lockoncycle','Lock-On Cycle','tab'],['inventory','Inventory','i'],['skills','Skills','k'],['map','World Map','m'],['teleport','Teleport','t'],['abilities','Ability Browser','p'],['autoloot','Auto-Loot','l'],['sprint','Sprint','q'],['prayer','Prayer','5'],['dungeon','Dungeon / Gauntlet','u'],['save','Quick Save','f5']];
 const kbMap={};kbDefs.forEach(([id,desc,def])=>{kbMap[id]={desc,key:def}});
@@ -5438,18 +6315,30 @@ if(otherPlayers[d.id]){scene.remove(otherPlayers[d.id]);delete otherPlayers[d.id
 ws.onerror=()=>{};
 ws.onclose=()=>{setTimeout(connectMP,3000)};
 }
-// === SAVE / LOAD SYSTEM (localStorage) ===
-const SAVE_KEY='soulscape_save';
-function saveGame(){
+// === SAVE / LOAD SYSTEM (localStorage) with Multiple Slots ===
+// Slots 1-10 = Manual saves, A = Auto-save 1, B = Auto-save 2
+const SAVE_SLOTS=['1','2','3','4','5','6','7','8','9','10','A','B'];
+const AUTO_SAVE_SLOTS=['A','B'];
+const SAVE_PREFIX='soulscape_save_';
+const SAVE_META_KEY='soulscape_save_meta';
+let currentSaveSlot='1';
+let lastAutoSaveSlot='A';
+
+function getSaveKey(slot){return SAVE_PREFIX+slot}
+
+function saveGame(slot){
+slot=slot||currentSaveSlot;
 try{const data={player:{x:player.x,z:player.z,hp:player.hp,maxHp:player.maxHp,sta:player.sta,maxSta:player.maxSta,poi:player.poi,maxPoi:player.maxPoi,speed:player.speed},
-skills:{},inventory:[...inventory],equipped:{},opts:{...gameOpts},playerClass:playerClass,ver:3};
+skills:{},inventory:[...inventory],equipped:{},opts:{...gameOpts},playerClass:playerClass,timestamp:Date.now(),slot:slot,ver:4};
 skillDefs.forEach(s=>data.skills[s]={lvl:skills[s].lvl,xp:skills[s].xp});
 gearSlots.forEach(s=>data.equipped[s]={...equipped[s]});
-localStorage.setItem(SAVE_KEY,JSON.stringify(data));
-log('Game saved!','#0f0');return true}catch(e){log('Save failed: '+e.message,'#f44');return false}}
+localStorage.setItem(getSaveKey(slot),JSON.stringify(data));
+updateSaveMeta(slot,data);
+log('Game saved to Slot '+slot+'!','#0f0');return true}catch(e){log('Save failed: '+e.message,'#f44');return false}}
 
-function loadGame(){
-try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return false;
+function loadGame(slot){
+slot=slot||currentSaveSlot;
+try{const raw=localStorage.getItem(getSaveKey(slot));if(!raw)return false;
 const data=JSON.parse(raw);
 player.x=data.player.x;player.z=data.player.z;player.hp=data.player.hp;player.maxHp=data.player.maxHp;
 player.sta=data.player.sta;player.maxSta=data.player.maxSta;player.poi=data.player.poi;player.maxPoi=data.player.maxPoi;
@@ -5458,18 +6347,231 @@ skillDefs.forEach(s=>{if(data.skills[s]){skills[s].lvl=data.skills[s].lvl;skills
 if(data.inventory){inventory.length=0;data.inventory.forEach(i=>inventory.push(i));updateInvUI()}
 if(data.equipped){gearSlots.forEach(s=>{if(data.equipped[s])equipped[s]=data.equipped[s]})}
 if(data.opts){Object.assign(gameOpts,data.opts)}
-if(data.playerClass){playerClass=data.playerClass}
+if(data.playerClass){playerClass=data.playerClass;currentSaveSlot=slot;}
 updateSkillUI();updateEqUI();refreshPlayerModel();
 document.getElementById('hpT').textContent=Math.round(player.hp)+'/'+player.maxHp;
 document.getElementById('stT').textContent=Math.round(player.sta)+'/'+player.maxSta;
 document.getElementById('poT').textContent=Math.round(player.poi)+'/'+player.maxPoi;
-log('Game loaded! Pos: '+Math.round(player.x)+','+Math.round(player.z),'#0f0');
+log('Loaded Slot '+slot+'! Pos: '+Math.round(player.x)+','+Math.round(player.z),'#0f0');
 return true}catch(e){log('Load failed: '+e.message,'#f44');return false}}
 
-function hasSave(){return !!localStorage.getItem(SAVE_KEY)}
+function hasSave(slot){return !!localStorage.getItem(getSaveKey(slot||'1'))}
+function hasAnySave(){return SAVE_SLOTS.some(s=>!!localStorage.getItem(getSaveKey(s)))}
 
-// Auto-save every 30 seconds
-setInterval(()=>{if(gameStarted&&!player.dead)saveGame()},30000);
+function updateSaveMeta(slot,data){
+try{
+const metaRaw=localStorage.getItem(SAVE_META_KEY);
+const meta=metaRaw?JSON.parse(metaRaw):{};
+meta[slot]={
+timestamp:data.timestamp||Date.now(),
+playerClass:data.playerClass||'Unknown',
+hp:data.player.hp,
+maxHp:data.player.maxHp,
+level:Math.max(...Object.values(data.skills).map(s=>s.lvl)),
+playTime:Math.floor((Date.now()-(data.timestamp||Date.now()))/60000)
+};
+localStorage.setItem(SAVE_META_KEY,JSON.stringify(meta));
+}catch(e){}}
+
+function getSaveMeta(){
+try{
+const metaRaw=localStorage.getItem(SAVE_META_KEY);
+return metaRaw?JSON.parse(metaRaw):{};
+}catch(e){return{}}
+}
+
+function deleteSaveSlot(slot){
+localStorage.removeItem(getSaveKey(slot));
+const meta=getSaveMeta();
+delete meta[slot];
+localStorage.setItem(SAVE_META_KEY,JSON.stringify(meta));
+log('Slot '+slot+' deleted','#f44');
+}
+
+// Auto-save every 30 seconds (alternates between A and B)
+setInterval(()=>{
+if(gameStarted&&!player.dead){
+lastAutoSaveSlot=lastAutoSaveSlot==='A'?'B':'A';
+saveGame(lastAutoSaveSlot);
+}
+},30000);
+
+// Legacy compatibility - check for old save format
+function migrateOldSave(){
+const oldSave=localStorage.getItem('soulscape_save');
+if(oldSave){
+localStorage.setItem(getSaveKey('1'),oldSave);
+localStorage.removeItem('soulscape_save');
+updateSaveMeta('1',JSON.parse(oldSave));
+log('Migrated old save to Slot 1','#0f0');
+}
+}
+
+// === SAVE/LOAD SLOT MENU UI ===
+function openSaveSlotMenu(quitAfter=false){
+const existing=document.getElementById('save-slot-menu');
+if(existing)existing.remove();
+const menu=document.createElement('div');
+menu.id='save-slot-menu';
+menu.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#ddd;font-family:monospace;';
+const meta=getSaveMeta();
+let html='<div style="background:rgba(20,15,10,0.95);border:2px solid #aa8833;border-radius:12px;padding:20px;max-width:600px;max-height:85vh;overflow-y:auto;">';
+html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;border-bottom:2px solid #554422;padding-bottom:10px;">';
+html+='<h2 style="margin:0;color:#ffd700;font-size:20px;">💾 Save Game</h2>';
+html+='<span style="color:#887;font-size:12px;">Select a slot</span>';
+html+='</div>';
+// Manual saves (1-10)
+html+='<div style="margin-bottom:15px;"><div style="color:#aa8833;font-size:12px;margin-bottom:8px;text-transform:uppercase;">Manual Saves</div>';
+html+='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">';
+for(let i=1;i<=10;i++){
+const slot=i.toString();
+const m=meta[slot];
+const hasData=!!localStorage.getItem(getSaveKey(slot));
+const classIcon={warrior:'⚔️',knight:'🛡️',sorcerer:'✨',deprived:'👤',ranger:'🏹'}[m?.playerClass]||'📄';
+html+='<div onclick="selectSaveSlot(\''+slot+'\','+quitAfter+')" style="';
+html+=hasData?'background:rgba(60,45,20,0.9);border:2px solid #aa8833;':'background:rgba(30,25,15,0.8);border:2px dashed #554422;';
+html+='padding:10px;border-radius:8px;cursor:pointer;transition:all 0.2s;text-align:center;" onmouseover="this.style.background=\'rgba(80,65,30,0.95)\'" onmouseout="this.style.background='+(hasData?'\'rgba(60,45,20,0.9)\'':'\'rgba(30,25,15,0.8)\'')+'">';
+html+='<div style="font-size:18px;color:#ffd700;font-weight:bold;">'+slot+'</div>';
+if(hasData&&m){
+html+='<div style="font-size:10px;color:#aa8833;">'+classIcon+' '+m.playerClass+'</div>';
+html+='<div style="font-size:9px;color:#887;">Lv'+m.level+' HP:'+Math.round(m.hp)+'/'+m.maxHp+'</div>';
+html+='<div style="font-size:8px;color:#665;">'+(new Date(m.timestamp).toLocaleDateString())+'</div>';
+}else{
+html+='<div style="font-size:10px;color:#554;">Empty</div>';
+}
+html+='</div>';
+}
+html+='</div></div>';
+// Auto saves (A, B)
+html+='<div style="margin-bottom:15px;"><div style="color:#aa8833;font-size:12px;margin-bottom:8px;text-transform:uppercase;">Auto-Save Slots</div>';
+html+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">';
+['A','B'].forEach(slot=>{
+const m=meta[slot];
+const hasData=!!localStorage.getItem(getSaveKey(slot));
+const classIcon={warrior:'⚔️',knight:'🛡️',sorcerer:'✨',deprived:'👤',ranger:'🏹'}[m?.playerClass]||'📄';
+html+='<div onclick="selectSaveSlot(\''+slot+'\','+quitAfter+')" style="';
+html+=hasData?'background:rgba(40,50,60,0.9);border:2px solid #458;':'background:rgba(20,25,30,0.8);border:2px dashed #335;';
+html+='padding:12px;border-radius:8px;cursor:pointer;text-align:center;">';
+html+='<div style="font-size:16px;color:#8bf;font-weight:bold;">🔄 Auto '+slot+'</div>';
+if(hasData&&m){
+html+='<div style="font-size:10px;color:#8af;">'+classIcon+' '+m.playerClass+'</div>';
+html+='<div style="font-size:9px;color:#668;">Lv'+m.level+'</div>';
+html+='<div style="font-size:8px;color:#446;">'+new Date(m.timestamp).toLocaleTimeString()+'</div>';
+}else{
+html+='<div style="font-size:10px;color:#335;">Empty</div>';
+}
+html+='</div>';
+});
+html+='</div></div>';
+html+='<div style="display:flex;gap:10px;justify-content:center;">';
+html+='<button onclick="closeSaveSlotMenu()" style="background:#443322;color:#ffd700;border:2px solid #aa8833;padding:8px 20px;cursor:pointer;border-radius:6px;font-size:12px;">Cancel</button>';
+html+='</div>';
+html+='</div>';
+menu.innerHTML=html;
+document.body.appendChild(menu);
+}
+
+function openLoadSlotMenu(){
+const existing=document.getElementById('save-slot-menu');
+if(existing)existing.remove();
+const menu=document.createElement('div');
+menu.id='save-slot-menu';
+menu.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#ddd;font-family:monospace;';
+const meta=getSaveMeta();
+let html='<div style="background:rgba(20,15,10,0.95);border:2px solid #aa8833;border-radius:12px;padding:20px;max-width:600px;max-height:85vh;overflow-y:auto;">';
+html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;border-bottom:2px solid #554422;padding-bottom:10px;">';
+html+='<h2 style="margin:0;color:#ffd700;font-size:20px;">📂 Load Game</h2>';
+html+='<span style="color:#887;font-size:12px;">Select a save to continue</span>';
+html+='</div>';
+// Show all slots that have data
+const availableSlots=SAVE_SLOTS.filter(s=>!!localStorage.getItem(getSaveKey(s)));
+if(availableSlots.length===0){
+html+='<div style="text-align:center;padding:40px;color:#665;"><div style="font-size:48px;margin-bottom:10px;">📭</div><div>No save files found</div></div>';
+}else{
+// Manual saves
+const manual=availableSlots.filter(s=>!AUTO_SAVE_SLOTS.includes(s));
+if(manual.length>0){
+html+='<div style="margin-bottom:15px;"><div style="color:#aa8833;font-size:12px;margin-bottom:8px;text-transform:uppercase;">Manual Saves</div>';
+html+='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">';
+manual.forEach(slot=>{
+const m=meta[slot];
+const classIcon={warrior:'⚔️',knight:'🛡️',sorcerer:'✨',deprived:'👤',ranger:'🏹'}[m?.playerClass]||'📄';
+html+='<div onclick="loadFromSlot(\''+slot+'\')" style="background:rgba(60,45,20,0.9);border:2px solid #aa8833;padding:10px;border-radius:8px;cursor:pointer;transition:all 0.2s;text-align:center;" onmouseover="this.style.background=\'rgba(80,65,30,0.95)\'" onmouseout="this.style.background=\'rgba(60,45,20,0.9)\'">';
+html+='<div style="font-size:18px;color:#ffd700;font-weight:bold;">'+slot+'</div>';
+html+='<div style="font-size:10px;color:#aa8833;">'+classIcon+' '+m.playerClass+'</div>';
+html+='<div style="font-size:9px;color:#887;">Lv'+m.level+' HP:'+Math.round(m.hp)+'/'+m.maxHp+'</div>';
+html+='<div style="font-size:8px;color:#665;">'+(new Date(m.timestamp).toLocaleDateString())+'</div>';
+html+='<button onclick="event.stopPropagation();deleteSlotPrompt(\''+slot+'\')" style="background:#442222;color:#f44;border:1px solid #a33;padding:2px 6px;margin-top:5px;cursor:pointer;border-radius:3px;font-size:8px;">🗑️</button>';
+html+='</div>';
+});
+html+='</div></div>';
+}
+// Auto saves
+const auto=availableSlots.filter(s=>AUTO_SAVE_SLOTS.includes(s));
+if(auto.length>0){
+html+='<div style="margin-bottom:15px;"><div style="color:#aa8833;font-size:12px;margin-bottom:8px;text-transform:uppercase;">Auto-Saves</div>';
+html+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">';
+auto.forEach(slot=>{
+const m=meta[slot];
+const classIcon={warrior:'⚔️',knight:'🛡️',sorcerer:'✨',deprived:'👤',ranger:'🏹'}[m?.playerClass]||'📄';
+html+='<div onclick="loadFromSlot(\''+slot+'\')" style="background:rgba(40,50,60,0.9);border:2px solid #458;padding:12px;border-radius:8px;cursor:pointer;text-align:center;">';
+html+='<div style="font-size:16px;color:#8bf;font-weight:bold;">🔄 Auto '+slot+'</div>';
+html+='<div style="font-size:10px;color:#8af;">'+classIcon+' '+m.playerClass+'</div>';
+html+='<div style="font-size:9px;color:#668;">Lv'+m.level+'</div>';
+html+='<div style="font-size:8px;color:#446;">'+new Date(m.timestamp).toLocaleTimeString()+'</div>';
+html+='</div>';
+});
+html+='</div></div>';
+}
+}
+html+='<div style="display:flex;gap:10px;justify-content:center;">';
+html+='<button onclick="closeSaveSlotMenu()" style="background:#443322;color:#ffd700;border:2px solid #aa8833;padding:8px 20px;cursor:pointer;border-radius:6px;font-size:12px;">Cancel</button>';
+html+='</div>';
+html+='</div>';
+menu.innerHTML=html;
+document.body.appendChild(menu);
+}
+
+function selectSaveSlot(slot,quitAfter){
+if(confirm('Save to Slot '+slot+'?')){
+saveGame(slot);
+closeSaveSlotMenu();
+if(quitAfter){
+log('Saved to Slot '+slot+' — Quitting...','#0f0');
+setTimeout(()=>location.reload(),500);
+}
+}
+}
+
+function loadFromSlot(slot){
+if(confirm('Load from Slot '+slot+'? Unsaved progress will be lost.')){
+closeSaveSlotMenu();
+if(loadGame(slot)){
+setTimeout(()=>{
+if(!gameStarted)startGame(true);
+},100);
+}
+}
+}
+
+function deleteSlotPrompt(slot){
+if(confirm('Delete save in Slot '+slot+'? This cannot be undone!')){
+deleteSaveSlot(slot);
+closeSaveSlotMenu();
+setTimeout(openLoadSlotMenu,100);
+}
+}
+
+function closeSaveSlotMenu(){
+const menu=document.getElementById('save-slot-menu');
+if(menu)menu.remove();
+}
+
+// Expose to global scope
+window.selectSaveSlot=selectSaveSlot;
+window.loadFromSlot=loadFromSlot;
+window.deleteSlotPrompt=deleteSlotPrompt;
+window.closeSaveSlotMenu=closeSaveSlotMenu;
 
 // === MENU & OPTIONS LOGIC ===
 const gameOpts={blood:true,particles:true,flipy:1,flipx:1,sens:5,bloom:true,bright:1.15};
@@ -5492,7 +6594,7 @@ try{init();if(isLoad)loadGame();updateSkillUI();updateEqUI();loop();connectMP()}
 document.querySelectorAll('.mi').forEach(el=>el.addEventListener('click',()=>{
 const a=el.dataset.a;
 if(a==='new'){document.getElementById('main-menu').classList.add('hidden');document.getElementById('char-create').classList.add('show')}
-else if(a==='cont'){if(hasSave()){startGame(true)}else{log('No save found!','#f44')}}
+else if(a==='cont'){migrateOldSave();if(hasAnySave()){openLoadSlotMenu()}else{log('No save files found!','#f44')}}
 else if(a==='so')document.getElementById('screen-opts').classList.add('show');
 else if(a==='go')document.getElementById('game-opts').classList.add('show');
 else if(a==='q'){try{window.close()}catch(e){}}
@@ -6178,6 +7280,591 @@ if(typeof saveGame==='function')saveGame();}
 // Expose dungeon functions to global scope for HTML onclick handlers
 window.teleportToDungeonEntrance=teleportToDungeonEntrance;
 window.openDungeonMenu=openDungeonMenu;
+
+// Expose editor functions
+window.editorSetCamera=editorSetCamera;
+window.editorFocusSelected=editorFocusSelected;
+window.editorSpawnAtSelected=editorSpawnAtSelected;
+
+// === EDITOR MODE FUNCTIONS ===
+let editorCameraMode='normal';
+let editorDragStart=null;
+let editorDragObj=null;
+let editorOriginalPos=null;
+
+function toggleEditorMode(){
+editorMode=!editorMode;
+const ed=document.getElementById('editor-mode');
+const cursor=document.getElementById('editor-cursor');
+if(editorMode){
+ed.style.display='block';
+cursor.style.display='block';
+editorRefreshList();
+editorPopulateSpawnList();
+editorSetCamera('normal');
+log('EDITOR MODE ENABLED — Insert key to exit','#ffd700');
+}else{
+ed.style.display='none';
+cursor.style.display='none';
+editorSelected=null;
+editorUpdateSelection();
+editorSetCamera('normal');
+log('Editor mode disabled','#887');
+}
+}
+
+function editorSetCamera(mode){
+editorCameraMode=mode;
+const groundY=meshTerrainH(player.x,player.z);
+// Update button styles
+['normal','bird','top'].forEach(m=>{
+const btn=document.getElementById('btn-cam-'+m);
+if(btn){
+if(m===mode){
+btn.style.background='#554422';
+btn.style.color='#ffd700';
+btn.style.border='2px solid #aa8833';
+}else{
+btn.style.background='#332211';
+btn.style.color='#aa8833';
+btn.style.border='1px solid #554422';
+}
+}
+});
+// Apply camera mode
+if(mode==='normal'){
+cam.position.set(player.x,groundY+40,player.z+60);
+cam.lookAt(player.x,groundY+5,player.z);
+}else if(mode==='bird'){
+cam.position.set(player.x,groundY+120,player.z+80);
+cam.lookAt(player.x,groundY+5,player.z);
+}else if(mode==='top'){
+cam.position.set(player.x,groundY+200,player.z);
+cam.lookAt(player.x,groundY,player.z);
+}
+}
+
+function editorFocusSelected(){
+if(!editorSelected)return;
+const s=editorSelected;
+let targetX,targetZ;
+// Handle buildings with meshes
+if(s.type==='building'&&s.obj.mesh){
+targetX=s.obj.mesh.position.x;
+targetZ=s.obj.mesh.position.z;
+}else if(s.obj.mesh){targetX=s.obj.mesh.position.x;targetZ=s.obj.mesh.position.z;}
+else if(s.obj.x!==undefined){targetX=s.obj.x;targetZ=s.obj.z;}
+else return;
+const groundY=meshTerrainH(targetX,targetZ);
+if(editorCameraMode==='normal'){
+cam.position.set(targetX,groundY+40,targetZ+60);
+}else if(editorCameraMode==='bird'){
+cam.position.set(targetX,groundY+120,targetZ+80);
+}else if(editorCameraMode==='top'){
+cam.position.set(targetX,groundY+200,targetZ);
+}
+cam.lookAt(targetX,groundY+5,targetZ);
+player.x=targetX;
+player.z=targetZ;
+player.y=groundY+2;
+log('Camera focused on '+s.type,'#0f0');
+}
+
+function editorSpawnAtSelected(){
+if(!editorSelected)return;
+const s=editorSelected;
+let x,z;
+if(s.obj.mesh){x=s.obj.mesh.position.x;z=s.obj.mesh.position.z;}
+else if(s.obj.x!==undefined){x=s.obj.x;z=s.obj.z;}
+else return;
+const sel=document.getElementById('editor-spawn-select');
+const type=sel.value;
+if(!type)return;
+if(editorObjType==='enemy'){
+const lv=Math.max(1,Math.round(x/100+z/100+10));
+spawnE(type,x+(Math.random()-0.5)*10,z+(Math.random()-0.5)*10,lv);
+log('Spawned '+type+' near selection','#0f0');
+}else if(editorObjType==='loot'){
+const item={name:type,uid:'ed_'+Date.now()};
+const mesh=spawnLootItem(item,x+(Math.random()-0.5)*8,z+(Math.random()-0.5)*8);
+if(mesh){
+mesh.userData.editorSpawn=true;
+lootArr.push({x:mesh.position.x,z:mesh.position.z,item:item,mesh:mesh});
+}
+log('Spawned loot: '+type,'#0f0');
+}else if(editorObjType==='building'){
+const h=meshTerrainH(x,z);
+if(type==='hut'){hut(x,z,Math.random()*Math.PI*2,1);}
+else if(type==='tower'){tower(x,z,1);}
+else if(type==='house'){const g=new THREE.Group();const hm=new THREE.Mesh(new THREE.BoxGeometry(12,8,10),mt.wd);hm.position.y=4;g.add(hm);g.position.set(x,h,z);scene.add(g);g.userData={isBuilding:true};}
+else if(type==='tavern'){makeEnterable(x,z,'tavern','Tavern');}
+else if(type==='forge'){makeEnterable(x,z,'forge','Forge');}
+else if(type==='church'){makeEnterable(x,z,'chapel','Church');}
+else if(type==='mill'){makeEnterable(x,z,'windmill','Mill');}
+else if(type==='barn'){makeEnterable(x,z,'barn','Barn');}
+log('Spawned '+type+' near selection','#0f0');
+}
+editorRefreshList();
+}
+
+function setEditorType(type){
+editorObjType=type;
+document.querySelectorAll('.editor-type-btn').forEach(btn=>{
+btn.style.background='#332211';
+btn.style.color='#aa8833';
+btn.style.borderColor='#554422';
+});
+const activeBtn=document.getElementById('btn-'+type);
+if(activeBtn){
+activeBtn.style.background='#554422';
+activeBtn.style.color='#ffd700';
+activeBtn.style.borderColor='#aa8833';
+}
+editorPopulateSpawnList();
+}
+
+function editorPopulateSpawnList(){
+const sel=document.getElementById('editor-spawn-select');
+sel.innerHTML='';
+let items=[];
+if(editorObjType==='enemy')items=editorSpawnList;
+else if(editorObjType==='building')items=editorBuildings;
+else if(editorObjType==='loot')items=editorLoot;
+items.forEach(item=>{
+const opt=document.createElement('option');
+opt.value=item;opt.textContent=item;
+sel.appendChild(opt);
+});
+}
+
+function editorSpawn(){
+const sel=document.getElementById('editor-spawn-select');
+const type=sel.value;
+if(!type)return;
+const x=player.x+(Math.random()-0.5)*20;
+const z=player.z+(Math.random()-0.5)*20;
+if(editorObjType==='enemy'){
+const lv=Math.max(1,Math.round(player.x/100+player.z/100+10));
+spawnE(type,x,z,lv);
+log('Spawned '+type+' at '+Math.round(x)+','+Math.round(z),'#0f0');
+}else if(editorObjType==='loot'){
+const item={name:type,uid:'ed_'+Date.now()};
+const mesh=spawnLootItem(item,x,z);
+if(mesh){
+mesh.userData.editorSpawn=true;
+lootArr.push({x:x,z:z,item:item,mesh:mesh});
+}
+log('Spawned loot: '+type,'#0f0');
+}else if(editorObjType==='building'){
+// Spawn building at player position
+const h=meshTerrainH(x,z);
+if(type==='hut'){hut(x,z,Math.random()*Math.PI*2,1);}
+else if(type==='tower'){tower(x,z,1);}
+else if(type==='house'){const g=new THREE.Group();const hm=new THREE.Mesh(new THREE.BoxGeometry(12,8,10),mt.wd);hm.position.y=4;g.add(hm);g.position.set(x,h,z);scene.add(g);g.userData={isBuilding:true};}
+else if(type==='tavern'){makeEnterable(x,z,'tavern','Tavern');}
+else if(type==='forge'){makeEnterable(x,z,'forge','Forge');}
+else if(type==='church'){makeEnterable(x,z,'chapel','Church');}
+else if(type==='mill'){makeEnterable(x,z,'windmill','Mill');}
+else if(type==='barn'){makeEnterable(x,z,'barn','Barn');}
+log('Spawned '+type+' at '+Math.round(x)+','+Math.round(z),'#0f0');
+}
+editorRefreshList();
+}
+
+function spawnLootItem(item,x,z){
+const mesh=new THREE.Group();
+const box=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.8,0.8),new THREE.MeshStandardMaterial({color:0xffd700,roughness:0.3,metalness:0.8}));
+box.position.y=0.4;mesh.add(box);
+mesh.position.set(x,meshTerrainH(x,z)+0.5,z);
+mesh.userData={isLoot:true,item:item,editorSpawn:true};
+scene.add(mesh);return mesh;
+}
+
+function editorRefreshList(){
+const list=document.getElementById('editor-object-list');
+const count=document.getElementById('editor-count');
+list.innerHTML='';
+let total=0;
+// Enemies
+enemies.forEach((e,idx)=>{
+total++;
+const div=document.createElement('div');
+div.style.cssText='padding:4px;margin:2px 0;background:rgba(60,40,20,0.6);cursor:pointer;border-radius:3px;display:flex;justify-content:space-between;align-items:center;';
+div.innerHTML='<span>👹 '+e.type+' Lv'+e.lv+'</span><span style="color:#887;font-size:9px;">'+Math.round(e.mesh.position.x)+','+Math.round(e.mesh.position.z)+'</span>';
+div.onclick=()=>editorSelectObject(e,'enemy',idx);
+if(editorSelected&&editorSelected.type==='enemy'&&editorSelected.idx===idx){
+div.style.background='rgba(170,136,51,0.4)';
+div.style.border='1px solid #aa8833';
+}
+list.appendChild(div);
+});
+// Buildings/Enterable
+// Castles and towers from scene
+scene.children.forEach(c=>{
+if(c.userData&&(c.userData.isCastle||c.userData.isTower||c.userData.isBuilding)){
+total++;
+const div=document.createElement('div');
+div.style.cssText='padding:4px;margin:2px 0;background:rgba(60,50,40,0.6);cursor:pointer;border-radius:3px;display:flex;justify-content:space-between;align-items:center;';
+div.innerHTML='<span>🏰 Structure at '+Math.round(c.position.x)+','+Math.round(c.position.z)+'</span><span style="color:#887;font-size:9px;">Building</span>';
+div.onclick=()=>{
+// Create a pseudo-building object for selection
+const b={name:'Castle/Tower Structure',x:c.position.x,z:c.position.z,r:50,mesh:c,type:'structure'};
+editorSelectObject(b,'building',-1);
+};
+list.appendChild(div);
+}
+});
+// Enterable buildings
+enterableBuildings.forEach((b,idx)=>{
+total++;
+const div=document.createElement('div');
+div.style.cssText='padding:4px;margin:2px 0;background:rgba(40,50,60,0.6);cursor:pointer;border-radius:3px;display:flex;justify-content:space-between;align-items:center;';
+const icon=b.type==='castle'?'🏰':b.type==='tower'?'🗼':b.type==='tavern'?'🍺':b.type==='shop'?'🏪':b.type==='chapel'?'⛪':'🏠';
+div.innerHTML='<span>'+icon+' '+b.name+' ('+b.type+')</span><span style="color:#887;font-size:9px;">'+Math.round(b.x)+','+Math.round(b.z)+'</span>';
+div.onclick=()=>editorSelectObject(b,'building',idx);
+list.appendChild(div);
+});
+// Loot
+lootArr.forEach((l,idx)=>{
+if(!l.mesh) return;
+total++;
+const div=document.createElement('div');
+div.style.cssText='padding:4px;margin:2px 0;background:rgba(80,70,20,0.6);cursor:pointer;border-radius:3px;display:flex;justify-content:space-between;align-items:center;';
+div.innerHTML='<span>💰 '+l.item.name+'</span><span style="color:#887;font-size:9px;">'+Math.round(l.mesh.position.x)+','+Math.round(l.mesh.position.z)+'</span>';
+div.onclick=()=>editorSelectObject(l,'loot',idx);
+list.appendChild(div);
+});
+if(total===0)list.innerHTML='<span style="color:#665;">No objects in world</span>';
+count.textContent=total;
+}
+
+function editorSelectObject(obj,type,idx){
+editorSelected={obj:obj,type:type,idx:idx};
+editorUpdateSelection();
+editorFocusSelected();
+}
+
+function editorUpdateSelection(){
+const info=document.getElementById('editor-selected-info');
+const controls=document.getElementById('editor-controls');
+if(!editorSelected){
+info.innerHTML='<span style="color:#887;">Click an object to select</span>';
+controls.style.display='none';
+return;
+}
+const s=editorSelected;
+let html='<div style="color:#ffd700;font-weight:bold;">';
+if(s.type==='enemy')html+='👹 Enemy: '+s.obj.type+' Lv'+s.obj.lv;
+else if(s.type==='building')html+='🏠 Building: '+s.obj.name;
+else if(s.type==='loot')html+='💰 Loot: '+s.obj.item.name;
+html+='</div>';
+if(s.obj.mesh||s.obj.x!==undefined){
+const x=s.obj.mesh?s.obj.mesh.position.x:s.obj.x;
+const y=s.obj.mesh?s.obj.mesh.position.y:(s.obj.y||0);
+const z=s.obj.mesh?s.obj.mesh.position.z:s.obj.z;
+html+='<div style="color:#aa8833;margin-top:4px;">Pos: '+Math.round(x)+', '+Math.round(y)+', '+Math.round(z)+'</div>';
+}
+info.innerHTML=html;
+controls.style.display='block';
+}
+
+function editorMove(dir){
+if(!editorSelected)return;
+const s=editorSelected;
+const step=editorSnap?10:2;
+let dx=0,dy=0,dz=0;
+if(dir==='left')dx=-step;
+if(dir==='right')dx=step;
+if(dir==='forward')dz=-step;
+if(dir==='back')dz=step;
+if(dir==='up')dy=step;
+if(dir==='down')dy=-step;
+if(s.type==='enemy'&&s.obj.mesh){
+s.obj.mesh.position.x+=dx;
+s.obj.mesh.position.y+=dy;
+s.obj.mesh.position.z+=dz;
+s.obj.x=s.obj.mesh.position.x;
+s.obj.y=s.obj.mesh.position.y;
+s.obj.z=s.obj.mesh.position.z;
+if(s.obj.mesh.userData.hpBar)s.obj.mesh.userData.hpBar.position.x=s.obj.mesh.position.x;
+if(s.obj.mesh.userData.hpBar)s.obj.mesh.userData.hpBar.position.y=s.obj.mesh.position.y+10;
+if(s.obj.mesh.userData.hpBar)s.obj.mesh.userData.hpBar.position.z=s.obj.mesh.position.z;
+if(s.obj.mesh.userData.nameLabel)s.obj.mesh.userData.nameLabel.position.x=s.obj.mesh.position.x;
+if(s.obj.mesh.userData.nameLabel)s.obj.mesh.userData.nameLabel.position.y=s.obj.mesh.position.y+12;
+if(s.obj.mesh.userData.nameLabel)s.obj.mesh.userData.nameLabel.position.z=s.obj.mesh.position.z;
+}else if(s.type==='building'){
+// Move building data position
+s.obj.x+=dx;
+s.obj.y=(s.obj.y||0)+dy;
+s.obj.z+=dz;
+// If building has a mesh, move the entire mesh group
+if(s.obj.mesh){
+s.obj.mesh.position.x+=dx;
+s.obj.mesh.position.y+=dy;
+s.obj.mesh.position.z+=dz;
+}
+// Update collision for this building's circle collider
+const collider=circleColliders.find(c=>Math.hypot(c.x-(s.obj.x-dx),c.z-(s.obj.z-dz))<1);
+if(collider){collider.x=s.obj.x;collider.y=s.obj.y;collider.z=s.obj.z;}
+}else if(s.type==='loot'&&s.obj.mesh){
+s.obj.mesh.position.x+=dx;
+s.obj.mesh.position.y+=dy;
+s.obj.mesh.position.z+=dz;
+s.obj.x=s.obj.mesh.position.x;
+s.obj.y=s.obj.mesh.position.y;
+s.obj.z=s.obj.mesh.position.z;
+}
+editorUpdateSelection();
+editorRefreshList();
+log('Moved '+s.type+' '+dir,'#0f0');
+}
+
+function editorDelete(){
+if(!editorSelected)return;
+const s=editorSelected;
+if(s.type==='enemy'){
+if(s.obj.mesh){scene.remove(s.obj.mesh);}
+enemies.splice(s.idx,1);
+}else if(s.type==='loot'&&s.obj.mesh){
+scene.remove(s.obj.mesh);
+lootArr.splice(s.idx,1);
+}else if(s.type==='building'){
+// Remove building mesh from scene if it exists
+if(s.obj.mesh){scene.remove(s.obj.mesh);}
+// Remove from enterableBuildings array if it has an index
+if(s.idx>=0&&s.idx<enterableBuildings.length){
+enterableBuildings.splice(s.idx,1);
+}
+// Remove circle collider for this building
+const colliderIdx=circleColliders.findIndex(c=>Math.hypot(c.x-s.obj.x,c.z-s.obj.z)<1);
+if(colliderIdx>=0){circleColliders.splice(colliderIdx,1);}
+}
+editorSelected=null;
+editorUpdateSelection();
+editorRefreshList();
+log('Deleted '+s.type,'#f44');
+}
+
+function editorSnapToggle(){
+editorSnap=!editorSnap;
+const btn=document.getElementById('btn-snap');
+btn.textContent='📐 Snap: '+(editorSnap?'ON':'OFF');
+btn.style.color=editorSnap?'#ffd700':'#887';
+}
+
+function editorSaveWorld(){
+const worldData={
+enemies:enemies.map(e=>({type:e.type,x:e.x,z:e.z,y:e.y||0,lv:e.lv,hp:e.hp,maxHp:e.maxHp})),
+loot:lootArr.filter(l=>l.mesh&&l.mesh.userData.editorSpawn).map(l=>({name:l.item.name,x:l.mesh.position.x,y:l.mesh.position.y,z:l.mesh.position.z})),
+buildings:enterableBuildings.map(b=>({name:b.name,x:b.x,y:b.y||0,z:b.z,r:b.r,type:b.type})),
+player:{x:player.x,y:player.y,z:player.z,hp:player.hp},
+timestamp:Date.now()
+};
+localStorage.setItem('editor_world_save',JSON.stringify(worldData));
+log('World saved to localStorage!','#0f0');
+}
+
+function editorLoadWorld(){
+const raw=localStorage.getItem('editor_world_save');
+if(!raw){log('No saved world found!','#f44');return;}
+try{
+const data=JSON.parse(raw);
+// Clear existing editor-spawned enemies
+enemies=enemies.filter(e=>!e.mesh||!e.mesh.userData.editorSpawn);
+lootArr=lootArr.filter(l=>!l.mesh||!l.mesh.userData.editorSpawn);
+// Load enemies
+if(data.enemies){
+data.enemies.forEach(e=>{
+const mesh=buildEnemy(e.type,e.lv);
+mesh.position.set(e.x,e.y||meshTerrainH(e.x,e.z),e.z);
+const en={type:e.type,x:e.x,z:e.z,y:e.y||0,lv:e.lv,hp:e.hp||10,maxHp:e.maxHp||10,mesh:mesh,aggro:e.lv*8,atkCD:0,windUp:0,swingT:0};
+en.mesh.userData.editorSpawn=true;
+enemies.push(en);
+});
+}
+// Load loot
+if(data.loot){
+data.loot.forEach(l=>{
+const item={name:l.name,uid:'load_'+Date.now()};
+const mesh=spawnLootItem(item,l.x,l.z);
+if(mesh){mesh.userData.editorSpawn=true;lootArr.push({x:l.x,z:l.z,item:item,mesh:mesh});}
+});
+}
+// Load buildings
+if(data.buildings){
+data.buildings.forEach(b=>{
+const h=b.y||meshTerrainH(b.x,b.z);
+// Check if building already exists
+const exists=enterableBuildings.some(eb=>Math.hypot(eb.x-b.x,eb.z-b.z)<5);
+if(!exists){
+makeEnterable(b.x,b.z,b.type||'house',b.name||'Building');
+}
+});
+}
+log('World loaded!','#0f0');
+editorRefreshList();
+}catch(e){log('Load failed: '+e.message,'#f44');}
+}
+
+function editorExport(){
+const worldData={
+enemies:enemies.map(e=>({type:e.type,x:e.x,y:e.y||0,z:e.z,lv:e.lv})),
+loot:lootArr.filter(l=>l.mesh&&l.mesh.userData.editorSpawn).map(l=>({name:l.item.name,x:l.mesh.position.x,y:l.mesh.position.y,z:l.mesh.position.z})),
+buildings:enterableBuildings.map(b=>({name:b.name,x:b.x,y:b.y||0,z:b.z,r:b.r,type:b.type}))
+};
+const json=JSON.stringify(worldData,null,2);
+const blob=new Blob([json],{type:'application/json'});
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');
+a.href=url;
+a.download='soulscape_world_'+Date.now()+'.json';
+a.click();
+URL.revokeObjectURL(url);
+log('World exported to JSON file!','#0f0');
+}
+
+// Click to select and drag in editor mode
+document.addEventListener('mousedown',e=>{
+if(!editorMode||e.target.closest('#editor-panel'))return;
+// Start drag if shift is held and we have a selection
+if(e.shiftKey&&editorSelected){
+const s=editorSelected;
+if(s.obj.mesh||(s.type==='building'&&s.obj.x!==undefined)){
+editorDragStart={x:e.clientX,y:e.clientY};
+editorDragObj=s;
+if(s.obj.mesh){
+editorOriginalPos={x:s.obj.mesh.position.x,z:s.obj.mesh.position.z};
+}else{
+editorOriginalPos={x:s.obj.x,z:s.obj.z};
+}
+log('Drag mode: Move mouse to reposition','#ffd700');
+return;
+}
+}
+// Otherwise select object
+const raycaster=new THREE.Raycaster();
+const mouseV=new THREE.Vector2((e.clientX/window.innerWidth)*2-1,-(e.clientY/window.innerHeight)*2+1);
+raycaster.setFromCamera(mouseV,cam);
+// Check enemies
+const enemyMeshes=enemies.map((e,i)=>({mesh:e.mesh,idx:i,type:'enemy',obj:e}));
+for(const em of enemyMeshes){
+const intersects=raycaster.intersectObject(em.mesh,true);
+if(intersects.length>0){editorSelectObject(em.obj,'enemy',em.idx);return;}
+}
+// Check loot
+for(let i=0;i<lootArr.length;i++){
+if(!lootArr[i].mesh)continue;
+const intersects=raycaster.intersectObject(lootArr[i].mesh,true);
+if(intersects.length>0){editorSelectObject(lootArr[i],'loot',i);return;}
+}
+// Check buildings in scene (castles, towers, etc.)
+// First try to find actual building meshes
+let foundBuilding=null,foundDist=Infinity;
+scene.children.forEach(c=>{
+if(c.userData&&c.userData.isBuilding){foundBuilding=c;}
+// Check if it's a castle/tower mesh group
+if(c.type==='Group'||c.isMesh){
+const dx=c.position.x-player.x,dz=c.position.z-player.z;
+if(dx*dx+dz*dz<40000){ // Within 200 units
+const intersects=raycaster.intersectObject(c,true);
+if(intersects.length>0&&intersects[0].distance<foundDist){
+foundDist=intersects[0].distance;
+foundBuilding=c;
+}
+}
+}
+});
+// Check enterable buildings by proximity to click point on ground
+const rayToGround=new THREE.Raycaster();
+rayToGround.setFromCamera(mouseV,cam);
+const groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+const target=new THREE.Vector3();
+rayToGround.ray.intersectPlane(groundPlane,target);
+if(target){
+for(let i=0;i<enterableBuildings.length;i++){
+const b=enterableBuildings[i];
+const dist=Math.hypot(target.x-b.x,target.z-b.z);
+if(dist<b.r||dist<30){
+editorSelectObject(b,'building',i);
+return;
+}
+}
+}
+if(foundBuilding){
+// Find closest enterable building to this mesh
+let closestIdx=-1,closestDist=Infinity;
+for(let i=0;i<enterableBuildings.length;i++){
+const b=enterableBuildings[i];
+const dist=Math.hypot(foundBuilding.position.x-b.x,foundBuilding.position.z-b.z);
+if(dist<closestDist){closestDist=dist;closestIdx=i;}
+}
+if(closestIdx>=0&&closestDist<50){
+editorSelectObject(enterableBuildings[closestIdx],'building',closestIdx);
+return;
+}
+}
+});
+
+// Handle drag movement
+document.addEventListener('mousemove',e=>{
+if(!editorMode||!editorDragStart||!editorDragObj)return;
+const dx=(e.clientX-editorDragStart.x)*0.5;
+const dz=(e.clientY-editorDragStart.y)*0.5;
+const s=editorDragObj;
+const step=editorSnap?10:2;
+// Calculate snapped or free movement
+const moveX=editorSnap?Math.round((editorOriginalPos.x+dx)/step)*step:editorOriginalPos.x+dx;
+const moveZ=editorSnap?Math.round((editorOriginalPos.z+dz)/step)*step:editorOriginalPos.z+dz;
+if(s.type==='enemy'&&s.obj.mesh){
+s.obj.mesh.position.x=moveX;
+s.obj.mesh.position.z=moveZ;
+s.obj.x=moveX;
+s.obj.z=moveZ;
+if(s.obj.mesh.userData.hpBar){
+s.obj.mesh.userData.hpBar.position.x=moveX;
+s.obj.mesh.userData.hpBar.position.z=moveZ;
+}
+if(s.obj.mesh.userData.nameLabel){
+s.obj.mesh.userData.nameLabel.position.x=moveX;
+s.obj.mesh.userData.nameLabel.position.z=moveZ;
+}
+}else if(s.type==='building'){
+s.obj.x=moveX;
+s.obj.z=moveZ;
+// If building has a mesh, move the entire mesh group
+if(s.obj.mesh){
+s.obj.mesh.position.x=moveX;
+s.obj.mesh.position.z=moveZ;
+// Move all children
+s.obj.mesh.traverse(child=>{
+if(child.isMesh||child.isLight){
+child.position.x=moveX;
+child.position.z=moveZ;
+}
+});
+}
+}else if(s.type==='loot'&&s.obj.mesh){
+s.obj.mesh.position.x=moveX;
+s.obj.mesh.position.z=moveZ;
+s.obj.x=moveX;
+s.obj.z=moveZ;
+}
+editorUpdateSelection();
+});
+
+// End drag
+document.addEventListener('mouseup',e=>{
+if(!editorMode||!editorDragStart)return;
+editorDragStart=null;
+editorDragObj=null;
+editorOriginalPos=null;
+editorRefreshList();
+log('Object repositioned','#0f0');
+});
+
+// Update controls hint
+document.getElementById('controls').innerHTML+=' &#183; <b style="color:#ffd700">Insert</b> Editor';
+
 </script>
 </body>
 </html>"""
