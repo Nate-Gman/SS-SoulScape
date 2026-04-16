@@ -596,7 +596,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="ctrl-entry"><span class="ctrl-desc">Prayer Menu</span><span class="ctrl-key">5</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Bury Bones</span><span class="ctrl-key">6</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Quick Save</span><span class="ctrl-key">F5</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Editor Mode</span><span class="ctrl-key">Insert</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Quest Log</span><span class="ctrl-key">J</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Editor Mode</span><span class="ctrl-key">0</span></div>
 </div></div>
 <div class="esc-section"><h3>GAMEPAD (DARK SOULS LAYOUT)</h3>
 <div class="ctrl-grid">
@@ -1236,12 +1237,12 @@ else if(id==='exorcism'){if(typeof player!=='undefined'&&!player._exorcismCD&&lo
 // === SORCERER ABILITY EXECUTIONS ===
 else if(id==='fireball'){if(typeof player!=='undefined'&&!player._fireballCD){if(player.poi<15){log('Not enough mana! (15 needed)','#f44');return;}player._fireballCD=50;player.poi-=15;shootProjectile('spell',25+skills.Magic.lvl*1.5,0xff4400);log('Fireball! (-15 mana)','#f40');skills.Magic.xp+=25;updateXpBar();}}
 else if(id==='frostbolt'){if(typeof player!=='undefined'&&!player._frostboltCD&&lockOn){if(player.poi<12){log('Not enough mana! (12 needed)','#f44');return;}player._frostboltCD=40;player.poi-=12;const dmg=18+skills.Magic.lvl;lockOn.hp-=dmg;lockOn.slowed=true;lockOn.slowT=180;shootProjectile('spell',dmg,0x88ccff);hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y,lockOn.mesh.position.z,0xaaddff);log('Frostbolt! '+dmg+' (-12 mana)','#acf');skills.Magic.xp+=22;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
-else if(id==='arcane_missiles'){if(typeof player!=='undefined'&&!player._missilesCD&&lockOn){if(player.poi<20){log('Not enough mana! (20 needed)','#f44');return;}player._missilesCD=90;player.poi-=20;let missiles=0;const int=setInterval(()=>{if(++missiles>3||!lockOn||lockOn.hp<=0){clearInterval(int);return;}const dmg=8+skills.Magic.lvl*0.8;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x+Math.random()*2-1,lockOn.mesh.position.y+5+Math.random()*3,lockOn.mesh.position.z+Math.random()*2-1,0xaa66ff);log('Arcane Missile '+missiles+'! '+dmg,'#a6f');},400);log('Arcane Missiles! (-20 mana)','#a6f');skills.Magic.xp+=30;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
+else if(id==='arcane_missiles'){if(typeof player!=='undefined'&&!player._missilesCD&&lockOn){if(player.poi<20){log('Not enough mana! (20 needed)','#f44');return;}player._missilesCD=90;player.poi-=20;let missiles=0;const int=setInterval(()=>{if(++missiles>3||!lockOn||lockOn.hp<=0){clearInterval(int);return;}const dmg=8+skills.Magic.lvl*0.8;const startY=player.y+8;const targetY=lockOn.mesh.position.y+6;const mx=lockOn.mesh.position.x,my=lockOn.mesh.position.y+6,mz=lockOn.mesh.position.z;if(!window._missileGeo)window._missileGeo=new THREE.SphereGeometry(.25,8,8);if(!window._missileMat)window._missileMat=new THREE.MeshStandardMaterial({color:0xaa66ff,emissive:0xaa66ff,emissiveIntensity:2});const proj=new THREE.Mesh(window._missileGeo,window._missileMat);proj.position.set(player.x,startY,player.z);scene.add(proj);const dx=mx-player.x,dy=my-startY,dz=mz-player.z;const dist=Math.sqrt(dx*dx+dy*dy+dz*dz);const speed=6;proj.userData={vx:(dx/dist)*speed,vy:(dy/dist)*speed,vz:(dz/dist)*speed,life:60,target:lockOn,dmg:dmg,type:'missile',hit:false};particles.push(proj);},400);log('Arcane Missiles! (-20 mana)','#a6f');skills.Magic.xp+=30;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
 else if(id==='blizzard'){if(typeof player!=='undefined'&&!player._blizzardCD){if(player.poi<35){log('Not enough mana! (35 needed)','#f44');return;}player._blizzardCD=200;player.poi-=35;const cur=getCursorWorldPos();const cx=cur?cur.x:player.x,cz=cur?cur.z:player.z;for(let i=0;i<50;i++){setTimeout(()=>{const tx=cx+(Math.random()-.5)*40;const tz=cz+(Math.random()-.5)*40;hitFX(tx,meshTerrainH(tx,tz)+15,tz,0xaaddff);enemies.forEach(e=>{const dist=Math.hypot(e.x-tx,e.z-tz);if(dist<8){const dmg=5+skills.Magic.lvl*0.5;e.hp-=dmg;}});},i*80);}log('Blizzard! Ice storm at cursor','#adf');skills.Magic.xp+=40;updateXpBar();}}
 else if(id==='sorc_fire_blast'){if(typeof player!=='undefined'&&!player._fireblastCD&&lockOn){if(player.poi<10){log('Not enough mana! (10 needed)','#f44');return;}player._fireblastCD=30;player.poi-=10;const dmg=15+skills.Magic.lvl;lockOn.hp-=dmg;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+5,lockOn.mesh.position.z,0xff6600);log('Fire Blast! '+dmg+' (-10 mana)','#f60');skills.Magic.xp+=18;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
 else if(id==='pyroblast'){if(typeof player!=='undefined'&&!player._pyroCD){if(player.poi<40){log('Not enough mana! (40 needed)','#f44');return;}player._pyroCD=180;player.poi-=40;log('Pyroblast casting... (-40 mana)','#f40');setTimeout(()=>{if(lockOn){const dmg=60+skills.Magic.lvl*2;lockOn.hp-=dmg;for(let i=0;i<30;i++){hitFX(lockOn.mesh.position.x+Math.random()*6-3,lockOn.mesh.position.y+5+Math.random()*8,lockOn.mesh.position.z+Math.random()*6-3,0xff2200);}log('PYROBLAST! '+dmg+' DAMAGE!','#f20');skills.Magic.xp+=50;updateXpBar();}},3000);}}
 else if(id==='frost_nova'){if(typeof player!=='undefined'&&!player._novaCD){if(player.poi<25){log('Not enough mana! (25 needed)','#f44');return;}player._novaCD=150;player.poi-=25;for(let i=0;i<20;i++){const ang=i*Math.PI*2/20;hitFX(player.x+Math.cos(ang)*8,player.y+2,player.z+Math.sin(ang)*8,0x88ddff);}let rooted=0;enemies.forEach(e=>{const dist=Math.hypot(e.x-player.x,e.z-player.z);if(dist<12){e.staggered=true;e.staggerT=180;rooted++;}});log('Frost Nova! '+rooted+' enemies rooted','#8df');skills.Magic.xp+=30;updateXpBar();}}
-else if(id==='blink'){if(typeof player!=='undefined'&&!player._blinkCD){if(player.poi<15){log('Not enough mana! (15 needed)','#f44');return;}player._blinkCD=90;player.poi-=15;const right=new THREE.Vector3(-Math.cos(camYaw),0,Math.sin(camYaw));const forward=new THREE.Vector3(Math.sin(camYaw),0,Math.cos(camYaw));player.x+=forward.x*20+right.x*5;player.z+=forward.z*20+right.z*5;for(let i=0;i<15;i++){hitFX(player.x-Math.cos(camYaw)*i*1.5,player.y+3,player.z+Math.sin(camYaw)*i*1.5,0xaa66ff);}log('Blink! Teleported','#a6f');skills.Magic.xp+=20;updateXpBar();}}
+else if(id==='blink'){if(typeof player!=='undefined'&&!player._blinkCD){if(player.poi<15){log('Not enough mana! (15 needed)','#f44');return;}player._blinkCD=90;player.poi-=15;const cur=getCursorWorldPos();const tx=cur?cur.x:player.x+Math.sin(camYaw)*20;const tz=cur?cur.z:player.z+Math.cos(camYaw)*20;const startX=player.x,startZ=player.z;player.x=tx;player.z=tz;player.y=meshTerrainH(tx,tz);for(let i=0;i<15;i++){const t=i/15;hitFX(startX+(tx-startX)*t,startZ+(tz-startZ)*t,player.y+3,0xaa66ff);}log('Blink! Teleported to cursor','#a6f');skills.Magic.xp+=20;updateXpBar();}}
 else if(id==='polymorph'){if(typeof player!=='undefined'&&!player._polyCD&&lockOn){if(player.poi<30){log('Not enough mana! (30 needed)','#f44');return;}player._polyCD=300;player.poi-=30;lockOn.polymorphed=true;lockOn.polyT=600;lockOn.mesh.visible=false;const sheep=new THREE.Mesh(new THREE.BoxGeometry(2,1.5,3),new THREE.MeshStandardMaterial({color:0xffffff}));sheep.position.copy(lockOn.mesh.position);scene.add(sheep);lockOn.sheepMesh=sheep;log('Polymorph! Enemy is now a sheep','#fff');skills.Magic.xp+=35;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
 else if(id==='counterspell'){if(typeof player!=='undefined'&&!player._counterCD&&lockOn){if(player.poi<20){log('Not enough mana! (20 needed)','#f44');return;}player._counterCD=120;player.poi-=20;lockOn.counterspelled=true;lockOn.counterT=60;hitFX(lockOn.mesh.position.x,lockOn.mesh.position.y+8,lockOn.mesh.position.z,0xff0000);log('Counterspell! Enemy casting interrupted','#f00');skills.Magic.xp+=25;updateXpBar();}else if(!lockOn){log('No target! Press F to lock on','#f80');}}
 // === RANGER ABILITY EXECUTIONS ===
@@ -1753,6 +1754,12 @@ let player={x:0,z:0,y:2,vx:0,vz:0,vy:0,speed:.42,hp:142,maxHp:142,sta:100,maxSta
 let lockOn=null,lockIdx=-1;
 let showSkills=false,showInv=false;
 
+// === QUEST SYSTEM ===
+let questNPC=null;
+let activeQuest=null;
+let questKillCounts={};
+const questRewards={goblin:{xp:50,gold:100},skeleton:{xp:80,gold:150},wolf:{xp:60,gold:80},bear:{xp:100,gold:200},spider:{xp:40,gold:60},guard:{xp:120,gold:300},mage:{xp:150,gold:400},knight:{xp:200,gold:500}};
+
 // === EDITOR MODE SYSTEM ===
 let editorMode=false;
 let editorSelected=null;
@@ -1787,11 +1794,11 @@ ghost:[{i:"Ostghay Essenceay",c:.5},{i:"Oinscay x20",c:.4},{i:"Eathday Uneray",c
 shade:[{i:"Adeshay Oberay",c:.1},{i:"Oinscay x40",c:.5},{i:"Eathday Uneray x3",c:.15},{i:"Adowshay Eykay",c:.02}],
 troll:[{i:"Olltray Onesbay",c:.8},{i:"Anitegray x3",c:.5},{i:"Oinscay x35",c:.6},{i:"Owingtray Ockray x10",c:.3},{i:"Anitegray Aulmay",c:.02}],
 ogre:[{i:"Igbay Onesbay",c:.8},{i:"Oinscay x25",c:.6},{i:"Ogreway Owbay",c:.05},{i:"Awray Ompychay",c:.3}],
-knight:[{i:"Eelstay Atebodyplay",c:.1},{i:"Oinscay x55",c:.7},{i:"Eelstay Ordssway",c:.15},{i:"Eelstay Ieldshay",c:.08}],
-mage:[{i:"Awlay Uneray x3",c:.3},{i:"Oinscay x40",c:.6},{i:"Affstay ofway Airway",c:.06},{i:"Izardway Oberay",c:.04},{i:"Ysticmay Ovesglay",c:.02}],
+knight:[{i:"Eelstay Atebodyplay",c:.1},{i:"Oinscay x55",c:.7},{i:"Eelstay Ordssway",c:.15},{i:"Eelstay Ieldshay",c:.08},{i:"Royal Elmethay",c:.02},{i:"Royal Atebodyplay",c:.01}],
+mage:[{i:"Awlay Uneray x3",c:.3},{i:"Oinscay x40",c:.6},{i:"Affstay ofway Airway",c:.06},{i:"Izardway Oberay",c:.04},{i:"Ysticmay Ovesglay",c:.02},{i:"Crimson Oberay",c:.03},{i:"Crimson Oodhay",c:.02}],
 thief:[{i:"Oinscay x35",c:.8},{i:"Ockpicklay",c:.2},{i:"Iamondday",c:.04},{i:"Ievingtay Apecay Ardsshay",c:.01}],
 dwarf:[{i:"Oinscay x20",c:.7},{i:"Ironway Oreay",c:.5},{i:"Eelstay Ickaxepay",c:.06},{i:"Arvendway Outstay",c:.2},{i:"Oldgay Oreay",c:.08}],
-whiteknight:[{i:"Ithrilmay Ordssway",c:.1},{i:"Oinscay x65",c:.7},{i:"Iteway Ieldshay",c:.05},{i:"Ayerpray Otionpay",c:.08}],
+whiteknight:[{i:"Ithrilmay Ordssway",c:.1},{i:"Oinscay x65",c:.7},{i:"Iteway Ieldshay",c:.05},{i:"Ayerpray Otionpay",c:.08},{i:"Royal Elmethay",c:.03},{i:"Royal Atebodyplay",c:.02},{i:"Royal Ieldshay",c:.02}],
 darkwiz:[{i:"Aoscay Uneray x5",c:.4},{i:"Oinscay x30",c:.6},{i:"Izardway Athay",c:.1},{i:"Indmay Uneray x15",c:.5},{i:"Ysticmay Oberay Ottombay",c:.03}],
 revenant:[{i:"Evenantray Ethereay x10",c:.6},{i:"Oinscay x150",c:.5},{i:"Ancientway Atuettestay",c:.02},{i:"Awcray Owbay",c:.01},{i:"Amuleway ofway Avariceway",c:.005}],
 hellhound:[{i:"Igbay Onesbay",c:.8},{i:"Oinscay x80",c:.5},{i:"Oulderingsmay Onesay",c:.02},{i:"Ellhoundhay Angfay",c:.05},{i:"Ueclay Ollscray",c:.08}],
@@ -1807,7 +1814,7 @@ rat:[{i:"Onesbay",c:.5},{i:"Atray Ailtay",c:.3}],
 snake:[{i:"Akesnay Inskay",c:.5},{i:"Oinscay x6",c:.4},{i:"Antipoisonway",c:.1}],
 lizard:[{i:"Izardlay Inskay",c:.5},{i:"Oinscay x10",c:.4}],
 elemental:[{i:"Elementalway Oreay",c:.4},{i:"Oinscay x70",c:.5},{i:"Elementalway Ieldshay Ardsshay",c:.03}],
-archer:[{i:"Eelstay Arrowway x15",c:.6},{i:"Oinscay x30",c:.5},{i:"Aplemay Owbay",c:.08}],
+archer:[{i:"Eelstay Arrowway x15",c:.6},{i:"Oinscay x30",c:.5},{i:"Aplemay Owbay",c:.08},{i:"Forest Oodhay",c:.03},{i:"Forest Eathervay",c:.02}],
 cultist:[{i:"Oulsay Uneray x3",c:.3},{i:"Arkday Otemtay Iecepay",c:.05},{i:"Oinscay x40",c:.5}],
 gargoyle:[{i:"Anitegray Ustday",c:.5},{i:"Oinscay x100",c:.6},{i:"Anitegray Aulmay",c:.03}],
 bandit:[{i:"Oinscay x25",c:.8},{i:"Esertday Amuleway",c:.05}],
@@ -2230,6 +2237,16 @@ const mt_robeGold=new MS({color:0xc4a240,roughness:.5,metalness:.4});
 const mt_warLeather=new MS({color:0x5a3a1a,roughness:.85});const mt_warChain=new MS({color:0x7a7a7a,roughness:.5,metalness:.6});
 const mt_skinBase=new MS({color:0xc4956a,roughness:.95});const mt_hairDk=new MS({color:0x2a1a0a,roughness:1});
 const mt_cloth=new MS({color:0x6a5a4a,roughness:.9});
+// === NEW ARMOR SET MATERIALS ===
+// Crimson Wizard Set - Red/Silver battle mage robes
+const mt_crimsonRobe=new MS({color:0x4a0a1a,roughness:.8});const mt_crimsonHood=new MS({color:0x2a050a,roughness:.85});
+const mt_crimsonSilver=new MS({color:0xaaccdd,roughness:.4,metalness:.6});
+// Forest Ranger Set - Green/Brown nature leather
+const mt_forestLeather=new MS({color:0x2a4a1a,roughness:.9});const mt_forestDark=new MS({color:0x1a2a0a,roughness:.9});
+const mt_forestBrown=new MS({color:0x4a3a2a,roughness:.85});
+// Royal Knight Set - Gold/Bronze elite plate
+const mt_royalGold=new MS({color:0xb8a040,roughness:.3,metalness:.7});const mt_royalBronze=new MS({color:0x8a6a3a,roughness:.4,metalness:.6});
+const mt_royalTrim=new MS({color:0xffd700,roughness:.2,metalness:.8});
 
 function buildBaseBody(body){
 // Bare humanoid: head, torso, arms, legs (skin)
@@ -2459,6 +2476,139 @@ for(let i=0;i<5;i++){const cw=3-i*.25,ch=1.8+i*.2;const cMat=i>2?mt.capeTattered
 const clasp=new THREE.Mesh(new THREE.SphereGeometry(.15,5,5),mt.gold);clasp.position.set(0,2.5,-1.1);bodyCenter.add(clasp);
 }
 
+// === NEW ARMOR SET FUNCTIONS ===
+// Crimson Wizard Set - Red robes with silver trim
+function addHelm_Crimson(headGroup){
+const hood=new THREE.Mesh(new THREE.SphereGeometry(1.65,10,10),mt_crimsonHood);hood.position.y=.1;hood.scale.set(1.02,1.18,.97);headGroup.add(hood);
+const faceShadow=new THREE.Mesh(new THREE.SphereGeometry(1,8,8),new MS({color:0x0a0a0a,roughness:1}));faceShadow.position.set(0,-.45,.05);faceShadow.scale.set(.6,.5,.3);headGroup.add(faceShadow);
+const glowEye=new MS({color:0xff4444,emissive:0xff2222,emissiveIntensity:2});
+[-1,1].forEach(s=>{const eye=new THREE.Mesh(new THREE.SphereGeometry(.12,5,5),glowEye);eye.position.set(s*.35,-.35,.15);headGroup.add(eye)});
+const silverBand=new THREE.Mesh(new THREE.TorusGeometry(1.4,.08,6,12),mt_crimsonSilver);silverBand.position.y=.3;silverBand.rotation.x=Math.PI/2;headGroup.add(silverBand);
+}
+function addChest_Crimson(bodyCenter){
+const robeTorso=new THREE.Mesh(new THREE.BoxGeometry(3.5,4.6,2.1),mt_crimsonRobe);robeTorso.position.y=.4;bodyCenter.add(robeTorso);
+const trim1=new THREE.Mesh(new THREE.BoxGeometry(3.55,.18,2.12),mt_crimsonSilver);trim1.position.y=2.6;bodyCenter.add(trim1);
+const trim2=new THREE.Mesh(new THREE.BoxGeometry(.22,4.6,.18),mt_crimsonSilver);trim2.position.set(0,.4,1.08);bodyCenter.add(trim2);
+const sash=new THREE.Mesh(new THREE.BoxGeometry(3.65,.45,2.15),mt_crimsonSilver);sash.position.y=-1.6;bodyCenter.add(sash);
+// Segmented robe skirt
+const skirtTop=new THREE.Mesh(new THREE.CylinderGeometry(1.15,1.5,1.8,10),mt_crimsonRobe);skirtTop.position.y=-2.2;bodyCenter.add(skirtTop);
+const skirtTopTrim=new THREE.Mesh(new THREE.TorusGeometry(1.5,.06,6,12),mt_crimsonSilver);skirtTopTrim.position.y=-3.1;skirtTopTrim.rotation.x=Math.PI/2;bodyCenter.add(skirtTopTrim);
+const skirtMid=new THREE.Mesh(new THREE.CylinderGeometry(1.5,2,1.8,10),mt_crimsonRobe);skirtMid.position.y=-4.0;bodyCenter.add(skirtMid);
+const skirtMidTrim=new THREE.Mesh(new THREE.TorusGeometry(2,.07,6,14),mt_crimsonSilver);skirtMidTrim.position.y=-4.9;skirtMidTrim.rotation.x=Math.PI/2;bodyCenter.add(skirtMidTrim);
+const skirtBot=new THREE.Mesh(new THREE.CylinderGeometry(2,2.6,1.8,10),mt_crimsonRobe);skirtBot.position.y=-5.8;bodyCenter.add(skirtBot);
+const skirtBotTrim=new THREE.Mesh(new THREE.TorusGeometry(2.6,.08,6,16),mt_crimsonSilver);skirtBotTrim.position.y=-6.7;skirtBotTrim.rotation.x=Math.PI/2;bodyCenter.add(skirtBotTrim);
+}
+function addGloves_Crimson(lArm,rArm){
+[lArm,rArm].forEach(arm=>{
+if(arm.userData.elbow){
+const sleeve=new THREE.Mesh(new THREE.CylinderGeometry(.55,.75,2.6,8),mt_crimsonRobe);sleeve.position.y=-1.3;arm.add(sleeve);
+const cuff=new THREE.Mesh(new THREE.TorusGeometry(.7,.06,6,10),mt_crimsonSilver);cuff.position.y=-2.8;cuff.rotation.x=Math.PI/2;arm.userData.elbow.add(cuff);
+const glove=new THREE.Mesh(new THREE.BoxGeometry(.65,.4,.8),new MS({color:0x1a0505,roughness:.9}));glove.position.y=-2.8;arm.userData.elbow.add(glove);}
+});
+}
+
+// Forest Ranger Set - Green leather with brown accents
+function addHelm_Forest(headGroup){
+const hood=new THREE.Mesh(new THREE.SphereGeometry(1.55,10,10),mt_forestDark);hood.position.y=.15;hood.scale.set(1.02,1.1,.98);headGroup.add(hood);
+const faceOpening=new THREE.Mesh(new THREE.SphereGeometry(1.05,8,8),new MS({color:0xc4956a,roughness:.95}));faceOpening.position.set(0,-.1,.25);faceOpening.scale.set(.5,.55,.25);headGroup.add(faceOpening);
+const eyeMat=new MS({color:0x111111,roughness:1});
+[-1,1].forEach(s=>{const eye=new THREE.Mesh(new THREE.SphereGeometry(.12,5,5),eyeMat);eye.position.set(s*.3,0,.35);headGroup.add(eye)});
+const leafDeco=new THREE.Mesh(new THREE.ConeGeometry(.15,.4,3),new MS({color:0x3a6a2a,roughness:.9}));leafDeco.position.set(.8,.8,0);leafDeco.rotation.z=-.5;headGroup.add(leafDeco);
+}
+function addChest_Forest(bodyCenter){
+const torso=new THREE.Mesh(new THREE.BoxGeometry(3.4,4.2,2.0),mt_forestLeather);torso.position.y=.6;bodyCenter.add(torso);
+const quiver=new THREE.Mesh(new THREE.CylinderGeometry(.25,.3,1.6,6),mt_forestBrown);quiver.position.set(0,-1,-.9);quiver.rotation.x=-.3;bodyCenter.add(quiver);
+for(let i=0;i<4;i++){const fletch=new THREE.Mesh(new THREE.BoxGeometry(.12,.02,.22),new MS({color:0x2a4a1a,roughness:.8}));fletch.position.set((Math.random()-.5)*.3,.5+i*.12,-.9);fletch.rotation.x=-.3;bodyCenter.add(fletch);}
+const belt=new THREE.Mesh(new THREE.BoxGeometry(3.6,.5,2.05),mt_forestBrown);belt.position.y=-1.3;bodyCenter.add(belt);
+const buckle=new THREE.Mesh(new THREE.SphereGeometry(.25,6,6),new MS({color:0x6a8a4a,roughness:.5}));buckle.position.set(0,-1.3,1.05);bodyCenter.add(buckle);
+const leafTrim=new THREE.Mesh(new THREE.BoxGeometry(3.5,.15,.15),new MS({color:0x3a5a2a,roughness:.9}));leafTrim.position.y=2.6;bodyCenter.add(leafTrim);
+}
+function addPauldrons_Forest(lArm,rArm){
+[lArm,rArm].forEach(arm=>{
+const paul=new THREE.Mesh(new THREE.SphereGeometry(1.0,8,6),mt_forestLeather);paul.scale.set(1.05,.72,.9);arm.add(paul);
+const leafDeco=new THREE.Mesh(new THREE.ConeGeometry(.12,.25,3),new MS({color:0x4a7a3a,roughness:.9}));leafDeco.position.set(0,-.3,.6);leafDeco.rotation.x=.3;arm.add(leafDeco);
+const ua=new THREE.Mesh(new THREE.CylinderGeometry(.48,.44,2.6,8),mt_forestLeather);ua.position.y=-1.4;arm.add(ua);
+if(arm.userData.elbow){
+const elb=new THREE.Mesh(new THREE.SphereGeometry(.48,8,6),mt_forestDark);arm.userData.elbow.add(elb);
+const fa=new THREE.Mesh(new THREE.CylinderGeometry(.44,.38,2.4,8),mt_forestLeather);fa.position.y=-1.2;arm.userData.elbow.add(fa);
+const glove=new THREE.Mesh(new THREE.BoxGeometry(.7,.5,.85),mt_forestDark);glove.position.y=-2.8;arm.userData.elbow.add(glove);}
+});
+}
+function addLegs_Forest(lLeg,rLeg,bodyCenter){
+const tassets=new THREE.Mesh(new THREE.CylinderGeometry(1.6,2.0,1.8,10,1,true),mt_forestLeather);tassets.position.y=-2.4;bodyCenter.add(tassets);
+const addLeg=(leg)=>{
+const cuisse=new THREE.Mesh(new THREE.CylinderGeometry(.55,.5,3.0,8),mt_forestLeather);cuisse.position.y=-1.5;leg.add(cuisse);
+const poleyn=new THREE.Mesh(new THREE.SphereGeometry(.52,8,6),mt_forestDark);poleyn.position.y=-3;leg.add(poleyn);
+if(leg.userData.knee){
+const shin=new THREE.Mesh(new THREE.CylinderGeometry(.46,.4,2.9,8),mt_forestLeather);shin.position.y=-1.45;leg.userData.knee.add(shin);
+const boot=new THREE.Mesh(new THREE.BoxGeometry(.85,.7,1.5),mt_forestBrown);boot.position.set(0,-.3,.1);leg.userData.knee.add(boot);
+const toe=new THREE.Mesh(new THREE.BoxGeometry(.65,.25,.55),mt_forestDark);toe.position.set(0,-.5,.7);leg.userData.knee.add(toe);}
+};
+addLeg(lLeg);addLeg(rLeg);
+}
+
+// Royal Knight Set - Gold/Bronze elite plate
+function addHelm_Royal(headGroup){
+const helmBase=new THREE.Mesh(new THREE.SphereGeometry(1.7,12,12),mt_royalGold);helmBase.position.y=.05;helmBase.scale.set(1,1.3,1);headGroup.add(helmBase);
+const faceplate=new THREE.Mesh(new THREE.BoxGeometry(2.5,2.0,.35),mt_royalBronze);faceplate.position.set(0,-.2,.65);headGroup.add(faceplate);
+const visorMat=new MS({color:0x040404,roughness:1});
+for(let i=0;i<3;i++){const vs=new THREE.Mesh(new THREE.BoxGeometry(1.6+(.3-i*.15),.1,.4),visorMat);vs.position.set(0,0.1-i*.28,.75);headGroup.add(vs)}
+const nasal=new THREE.Mesh(new THREE.BoxGeometry(.22,1.8,.4),mt_royalTrim);nasal.position.set(0,-.25,.78);headGroup.add(nasal);
+const crest=new THREE.Mesh(new THREE.BoxGeometry(.4,1.2,1.0),mt_royalTrim);crest.position.set(0,1.4,-.5);headGroup.add(crest);
+const aventail=new THREE.Mesh(new THREE.CylinderGeometry(1.8,2.0,1.6,10,1,true),mt.armorLt);aventail.position.y=-1.25;headGroup.add(aventail);
+const crown=new THREE.Mesh(new THREE.TorusGeometry(1.5,.08,6,12),mt_royalTrim);crown.position.y=1.1;crown.rotation.x=Math.PI/2;headGroup.add(crown);
+for(let i=0;i<5;i++){const spike=new THREE.Mesh(new THREE.ConeGeometry(.08,.3,4),mt_royalGold);spike.position.set(Math.cos(i*Math.PI*2/5)*1.3,1.4,Math.sin(i*Math.PI*2/5)*1.3-.3);headGroup.add(spike);}
+}
+function addChest_Royal(bodyCenter){
+const gorget=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.4,1.3,10),mt_royalGold);gorget.position.y=2.8;bodyCenter.add(gorget);
+const torso=new THREE.Mesh(new THREE.BoxGeometry(3.8,4.3,2.5),mt_royalBronze);torso.position.y=.6;bodyCenter.add(torso);
+const ridge=new THREE.Mesh(new THREE.BoxGeometry(.4,3.7,.45),mt_royalTrim);ridge.position.set(0,.6,1.3);bodyCenter.add(ridge);
+[-1,1].forEach(s=>{const cp=new THREE.Mesh(new THREE.BoxGeometry(1.6,1.9,.4),mt_royalGold);cp.position.set(s*.8,1.6,1.3);bodyCenter.add(cp)});
+for(let i=0;i<6;i++){const rv=new THREE.Mesh(new THREE.SphereGeometry(.12,4,4),mt_royalTrim);rv.position.set(-.7+i*.28,2.45,1.45);bodyCenter.add(rv)}
+const fauld=new THREE.Mesh(new THREE.BoxGeometry(4.0,1.5,2.6),mt_royalBronze);fauld.position.y=-1.6;bodyCenter.add(fauld);
+const belt=new THREE.Mesh(new THREE.BoxGeometry(4.2,.75,2.6),mt_royalGold);belt.position.y=-1.3;bodyCenter.add(belt);
+const buckle=new THREE.Mesh(new THREE.BoxGeometry(.9,.6,.4),mt_royalTrim);buckle.position.set(0,-1.3,1.35);bodyCenter.add(buckle);
+const lionEmblem=new THREE.Mesh(new THREE.BoxGeometry(.6,.5,.15),mt_royalTrim);lionEmblem.position.set(0,1.2,1.35);bodyCenter.add(lionEmblem);
+}
+function addPauldrons_Royal(lArm,rArm){
+[lArm,rArm].forEach(arm=>{
+const paul=new THREE.Mesh(new THREE.SphereGeometry(1.35,10,8),mt_royalGold);paul.scale.set(1.1,.8,.95);arm.add(paul);
+const paulRim=new THREE.Mesh(new THREE.BoxGeometry(1.9,.22,1.7),mt_royalTrim);paulRim.position.y=-.5;arm.add(paulRim);
+const spike=new THREE.Mesh(new THREE.ConeGeometry(.15,.4,4),mt_royalTrim);spike.position.y=.6;arm.add(spike);
+const ua=new THREE.Mesh(new THREE.CylinderGeometry(.58,.52,2.7,8),mt_royalBronze);ua.position.y=-1.4;arm.add(ua);
+if(arm.userData.elbow){
+const el=new THREE.Mesh(new THREE.SphereGeometry(.58,8,6),mt_royalGold);arm.userData.elbow.add(el);
+const fa=new THREE.Mesh(new THREE.CylinderGeometry(.52,.46,2.5,8),mt_royalBronze);fa.position.y=-1.2;arm.userData.elbow.add(fa);
+const gt=new THREE.Mesh(new THREE.BoxGeometry(.9,.55,1.15),mt_royalGold);gt.position.y=-2.8;arm.userData.elbow.add(gt);
+const knk=new THREE.Mesh(new THREE.BoxGeometry(.9,.18,.55),mt_royalTrim);knk.position.set(0,0,.32);arm.userData.elbow.add(knk);}
+});
+}
+function addLegs_Royal(lLeg,rLeg,bodyCenter){
+[-1.35,-.45,.45,1.35].forEach(x=>{const tas=new THREE.Mesh(new THREE.BoxGeometry(1.05,2.1,.3),mt_royalBronze);tas.position.set(x,-2.6,1.2);bodyCenter.add(tas)});
+const mailSkirt=new THREE.Mesh(new THREE.CylinderGeometry(1.8,2.2,2.3,10,1,true),mt.armorLt);mailSkirt.position.y=-2.8;bodyCenter.add(mailSkirt);
+const addLegArmor=(leg)=>{
+const cuisse=new THREE.Mesh(new THREE.CylinderGeometry(.7,.64,3.3,8),mt_royalBronze);cuisse.position.y=-1.5;leg.add(cuisse);
+const poleyn=new THREE.Mesh(new THREE.SphereGeometry(.68,8,6),mt_royalGold);poleyn.position.y=-3;leg.add(poleyn);
+if(leg.userData.knee){
+const greave=new THREE.Mesh(new THREE.CylinderGeometry(.5,.44,3.2,8),mt_royalBronze);greave.position.y=-1.5;leg.userData.knee.add(greave);
+const boot=new THREE.Mesh(new THREE.BoxGeometry(1.15,.95,1.85),mt_royalGold);boot.position.set(0,-.45,.15);leg.userData.knee.add(boot);
+const toe=new THREE.Mesh(new THREE.BoxGeometry(.95,.38,.75),mt_royalTrim);toe.position.set(0,-.7,.85);leg.userData.knee.add(toe);
+const spur=new THREE.Mesh(new THREE.ConeGeometry(.08,.2,4),mt_royalTrim);spur.position.set(.5,-.7,.3);leg.userData.knee.add(spur);}
+};
+addLegArmor(lLeg);addLegArmor(rLeg);
+}
+function addShield_Royal(lArm){
+if(lArm.userData&&lArm.userData.elbow){
+const shield=new THREE.Mesh(new THREE.BoxGeometry(.4,4.2,3.0),mt_royalGold);shield.position.set(-.5,-1.7,.3);lArm.userData.elbow.add(shield);
+const shBordV=new THREE.Mesh(new THREE.BoxGeometry(.42,.35,3.1),mt_royalTrim);shBordV.position.set(-.5,.7,.3);lArm.userData.elbow.add(shBordV);
+const shBordB=new THREE.Mesh(new THREE.BoxGeometry(.42,.35,3.1),mt_royalTrim);shBordB.position.set(-.5,-4.0,.3);lArm.userData.elbow.add(shBordB);
+const sBoss=new THREE.Mesh(new THREE.SphereGeometry(.5,8,8),mt_royalBronze);sBoss.position.set(-.7,-1.7,.3);lArm.userData.elbow.add(sBoss);
+const lionCrest=new THREE.Mesh(new THREE.BoxGeometry(.5,.5,.15),mt_royalTrim);lionCrest.position.set(-.7,-1.7,.4);lArm.userData.elbow.add(lionCrest);
+}else{
+const shield=new THREE.Mesh(new THREE.BoxGeometry(.4,4.2,3.0),mt_royalGold);shield.position.set(-.5,-4.5,.3);lArm.add(shield);
+const sBoss=new THREE.Mesh(new THREE.SphereGeometry(.5,8,8),mt_royalBronze);sBoss.position.set(-.7,-4.5,.3);lArm.add(sBoss);}
+}
+
 function buildPlayerModel(cls){
 const g=new THREE.Group();const body=new THREE.Group();
 const{lArm,rArm,lLeg,rLeg,bodyCenter,headGroup}=buildBaseBody(body);
@@ -2485,18 +2635,23 @@ const offIsCrossbow=offHandName.includes('crossbow')||offHandName.includes('xbow
 // Dual wield rules: can dual wield swords OR crossbows, but NOT long/short bows
 const canDualWield=!isLongBow;// Crossbows and swords can dual wield
 const isDualWielding=hasOffHand&&canDualWield&&(!isBow||isCrossbow);
+// === ARMOR SET DETECTION ===
+const helmName=hasHelm?eq.Helm.name.toLowerCase():'';
+const chestName=hasChest?eq.Chest.name.toLowerCase():'';
+const isCrimsonSet=helmName.includes('crimson')||chestName.includes('crimson');
+const isForestSet=helmName.includes('forest')||chestName.includes('forest')||helmName.includes('ranger')||chestName.includes('ranger');
+const isRoyalSet=helmName.includes('royal')||chestName.includes('royal')||helmName.includes('gold')||chestName.includes('elite');
 if(cls==='knight'){
 // Knight: DEPRIVED when no gear equipped, only shows what IS equipped
 // Hair only shows when NO helm equipped
 if(!hasHelm){
 const hair=new THREE.Mesh(new THREE.SphereGeometry(1.3,8,8),mt_hairDk);hair.position.y=.4;hair.scale.set(1.05,.5,1.05);headGroup.add(hair);}
-// Armor ONLY if equipped in that slot
-if(hasHelm)addHelm_Knight(headGroup);
-if(hasChest)addChest_Knight(bodyCenter);
-if(hasChest)addPauldrons_Knight(lArm,rArm); // Pauldrons are part of chest armor
-if(hasLegs)addLegs_Knight(lLeg,rLeg,bodyCenter);
-if(hasBoots)addBoots_Knight(lKnee,rKnee);
-if(hasGloves)addGloves_Knight(lArm,rArm);
+// Armor ONLY if equipped in that slot - use Royal set if royal gear equipped
+if(hasHelm){if(isRoyalSet)addHelm_Royal(headGroup);else addHelm_Knight(headGroup);}
+if(hasChest){if(isRoyalSet){addChest_Royal(bodyCenter);addPauldrons_Royal(lArm,rArm);}else{addChest_Knight(bodyCenter);addPauldrons_Knight(lArm,rArm);}}
+if(hasLegs){if(isRoyalSet)addLegs_Royal(lLeg,rLeg,bodyCenter);else addLegs_Knight(lLeg,rLeg,bodyCenter);}
+if(hasBoots){if(isRoyalSet)addBoots_Knight(lKnee,rKnee);else addBoots_Knight(lKnee,rKnee);}
+if(hasGloves){if(isRoyalSet)addGloves_Knight(lArm,rArm);else addGloves_Knight(lArm,rArm);}
 // Cape ONLY if equipped
 if(hasCape)addCape(bodyCenter);
 // Right hand weapon ONLY if equipped
@@ -2505,7 +2660,7 @@ if(isCrossbow)addCrossbow(rArm);
 else if(isBow)addBow(rArm);
 else addSword(rArm);}
 // Left hand: shield OR off-hand weapon ONLY if equipped
-if(hasShield&&!isDualWielding)addShield(lArm);
+if(hasShield&&!isDualWielding){if(isRoyalSet)addShield_Royal(lArm);else addShield(lArm);}
 else if(isDualWielding&&hasOffHand){
 if(offIsCrossbow)addCrossbow(lArm);
 else if(offHandName.includes('dagger'))addDaggerLeft(lArm);
@@ -2570,16 +2725,15 @@ if(offIsCrossbow)addCrossbow(lArm);
 else if(offHandName.includes('dagger'))addDaggerLeft(lArm);
 else addSwordLeft(lArm);}
 }else if(cls==='sorcerer'){
-// Sorcerer: DEPRIVED when no gear, shows robes/hood only when equipped
-// Hood ONLY if hasHelm (hood counts as head armor)
-if(hasHelm){
+// Sorcerer: DEPRIVED when no gear equipped, only shows what IS equipped
+// Hood ONLY if hasHelm equipped - use Crimson set if crimson gear equipped
+if(hasHelm){if(isCrimsonSet)addHelm_Crimson(headGroup);else{
 const hood=new THREE.Mesh(new THREE.SphereGeometry(1.65,10,10),mt_robeHood);hood.position.y=.1;hood.scale.set(1.02,1.18,.97);headGroup.add(hood);
 const faceShadow=new THREE.Mesh(new THREE.SphereGeometry(1,8,8),new MS({color:0x0a0a0a,roughness:1}));faceShadow.position.set(0,-.45,.05);faceShadow.scale.set(.6,.5,.3);headGroup.add(faceShadow);
 const glowEye=new MS({color:0x6644ff,emissive:0x6644ff,emissiveIntensity:2});
-[-1,1].forEach(s=>{const eye=new THREE.Mesh(new THREE.SphereGeometry(.12,5,5),glowEye);eye.position.set(s*.35,-.35,.15);headGroup.add(eye)});
-}
-// Robes ONLY if hasChest (robes count as chest armor)
-if(hasChest){
+[-1,1].forEach(s=>{const eye=new THREE.Mesh(new THREE.SphereGeometry(.12,5,5),glowEye);eye.position.set(s*.35,-.35,.15);headGroup.add(eye)});}}
+// Robes ONLY if hasChest (robes count as chest armor) - use Crimson set if crimson gear equipped
+if(hasChest){if(isCrimsonSet){addChest_Crimson(bodyCenter);}else{
 // Robe torso
 const robeTorso=new THREE.Mesh(new THREE.BoxGeometry(3.5,4.6,2.1),mt_robe);robeTorso.position.y=.4;bodyCenter.add(robeTorso);
 const trim1=new THREE.Mesh(new THREE.BoxGeometry(3.55,.18,2.12),mt_robeGold);trim1.position.y=2.6;bodyCenter.add(trim1);
@@ -2596,10 +2750,9 @@ robeSkirtSegs.push({mesh:skirtMid,swayAmt:.03},{mesh:skirtBot,swayAmt:.06});
 bodyCenter.userData.robeSkirtSegs=robeSkirtSegs;bodyCenter.userData.robeSkirt=skirtBot;
 bodyCenter.userData.robeTorso=robeTorso;
 // Sash/belt
-const sash=new THREE.Mesh(new THREE.BoxGeometry(3.65,.45,2.15),mt_robeGold);sash.position.y=-1.6;bodyCenter.add(sash);
-}
-// Robe sleeves - ONLY if hasGloves (sleeve armor)
-if(hasGloves){
+const sash=new THREE.Mesh(new THREE.BoxGeometry(3.65,.45,2.15),mt_robeGold);sash.position.y=-1.6;bodyCenter.add(sash);}}
+// Robe sleeves - ONLY if hasGloves (sleeve armor) - use Crimson set if crimson gear equipped
+if(hasGloves){if(isCrimsonSet){addGloves_Crimson(lArm,rArm);}else{
 const robeSleeves=[];
 [lArm,rArm].forEach((arm,side)=>{
 const upSleeve=new THREE.Mesh(new THREE.CylinderGeometry(.72,.65,2.6,8),mt_robe);upSleeve.position.y=-1.4;arm.add(upSleeve);
@@ -2610,8 +2763,7 @@ const cuff=new THREE.Mesh(new THREE.TorusGeometry(.88,.07,6,10),mt_robeGold);cuf
 const sleeveEnd=new THREE.Mesh(new THREE.CylinderGeometry(.9,1.2,.8,8),mt_robe);sleeveEnd.position.y=-2.8;arm.userData.elbow.add(sleeveEnd);
 robeSleeves.push(upSleeve,loSleeve,sleeveEnd);}
 });
-bodyCenter.userData.robeSleeves=robeSleeves;
-}
+bodyCenter.userData.robeSleeves=robeSleeves;}}
 // Staff ONLY if weapon equipped
 if(hasWeapon)addStaff(rArm);
 // Left hand: off-hand weapon ONLY if equipped (no default book)
@@ -2621,44 +2773,39 @@ else if(offHandName.includes('dagger'))addDaggerLeft(lArm);
 else addSwordLeft(lArm);}
 }else if(cls==='ranger'){
 // Ranger: DEPRIVED when no gear, shows gear only when equipped
-// Hood ONLY if hasHelm equipped
-if(hasHelm){
-const hood=new THREE.Mesh(new THREE.SphereGeometry(1.4,10,10),mt_robeHood);hood.position.y=.1;hood.scale.set(1.02,1.1,.97);headGroup.add(hood);}
-// Leather tunic - ONLY if hasChest
-if(hasChest){
+// Hood ONLY if hasHelm equipped - use Forest set if forest/ranger gear equipped
+if(hasHelm){if(isForestSet)addHelm_Forest(headGroup);else{
+const hood=new THREE.Mesh(new THREE.SphereGeometry(1.4,10,10),mt_robeHood);hood.position.y=.1;hood.scale.set(1.02,1.1,.97);headGroup.add(hood);}}
+// Leather tunic - ONLY if hasChest - use Forest set if forest/ranger gear equipped
+if(hasChest){if(isForestSet){addChest_Forest(bodyCenter);}else{
 const tunic=new THREE.Mesh(new THREE.BoxGeometry(3.2,4,1.8),mt_warLeather);tunic.position.y=.6;bodyCenter.add(tunic);
-const belt=new THREE.Mesh(new THREE.BoxGeometry(3.4,.4,1.9),new MS({color:0x3a2a1a,roughness:.9}));belt.position.y=-1.4;bodyCenter.add(belt);
-}
-// Leather shoulders - ONLY if hasChest
-if(hasChest){
+const belt=new THREE.Mesh(new THREE.BoxGeometry(3.4,.4,1.9),new MS({color:0x3a2a1a,roughness:.9}));belt.position.y=-1.4;bodyCenter.add(belt);}}
+// Leather shoulders - ONLY if hasChest - use Forest set if forest/ranger gear equipped
+if(hasChest){if(isForestSet){addPauldrons_Forest(lArm,rArm);}else{
 [lArm,rArm].forEach(arm=>{
-const vam=new THREE.Mesh(new THREE.SphereGeometry(1.0,8,6),mt_warLeather);vam.scale.set(1.05,.75,.92);arm.add(vam);});
-}
-// Vambraces and gloves - ONLY if hasGloves
-if(hasGloves){
+const vam=new THREE.Mesh(new THREE.SphereGeometry(1.0,8,6),mt_warLeather);vam.scale.set(1.05,.75,.92);arm.add(vam);});}}
+// Vambraces and gloves - ONLY if hasGloves - use Forest set if forest/ranger gear equipped
+if(hasGloves){if(isForestSet){/* Forest gloves included in pauldrons function */}else{
 [lArm,rArm].forEach(arm=>{
 const ua=new THREE.Mesh(new THREE.CylinderGeometry(.45,.42,2.6,8),mt_warLeather);ua.position.y=-1.4;arm.add(ua);
 if(arm.userData.elbow){
 const glv=new THREE.Mesh(new THREE.BoxGeometry(.7,.5,.85),mt_warLeather);glv.position.y=-2.8;arm.userData.elbow.add(glv);}
-});
-}
-// Ranger legs - ONLY if hasLegs
-if(hasLegs){
+});}}
+// Ranger legs - ONLY if hasLegs - use Forest set if forest/ranger gear equipped
+if(hasLegs){if(isForestSet){addLegs_Forest(lLeg,rLeg,bodyCenter);}else{
 const addRangerLeg=(leg)=>{
 const cuisse=new THREE.Mesh(new THREE.CylinderGeometry(.55,.5,3.1,8),mt_warLeather);cuisse.position.y=-1.5;leg.add(cuisse);
 const poleyn=new THREE.Mesh(new THREE.SphereGeometry(.52,8,6),mt_warLeather);poleyn.position.y=-3;leg.add(poleyn);
 const shin=new THREE.Mesh(new THREE.CylinderGeometry(.48,.42,2.9,8),mt_warLeather);shin.position.y=-1.45;leg.userData.knee.add(shin);
 };
-addRangerLeg(lLeg);addRangerLeg(rLeg);
-}
+addRangerLeg(lLeg);addRangerLeg(rLeg);}}
 // Boots - ONLY if hasBoots
-if(hasBoots){
+if(hasBoots){if(isForestSet){/* Forest boots included in legs function */}else{
 const addRangerBoot=(knee)=>{
 const boot=new THREE.Mesh(new THREE.BoxGeometry(.9,.7,1.5),mt_warLeather);boot.position.set(0,-.4,.1);knee.add(boot);
 const toe=new THREE.Mesh(new THREE.BoxGeometry(.7,.28,.55),mt_warLeather);toe.position.set(0,-.52,.72);knee.add(toe);
 };
-addRangerBoot(lKnee);addRangerBoot(rKnee);
-}
+addRangerBoot(lKnee);addRangerBoot(rKnee);}}
 // Bow/crossbow - ONLY if weapon equipped (no default)
 if(hasWeapon){
 if(isCrossbow)addCrossbow(rArm);
@@ -6155,6 +6302,7 @@ if(e.hp<=0){spawnLoot(e.mesh.position.x,e.mesh.position.z,e);scene.remove(e.mesh
 const xpMult=Math.max(1,(e.lv||1)*.8);skills.Attack.xp+=Math.round(15*xpMult);skills.Strength.xp+=Math.round(12*xpMult);skills.Hitpoints.xp+=Math.round(10*xpMult);
 log(e.type+' (Lv'+(e.lv||1)+') slain! +'+Math.round(37*xpMult)+'xp','#fa4');
 updateXpBar();
+trackQuestKill(e.type);// Track quest kills
 const rt=e.type,rx=e.x,rz=e.z,rlv=getReg(rx,rz).lv;setTimeout(()=>{if(scene)spawnE(rt,rx+(Math.random()-.5)*30,rz+(Math.random()-.5)*30,rlv)},15000)}continue;}
 // === END DRAGON AI ===
 if(dist<e.aggro){
@@ -6248,6 +6396,7 @@ const xpMult=Math.max(1,(e.lv||1)*.8);skills.Attack.xp+=Math.round(15*xpMult);sk
 log(e.type+' (Lv'+(e.lv||1)+') slain! +'+Math.round(37*xpMult)+'xp','#fa4');
 // Immediate XP bar update
 updateXpBar();
+trackQuestKill(e.type);// Track quest kills
 const rt=e.type,rx=e.x,rz=e.z,rlv=getReg(rx,rz).lv;setTimeout(()=>{if(scene)spawnE(rt,rx+(Math.random()-.5)*30,rz+(Math.random()-.5)*30,rlv)},15000)}}
 
 // === DAMAGE BUFF CALCULATIONS (at attack time) ===
@@ -6275,6 +6424,8 @@ if(player._steadyCD)player._steadyCD--;if(player._aimedCD)player._aimedCD--;if(p
 if(player._aidCD)player._aidCD--;if(player._bandageCD)player._bandageCD--;if(player._sharpenCD)player._sharpenCD--;if(player._mineStrikeCD)player._mineStrikeCD--;if(player._lumberCD)player._lumberCD--;if(player._campfireCD)player._campfireCD--;if(player._fishCastCD)player._fishCastCD--;if(player._focusCD)player._focusCD--;if(player._sneakCD)player._sneakCD--;if(player._agiRollCD)player._agiRollCD--;
 // Update parry/block system
 updateParrySystem()
+// === QUEST SYSTEM UPDATES ===
+updateQuestMarker();
 // === EXPLOSIVE TRAP CHECKING ===
 if(player.explosiveTrap&&player.explosiveTrap.life>0){player.explosiveTrap.life--;enemies.forEach(e=>{const dist=Math.hypot(e.x-player.explosiveTrap.x,e.z-player.explosiveTrap.z);if(dist<8){e.hp-=player.explosiveTrap.dmg;hitFX(e.mesh.position.x,e.mesh.position.y+5,e.mesh.position.z,0xff4400);player.explosiveTrap.life=0;}});if(player.explosiveTrap.life<=0){player.explosiveTrap=null;log('Explosive Trap triggered!','#f40');}}
 // Loot label overlay — clear each frame
@@ -6397,6 +6548,20 @@ e.hp-=dmg;e.poi-=10;hitFX(ex,ey,ez,0xff4400);
 log((p.userData.type==='arrow'?'Arrow':'Spell')+' hit '+e.type+'! -'+dmg,'#8a4');
 p.userData.life=0;break;}}
 // Remove if life expired
+if(p.userData.life<=0){scene.remove(p);particles.splice(i,1);}}
+// Arcane missiles - fast homing projectiles
+else if(p.userData.type==='missile'){
+p.position.x+=p.userData.vx;p.position.y+=p.userData.vy;p.position.z+=p.userData.vz;
+p.userData.life--;
+const target=p.userData.target;
+if(target&&target.hp>0){
+const tx=target.mesh.position.x,ty=target.mesh.position.y+6,tz=target.mesh.position.z;
+const dist=Math.hypot(p.position.x-tx,p.position.y-ty,p.position.z-tz);
+if(dist<4&&!p.userData.hit){
+p.userData.hit=true;target.hp-=p.userData.dmg;
+hitFX(tx,ty,tz,0xaa66ff);
+log('Arcane Missile hit '+target.type+'! -'+p.userData.dmg,'#a6f');
+p.userData.life=0;}}
 if(p.userData.life<=0){scene.remove(p);particles.splice(i,1);}}
 // Trail particles for spells
 else if(p.userData.trail){
@@ -6572,7 +6737,8 @@ if(k==='p'){const ab=document.getElementById('ability-browser');const sb=documen
 if(k==='o'){const sb=document.getElementById('spell-book');const ab=document.getElementById('ability-browser');ab.classList.remove('active');sb.classList.toggle('active');if(sb.classList.contains('active')){buildSbCats();buildSbList()}}
 if(k==='m'){const wm=document.getElementById('world-map');if(wm.classList.contains('active')){wm.classList.remove('active')}else{wm.classList.add('active');drawWorldMap()}}
 if(k==='v'&&gameStarted){e.preventDefault();cameraMode=cameraMode==='first'?'third':'first';if(cameraMode==='third'&&document.pointerLockElement)document.exitPointerLock();log('Camera: '+(cameraMode==='first'?'1st Person (V to toggle, Scroll = target depth)':'3rd Person (V to toggle, Scroll = zoom)'),'#ffd700');}
-if(k==='insert'){e.preventDefault();toggleEditorMode()}
+if(k==='0'){e.preventDefault();toggleEditorMode()}
+if(k==='j'){e.preventDefault();toggleQuestLog()}
 if(k==='escape'){
 const ed=document.getElementById('editor-mode');if(ed&&ed.style.display==='block'){toggleEditorMode();return}
 const wm=document.getElementById('world-map');if(wm.classList.contains('active')){wm.classList.remove('active');return}
@@ -7743,7 +7909,7 @@ cursor.style.display='block';
 editorRefreshList();
 editorPopulateSpawnList();
 editorSetCamera('normal');
-log('EDITOR MODE ENABLED — Insert key to exit','#ffd700');
+log('EDITOR MODE ENABLED — 0 key to exit','#ffd700');
 }else{
 ed.style.display='none';
 cursor.style.display='none';
@@ -8304,7 +8470,146 @@ log('Object repositioned','#0f0');
 });
 
 // Update controls hint
-document.getElementById('controls').innerHTML+=' &#183; <b style="color:#ffd700">Insert</b> Editor';
+document.getElementById('controls').innerHTML+=' &#183; <b style="color:#ffd700">0</b> Editor';
+
+// === QUEST SYSTEM FUNCTIONS ===
+function spawnQuestNPC(){
+const x=50,z=50;// Near Lumbridge starting area
+const h=meshTerrainH(x,z);
+const g=new THREE.Group();
+// Body
+const body=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.4,5,8),new THREE.MeshStandardMaterial({color:0x2a4a8a,roughness:.7}));
+body.position.y=2.5;body.castShadow=true;g.add(body);
+// Head
+const head=new THREE.Mesh(new THREE.SphereGeometry(1,8,8),new THREE.MeshStandardMaterial({color:0xccaa88,roughness:.6}));
+head.position.y=5.5;g.add(head);
+// Quest marker (!) floating above
+const markG=new THREE.Group();markG.position.y=7.5;
+const markBase=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.6,6),new THREE.MeshStandardMaterial({color:0xffd700,emissive:0xffaa00,emissiveIntensity:2}));
+markBase.position.y=0;markG.add(markBase);
+const markTop=new THREE.Mesh(new THREE.SphereGeometry(.35,6,6),new THREE.MeshStandardMaterial({color:0xffd700,emissive:0xffaa00,emissiveIntensity:2}));
+markTop.position.y=.5;markG.add(markTop);
+g.add(markG);
+// Animation data
+markG.userData={anim:true,time:0};
+g.position.set(x,h,z);scene.add(g);
+questNPC={mesh:g,x:x,z:z,marker:markG,name:'Quest Master',h:h};
+log('Quest Master has arrived! Press E near him for tasks.','#ffd700');
+return questNPC;}
+
+function updateQuestMarker(){
+if(questNPC&&questNPC.marker){
+questNPC.marker.userData.time+=0.05;
+questNPC.marker.position.y=7.5+Math.sin(questNPC.marker.userData.time)*0.3;
+questNPC.marker.rotation.y+=0.02;}}
+
+function checkQuestInteraction(){
+if(!questNPC)return;
+const dist=Math.hypot(player.x-questNPC.x,player.z-questNPC.z);
+if(dist<8){showQuestDialog();}}
+
+function showQuestDialog(){
+if(document.getElementById('quest-dialog'))return;
+const d=document.createElement('div');d.id='quest-dialog';
+d.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(20,15,10,0.95);border:3px solid #ffd700;border-radius:12px;padding:20px;z-index:1000;min-width:320px;max-width:400px;color:#ddd;font-family:serif;box-shadow:0 0 30px rgba(255,215,0,0.3);';
+let html='<div style="color:#ffd700;font-size:18px;font-weight:bold;margin-bottom:15px;text-align:center;">⚔️ Quest Master ⚔️</div>';
+if(activeQuest){
+const target=questKillCounts[activeQuest.target]||0;
+const progPct=Math.min(100,(target/activeQuest.count)*100);
+html+='<div style="background:rgba(50,40,30,0.8);padding:12px;border-radius:8px;margin-bottom:15px;">';
+html+='<div style="color:#aa8833;font-size:12px;margin-bottom:8px;">Active Quest:</div>';
+html+='<div style="color:#fff;font-weight:bold;margin-bottom:8px;">'+activeQuest.desc+'</div>';
+html+='<div style="background:#332211;height:20px;border-radius:4px;overflow:hidden;border:1px solid #554422;">';
+html+='<div style="background:linear-gradient(90deg,#ffd700,#ffaa00);height:100%;width:'+progPct+'%;transition:width 0.3s;"></div></div>';
+html+='<div style="text-align:center;color:#ffd700;font-size:14px;margin-top:5px;">'+target+' / '+activeQuest.count+' '+activeQuest.target+' slain</div>';
+if(target>=activeQuest.count){
+html+='<div style="color:#0f0;text-align:center;font-weight:bold;margin-top:10px;">✓ Quest Complete! Claim your reward!</div>';
+html+='<button onclick="claimQuestReward()" style="width:100%;margin-top:10px;padding:10px;background:#335522;color:#8f8;border:2px solid #5a5;border-radius:6px;cursor:pointer;font-weight:bold;">💰 Claim Reward</button>';}
+html+='</div>';
+html+='<button onclick="closeQuestDialog()" style="width:100%;padding:10px;background:#442222;color:#ff8888;border:2px solid #aa3333;border-radius:6px;cursor:pointer;">Close</button>';}
+else{
+html+='<div style="color:#aa8833;margin-bottom:15px;text-align:center;">Choose a task to complete:</div>';
+const quests=[
+{type:'goblin',count:5,desc:'Slay 5 Goblins',reward:'50 XP + 100 gold'},
+{type:'skeleton',count:3,desc:'Slay 3 Skeletons',reward:'80 XP + 150 gold'},
+{type:'wolf',count:4,desc:'Slay 4 Wolves',reward:'60 XP + 80 gold'},
+{type:'bear',count:2,desc:'Slay 2 Bears',reward:'100 XP + 200 gold'},
+{type:'guard',count:3,desc:'Slay 3 Guards',reward:'120 XP + 300 gold'}
+];
+quests.forEach((q,idx)=>{
+html+='<button onclick="acceptQuest(\''+q.type+'\','+q.count+',\''+q.desc+'\')" style="width:100%;margin-bottom:8px;padding:10px;background:#332211;color:#ffd700;border:2px solid #554422;border-radius:6px;cursor:pointer;text-align:left;">';
+html+='<div style="font-weight:bold;">'+q.desc+'</div>';
+html+='<div style="font-size:11px;color:#aa8833;">Reward: '+q.reward+'</div>';
+html+='</button>';});
+html+='<button onclick="closeQuestDialog()" style="width:100%;margin-top:10px;padding:10px;background:#442222;color:#ff8888;border:2px solid #aa3333;border-radius:6px;cursor:pointer;">Close</button>';}
+d.innerHTML=html;document.body.appendChild(d);}
+
+function closeQuestDialog(){const d=document.getElementById('quest-dialog');if(d)d.remove();}
+
+function acceptQuest(type,count,desc){
+activeQuest={target:type,count:count,desc:desc,completed:false};
+questKillCounts[type]=0;
+log('Quest accepted: '+desc,'#ffd700');
+closeQuestDialog();
+updateQuestLogUI();}
+
+function claimQuestReward(){
+if(!activeQuest)return;
+const r=questRewards[activeQuest.target];
+if(r){
+skills.Attack.xp+=r.xp;skills.Strength.xp+=r.xp;skills.Hitpoints.xp+=Math.floor(r.xp/2);
+const goldItem={name:'Gold Coins x'+r.gold,uid:null};
+if(inventory.length<28){inventory.push(goldItem);updateInvUI();}
+log('Quest completed! +'+r.xp+' XP and '+r.gold+' gold!','#0f0');
+updateXpBar();}
+activeQuest=null;questKillCounts={};
+closeQuestDialog();updateQuestLogUI();}
+
+function trackQuestKill(enemyType){
+if(!activeQuest||activeQuest.completed)return;
+if(enemyType===activeQuest.target){
+questKillCounts[enemyType]=(questKillCounts[enemyType]||0)+1;
+const current=questKillCounts[enemyType];
+log('Quest progress: '+current+'/'+activeQuest.count+' '+enemyType+' slain','#ffd700');
+if(current>=activeQuest.count){
+activeQuest.completed=true;
+log('Quest complete! Return to Quest Master for your reward.','#0f0');}
+updateQuestLogUI();}}
+
+function toggleQuestLog(){
+let qlog=document.getElementById('quest-log');
+if(!qlog){
+qlog=document.createElement('div');qlog.id='quest-log';
+qlog.style.cssText='position:fixed;top:80px;right:280px;width:280px;background:rgba(15,12,8,0.95);border:2px solid #aa8833;border-radius:8px;padding:15px;z-index:500;color:#ddd;font-family:serif;display:none;box-shadow:0 4px 20px rgba(0,0,0,0.6);';
+qlog.innerHTML='<div style="color:#ffd700;font-weight:bold;font-size:14px;margin-bottom:10px;border-bottom:1px solid #554422;padding-bottom:8px;">📜 Quest Log</div><div id="quest-log-content"></div>';
+document.body.appendChild(qlog);}
+qlog.style.display=qlog.style.display==='none'?'block':'none';
+if(qlog.style.display==='block')updateQuestLogUI();}
+
+function updateQuestLogUI(){
+const content=document.getElementById('quest-log-content');
+if(!content)return;
+if(!activeQuest){content.innerHTML='<div style="color:#887;font-style:italic;">No active quest. Visit the Quest Master!</div>';return;}
+const target=questKillCounts[activeQuest.target]||0;
+const progPct=Math.min(100,(target/activeQuest.count)*100);
+let html='<div style="background:rgba(40,30,20,0.8);padding:12px;border-radius:6px;margin-bottom:8px;">';
+html+='<div style="color:#ffd700;font-weight:bold;margin-bottom:6px;">'+activeQuest.desc+'</div>';
+html+='<div style="background:#332211;height:16px;border-radius:3px;overflow:hidden;border:1px solid #554422;margin-bottom:6px;">';
+html+='<div style="background:linear-gradient(90deg,#ffd700,#ff8800);height:100%;width:'+progPct+'%;"></div></div>';
+html+='<div style="font-size:12px;color:#aa8833;text-align:center;">'+target+'/'+activeQuest.count+' '+activeQuest.target+' slain</div>';
+if(activeQuest.completed){html+='<div style="color:#0f0;text-align:center;font-size:12px;margin-top:6px;">✓ Return to Quest Master!</div>';}
+html+='</div>';
+content.innerHTML=html;}
+
+// Quest key interaction (E key)
+const _origKeyDown=window.onkeydown;
+document.addEventListener('keydown',e=>{
+if(e.key.toLowerCase()==='e'&&gameStarted){
+const distToNPC=questNPC?Math.hypot(player.x-questNPC.x,player.z-questNPC.z):999;
+if(distToNPC<8){e.preventDefault();showQuestDialog();}}});
+
+// Spawn quest NPC and add to game loop
+setTimeout(()=>{spawnQuestNPC();},5000);// Spawn after world loads
 
 </script>
 </body>
