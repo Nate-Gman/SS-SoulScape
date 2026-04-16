@@ -183,6 +183,12 @@ canvas{display:block}
 .ctrl-entry{display:flex;justify-content:space-between;align-items:center;padding:3px 0}
 .ctrl-key{font-size:9px;background:#2a2418;border:1px solid #5a4a32;color:#ffd700;padding:1px 6px;border-radius:3px;font-family:monospace;white-space:nowrap}
 .ctrl-desc{font-size:9px;color:#887}
+/* === TUTORIAL POPUP STYLES === */
+.tut-section{margin-bottom:18px}
+.tut-heading{font-size:13px;font-weight:700;color:#c8a96e;letter-spacing:2px;margin-bottom:8px;text-transform:uppercase;border-bottom:1px solid #3a2a1a;padding-bottom:5px}
+.tut-row{display:flex;align-items:flex-start;gap:12px;padding:4px 0;border-bottom:1px solid #1a1500}
+.tut-key{flex-shrink:0;min-width:110px;font-size:10px;background:#2a2418;border:1px solid #5a4a32;color:#ffd700;padding:2px 8px;border-radius:3px;font-family:monospace;white-space:nowrap;text-align:center;line-height:1.6}
+.tut-desc{font-size:11px;color:#c8b888;line-height:1.5}
 #esc-footer{padding:10px 18px;border-top:1px solid #3a2a1a;display:flex;gap:8px;justify-content:center;background:rgba(20,16,10,.4)}
 .esc-btn{padding:8px 22px;font-size:12px;cursor:pointer;border:1px solid #5a4a32;border-radius:5px;color:#c8a96e;background:linear-gradient(180deg,#2a2418,#1a1610);font-family:'Times New Roman',serif;letter-spacing:1px;transition:all .15s}
 .esc-btn:hover{border-color:#c8a96e;background:linear-gradient(180deg,#3a3020,#2a2418);color:#ffd700}
@@ -415,7 +421,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="chat-tab">Clan</div>
 </div>
 </div>
-<div id="controls"><b style="color:#ffd700">ESC</b> Options &#183; WASD Move &#183; <b style="color:#ffd700">Q/E</b> Dash Left/Right &#183; <b style="color:#ffd700">L-Shift</b> Sprint (L3) &#183; <b style="color:#ffd700">Space</b> Jump/Roll &#183; <b style="color:#ffd700">1-4</b> Combat &#183; <b style="color:#ffd700">5</b> Prayer &#183; <b style="color:#ffd700">6</b> Gather &#183; <b style="color:#ffd700">7</b> Roll &#183; <b style="color:#ffd700">8</b> Lock &#183; <b style="color:#ffd700">9</b> Map &#183; <b style="color:#ffd700">0</b> Inv &#183; <b style="color:#ffd700">-</b> Skills &#183; <b style="color:#ffd700">=</b> Save &#183; F Lock-On &#183; Tab Cycle &#183; P Abilities &#183; Insert Editor</div>
+<div id="controls"><b style="color:#ffd700">ESC</b> Options &#183; WASD Move &#183; <b style="color:#ffd700">Q/E</b> Dash &#183; <b style="color:#ffd700">L-Shift</b> Sprint &#183; <b style="color:#ffd700">Space</b> Jump/Roll &#183; <b style="color:#ffd700">1-4</b> Combat &#183; <b style="color:#ffd700">F</b> Lock-On (spells auto-aim) &#183; <b style="color:#ffd700">V</b> 1st/3rd Person &#183; <b style="color:#ffd700">Scroll</b> Zoom / Target Depth &#183; P Abilities &#183; Insert Editor</div>
 <div id="target-frame"><div id="tf-icon">👹</div><div id="tf-info"><div><span id="tf-name">Enemy</span><span id="tf-lv">Lv 1</span></div><div id="tf-hp-bg"><div id="tf-hp-fill" style="width:100%"></div></div><div id="tf-hp-text">100/100</div></div></div>
 <div id="world-map"><div id="wm-title">WORLD MAP</div><canvas id="wm-canvas" width="900" height="700"></canvas><div id="wm-coords">Player: 0, 0</div><div id="wm-close">&times;</div></div>
 <canvas id="loot-label-canvas"></canvas>
@@ -543,59 +549,74 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 <div class="esc-btn" id="esc-inv-btn">&#127984; Inventory</div>
 <div class="esc-btn" id="esc-skills-btn">&#9994; Skills</div>
 <div class="esc-btn" id="esc-ab-btn">&#128218; Abilities</div>
+<div class="esc-btn" id="esc-tut-btn" style="grid-column:1/-1" onclick="if(typeof showTutorial==='function'){showTutorial();document.getElementById('esc-menu').classList.remove('active');}">&#10067; Show Tutorial</div>
 </div>
 </div>
 </div>
 <!-- CONTROLS page -->
 <div class="esc-page" id="ep-controls">
-<div class="esc-section"><h3>KEYBOARD &amp; MOUSE</h3>
+<div class="esc-section"><h3>MOVEMENT &amp; COMBAT</h3>
 <div class="ctrl-grid">
-<div class="ctrl-entry"><span class="ctrl-desc">Move Forward</span><span class="ctrl-key">W</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Move Back</span><span class="ctrl-key">S</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Strafe Left</span><span class="ctrl-key">A</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Strafe Right</span><span class="ctrl-key">D</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Move Forward / Back / Strafe</span><span class="ctrl-key">W A S D</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Sprint (hold)</span><span class="ctrl-key">L-Shift</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Jump</span><span class="ctrl-key">Z</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Roll / Dodge (W/A/S/D + Space for directional)</span><span class="ctrl-key">Space</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Attack</span><span class="ctrl-key">1 / LMB</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Parry / Block</span><span class="ctrl-key">2 / RMB</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Heal (Estus)</span><span class="ctrl-key">3</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Gather / Chop</span><span class="ctrl-key">G</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Sprint</span><span class="ctrl-key">L-Shift (hold)</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Interact / Pickup</span><span class="ctrl-key">E</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Lock-On Toggle</span><span class="ctrl-key">F</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Lock-On Cycle</span><span class="ctrl-key">Tab</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Roll / Dodge</span><span class="ctrl-key">Space</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Dash Left / Right</span><span class="ctrl-key">Q / E</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Attack (melee / ranged / spell)</span><span class="ctrl-key">1 or LMB</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Parry / Block</span><span class="ctrl-key">2 or RMB</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Heal (Estus Flask)</span><span class="ctrl-key">3</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Ability Slots 4 – 9</span><span class="ctrl-key">4 – 9</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Ability Slot 10 / 11 / 12</span><span class="ctrl-key">0 / - / =</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Interact / Pick Up Loot</span><span class="ctrl-key">E</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Gather / Chop / Fish</span><span class="ctrl-key">G</span></div>
+</div></div>
+<div class="esc-section"><h3>CAMERA &amp; TARGETING</h3>
+<div class="ctrl-grid">
+<div class="ctrl-entry"><span class="ctrl-desc">Orbit Camera (hold middle mouse)</span><span class="ctrl-key">MMB + Drag</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Zoom In / Out (3rd person)</span><span class="ctrl-key">Scroll Wheel</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Toggle 1st / 3rd Person</span><span class="ctrl-key">V</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Adjust Spell Target Depth</span><span class="ctrl-key">Scroll (1st) / Shift+Scroll (3rd)</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Look (1st person, no hold needed)</span><span class="ctrl-key">Mouse Move</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Lock-On Target (spells auto-aim)</span><span class="ctrl-key">F</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Cycle Lock-On Targets</span><span class="ctrl-key">Tab</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Spell Path Preview</span><span class="ctrl-key">Always visible</span></div>
+</div></div>
+<div class="esc-section"><h3>MENUS &amp; UI</h3>
+<div class="ctrl-grid">
+<div class="ctrl-entry"><span class="ctrl-desc">Options / Pause Menu</span><span class="ctrl-key">ESC</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Inventory</span><span class="ctrl-key">I</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Skills</span><span class="ctrl-key">K</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Ability Browser</span><span class="ctrl-key">P</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Spell Book</span><span class="ctrl-key">O</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">World Map</span><span class="ctrl-key">M</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Teleport Menu</span><span class="ctrl-key">T</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Dungeon / Gauntlet</span><span class="ctrl-key">U</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Ability Browser</span><span class="ctrl-key">P</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Spell Book</span><span class="ctrl-key">O</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Options Menu</span><span class="ctrl-key">ESC</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Quick Save</span><span class="ctrl-key">F5</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Prayer</span><span class="ctrl-key">5</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Bury Bones</span><span class="ctrl-key">6</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Auto Loot</span><span class="ctrl-key">L</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Minimap Toggle</span><span class="ctrl-key">N</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Auto-Loot Toggle</span><span class="ctrl-key">L</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Prayer Menu</span><span class="ctrl-key">5</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Bury Bones</span><span class="ctrl-key">6</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Quick Save</span><span class="ctrl-key">F5</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Editor Mode</span><span class="ctrl-key">Insert</span></div>
 </div></div>
 <div class="esc-section"><h3>GAMEPAD (DARK SOULS LAYOUT)</h3>
 <div class="ctrl-grid">
 <div class="ctrl-entry"><span class="ctrl-desc">Move</span><span class="ctrl-key">L-Stick</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Camera</span><span class="ctrl-key">R-Stick</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Attack</span><span class="ctrl-key">RT</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Heavy / Parry</span><span class="ctrl-key">RB</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Block / Guard</span><span class="ctrl-key">LT</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Lock-On Toggle</span><span class="ctrl-key">R3 / RS Click</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Lock-On Cycle</span><span class="ctrl-key">L3 / LS Click</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Parry / Block</span><span class="ctrl-key">RB</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Guard (hold)</span><span class="ctrl-key">LT</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Lock-On Toggle</span><span class="ctrl-key">R3 (RS Click)</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Lock-On Cycle</span><span class="ctrl-key">L3 (LS Click)</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Heal (Estus)</span><span class="ctrl-key">A / Cross</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Roll / Dodge (B + Left Stick direction)</span><span class="ctrl-key">B / Circle</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Sprint</span><span class="ctrl-key">L3 (hold L-Stick)</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Roll / Dodge</span><span class="ctrl-key">B / Circle</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Sprint (hold)</span><span class="ctrl-key">L3</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Jump</span><span class="ctrl-key">Y / Triangle</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">Interact</span><span class="ctrl-key">X / Square</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">Interact / Pickup</span><span class="ctrl-key">X / Square</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Inventory</span><span class="ctrl-key">Start</span></div>
 <div class="ctrl-entry"><span class="ctrl-desc">Skills</span><span class="ctrl-key">Back / Select</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">D-Pad</span><span class="ctrl-key">Move / Strafe</span></div>
-<div class="ctrl-entry"><span class="ctrl-desc">LB+RT Combo</span><span class="ctrl-key">Ability Combo</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">D-Pad Up/Down</span><span class="ctrl-key">Prayer / Skills</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">D-Pad Left/Right</span><span class="ctrl-key">Inventory / Combat</span></div>
+<div class="ctrl-entry"><span class="ctrl-desc">LB + face button</span><span class="ctrl-key">Ability Combo</span></div>
 </div></div>
 </div>
 <!-- SETTINGS page -->
@@ -660,6 +681,53 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;heigh
 </div><!-- esc-menu -->
 
 <div id="death-overlay"><span id="death-text">YOU DIED</span></div>
+
+<!-- === TUTORIAL POPUP === -->
+<div id="tutorial-overlay" style="display:none;position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,0.82);overflow-y:auto;">
+<div id="tutorial-box" style="position:relative;margin:40px auto;max-width:780px;background:linear-gradient(160deg,#0d0a05 80%,#1a1000);border:2px solid #aa8833;border-radius:10px;padding:28px 32px 24px;font-family:'Times New Roman',serif;color:#e8d9b0;box-shadow:0 0 60px #aa883355;">
+<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;border-bottom:1px solid #554422;padding-bottom:14px;">
+<span style="font-size:36px;">&#9876;</span>
+<div><div style="font-size:22px;font-weight:700;color:#ffd700;letter-spacing:2px;">WELCOME TO SOULSCAPE</div><div style="font-size:11px;color:#887;margin-top:3px;">Read this guide — it disappears once closed.</div></div>
+</div>
+<!-- BASE section -->
+<div id="tut-base">
+<div class="tut-section"><div class="tut-heading">&#127939; MOVEMENT &amp; SURVIVAL</div>
+<div class="tut-row"><span class="tut-key">W A S D</span><span class="tut-desc">Move around the world</span></div>
+<div class="tut-row"><span class="tut-key">L-Shift</span><span class="tut-desc">Sprint (drains Stamina)</span></div>
+<div class="tut-row"><span class="tut-key">Z</span><span class="tut-desc">Jump</span></div>
+<div class="tut-row"><span class="tut-key">Space</span><span class="tut-desc">Roll / Dodge — use while moving for a directional roll</span></div>
+<div class="tut-row"><span class="tut-key">Q / E</span><span class="tut-desc">Dash sideways</span></div>
+</div>
+<div class="tut-section"><div class="tut-heading">&#9876; COMBAT</div>
+<div class="tut-row"><span class="tut-key">1 or LMB</span><span class="tut-desc">Attack — costs Stamina. Keep Stamina above 0!</span></div>
+<div class="tut-row"><span class="tut-key">2 or RMB</span><span class="tut-desc">Parry on first press; Block if parry is on cooldown</span></div>
+<div class="tut-row"><span class="tut-key">3</span><span class="tut-desc">Heal with Estus Flask</span></div>
+<div class="tut-row"><span class="tut-key">F</span><span class="tut-desc">Lock-On to nearest enemy — spells &amp; arrows auto-aim while locked!</span></div>
+<div class="tut-row"><span class="tut-key">Tab</span><span class="tut-desc">Cycle through nearby targets when locked on</span></div>
+<div class="tut-row"><span class="tut-key">4 – 9</span><span class="tut-desc">Action bar ability slots — drag abilities from <b>P</b> (Ability Browser)</span></div>
+</div>
+<div class="tut-section"><div class="tut-heading">&#128247; CAMERA &amp; TARGETING</div>
+<div class="tut-row"><span class="tut-key">MMB + Drag</span><span class="tut-desc">Orbit camera in 3rd-person view</span></div>
+<div class="tut-row"><span class="tut-key">Scroll</span><span class="tut-desc">Zoom (3rd-person) or adjust spell target depth (1st-person)</span></div>
+<div class="tut-row"><span class="tut-key">V</span><span class="tut-desc">Toggle First-Person / Third-Person camera</span></div>
+<div class="tut-row"><span class="tut-key">Blue line</span><span class="tut-desc">Spell path preview — shows exactly where your next spell will travel</span></div>
+</div>
+<div class="tut-section"><div class="tut-heading">&#128218; MENUS &amp; WORLD</div>
+<div class="tut-row"><span class="tut-key">ESC</span><span class="tut-desc">Options / Pause — rebind keys under Keybinds tab</span></div>
+<div class="tut-row"><span class="tut-key">I</span><span class="tut-desc">Inventory &nbsp; <span class="tut-key">K</span> Skills &nbsp; <span class="tut-key">M</span> World Map</span></div>
+<div class="tut-row"><span class="tut-key">P</span><span class="tut-desc">Ability Browser — drag abilities onto your action bar &nbsp; <span class="tut-key">O</span> Spell Book</span></div>
+<div class="tut-row"><span class="tut-key">T</span><span class="tut-desc">Teleport menu &nbsp; <span class="tut-key">U</span> Dungeon &amp; Gauntlet &nbsp; <span class="tut-key">F5</span> Quick Save</span></div>
+<div class="tut-row"><span class="tut-key">E</span><span class="tut-desc">Pick up loot &nbsp; <span class="tut-key">G</span> Gather / Chop / Fish &nbsp; <span class="tut-key">L</span> Toggle auto-loot</span></div>
+<div class="tut-row"><span class="tut-key">N</span><span class="tut-desc">Toggle minimap &nbsp; <span class="tut-key">5</span> Prayer &nbsp; <span class="tut-key">6</span> Bury Bones</span></div>
+</div>
+</div>
+<!-- CLASS-SPECIFIC section -->
+<div id="tut-class" style="margin-top:18px;border-top:1px solid #554422;padding-top:14px;"></div>
+<div style="text-align:center;margin-top:22px;">
+<button id="tut-close-btn" style="background:#aa8833;color:#000;border:none;padding:10px 40px;border-radius:5px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:1px;box-shadow:0 0 18px #aa883388;">Begin Adventure &#9654;</button>
+</div>
+</div>
+</div>
 </div>
 <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.158.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.158.0/examples/jsm/"}}</script>
 <script type="module">
@@ -1210,28 +1278,38 @@ const raw=inventory[i];const itemName=typeof raw==='string'?raw:raw.name;
 if(itemName.toLowerCase().includes('arrow')){
 hasAmmo=true;inventory.splice(i,1);updateInvUI();break;}}
 if(!hasAmmo){log('No arrows! Craft or retrieve arrows.','#f44');return;}}
-// Ranger gets infinite arrows - no ammo check needed
-// Calculate aim direction: arrows auto-aim at locked target, spells always use cursor
-let targetX,targetZ;
-if(type==='arrow'&&lockOn&&lockOn.mesh){
-// Arrows: auto-aim at locked target
+// Calculate aim direction
+let targetX,targetY,targetZ;
+const _projStartY2=player.y+8;
+if(lockOn&&lockOn.mesh){
+// Lock-on: aim directly at enemy center
 const ePos=lockOn.mesh.position;
-targetX=ePos.x;targetZ=ePos.z;
+targetX=ePos.x;targetY=ePos.y+6;targetZ=ePos.z;
 }else{
-// Spells AND arrows without lock: use mouse cursor for precise aiming
+// Free-aim: raycast from camera through mouse onto ground plane or terrain
 if(!window._shootRC)window._shootRC=new THREE.Raycaster();
-if(!window._shootPlane)window._shootPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
-if(!window._shootTarget)window._shootTarget=new THREE.Vector3();
 window._shootRC.setFromCamera({x:mouse.x,y:mouse.y},cam);
-const planeY=meshTerrainH(player.x,player.z);
-window._shootPlane.constant=-planeY;
-window._shootRC.ray.intersectPlane(window._shootPlane,window._shootTarget);
-if(!window._shootTarget)return;
-targetX=window._shootTarget.x;targetZ=window._shootTarget.z;}
-// Calculate direction and angle
-const dx=targetX-player.x;const dz=targetZ-player.z;
+const _sDir=window._shootRC.ray.direction.clone().normalize();
+// Find where ray hits the terrain (ground-plane intersect at player height)
+const _camPos=cam.position;
+const _denom=_sDir.y;
+if(Math.abs(_denom)>0.001){
+// Ray-plane intersection at y = player.y
+const _t=(_projStartY2-_camPos.y)/_denom;
+if(_t>0){
+targetX=_camPos.x+_sDir.x*_t;targetY=_projStartY2;targetZ=_camPos.z+_sDir.z*_t;
+}else{
+// Ray goes upward — use camera ray point at spellTargetDepth
+const _pt=_camPos.clone().addScaledVector(_sDir,spellTargetDepth);
+targetX=_pt.x;targetY=_pt.y;targetZ=_pt.z;
+}}else{
+const _pt=_camPos.clone().addScaledVector(_sDir,spellTargetDepth);
+targetX=_pt.x;targetY=_pt.y;targetZ=_pt.z;
+}}
+const dx=targetX-player.x;const dz=targetZ-player.z;const dy=targetY-_projStartY2;
 const dist=Math.hypot(dx,dz);
-if(dist<1)return;
+const dist3D=Math.sqrt(dx*dx+dy*dy+dz*dz);
+if(dist3D<1)return;
 // Create projectile (arrow or spell orb)
 let proj;
 if(type==='arrow'){
@@ -1250,19 +1328,19 @@ if(!window._spellMatCache[col])window._spellMatCache[col]=new MS({color:col,emis
 proj=new THREE.Mesh(window._spellGeo,window._spellMatCache[col]);
 }
 // Position at player
-const startH=meshTerrainH(player.x,player.z);
-proj.position.set(player.x,startH+8,player.z);
-// Calculate velocity - different physics for arrows vs spells
+proj.position.set(player.x,_projStartY2,player.z);
+// Calculate velocity — full 3D direction for aiming up/down
 const angle=Math.atan2(dx,dz);
 if(type==='arrow'){
-// Arrows: slower with gravity arc
-const speed=0.8;const arcHeight=dist*0.15;
-proj.userData={vx:Math.sin(angle)*speed,vz:Math.cos(angle)*speed,vy:arcHeight*0.02,life:80,dmg:dmg,type:type,gravity:0.015};
+const speed=0.8;
+const vyAim=(dy/Math.max(1,dist3D))*speed;
+proj.userData={vx:Math.sin(angle)*speed,vz:Math.cos(angle)*speed,vy:vyAim+dist*0.003,life:100,dmg:dmg,type:type,gravity:0.012};
 proj.rotation.y=angle;proj.rotation.z=-.3;
 }else{
-// Spells: faster, less gravity, longer life, more accurate straight shot
-const speed=2.5;const arcHeight=dist*0.05;
-proj.userData={vx:Math.sin(angle)*speed,vz:Math.cos(angle)*speed,vy:arcHeight*0.01,life:120,dmg:dmg,type:type,gravity:0.008};
+// Spells: fast, 3D-aimed, longer life & range for hitting dragons/sky targets
+const speed=3.0;
+const vyAim=(dy/Math.max(1,dist3D))*speed;
+proj.userData={vx:Math.sin(angle)*speed,vz:Math.cos(angle)*speed,vy:vyAim,life:200,dmg:dmg,type:type,gravity:0.003};
 // Add bright trail for spells
 if(!window._trailGeo)window._trailGeo=new THREE.SphereGeometry(.25,6,6);
 if(!window._trailMatCache)window._trailMatCache={};
@@ -1658,7 +1736,7 @@ return best}
 function meshTerrainH(wx,wz){
 if(!groundMesh)return terrainH(wx,wz);
 const pos=groundMesh.geometry.attributes.position;
-const segs=250,size=80000,half=size/2,cell=size/segs,cols=segs+1;
+const segs=400,size=80000,half=size/2,cell=size/segs,cols=segs+1;
 const fi=(wx+half)/cell,fj=(half+wz)/cell;
 const i0=Math.max(0,Math.min(segs-1,Math.floor(fi))),j0=Math.max(0,Math.min(segs-1,Math.floor(fj)));
 const fx=fi-i0,fz=fj-j0;
@@ -1668,6 +1746,9 @@ if(fx+fz<=1)return(1-fx-fz)*h00+fx*h10+fz*h01;
 return(1-fx)*h01+(fx+fz-1)*h11+(1-fz)*h10}
 let keys={},mouse={x:0,y:0,dx:0,dy:0,down:false,right:false,mid:false};
 let camYaw=0,camPitch=.35,camDist=60;
+let cameraMode='third'; // 'third' or 'first'
+let spellTargetDepth=80; // distance along ray for 3rd-person targeting
+let spellPreviewLine=null; // THREE.Line for spell path preview
 let player={x:0,z:0,y:2,vx:0,vz:0,vy:0,speed:.42,hp:142,maxHp:142,sta:100,maxSta:100,poi:68,maxPoi:68,ang:0,rolling:false,rollT:0,atkCD:0,dead:false,deadTimer:0,blocking:false,grounded:true,isSprinting:false};
 let lockOn=null,lockIdx=-1;
 let showSkills=false,showInv=false;
@@ -1738,14 +1819,14 @@ wyrm:[{i:"Yrmway Onesbay",c:.8},{i:"Agondray Ifenay",c:.03},{i:"Oinscay x90",c:.
 // === OSRS-INSPIRED WORLD REGIONS ===
 const regions=[
 // === ORIGINAL CORE (center) ===
-{n:'Umbridgelay',x:0,z:0,r:280,lv:1,c:[.42,.52,.28],en:['goblin','cow','chicken'],fog:0x7a8a9a},
+{n:'Umbridgelay',x:0,z:0,r:280,lv:1,c:[.28,.52,.18],en:['goblin','cow','chicken'],fog:0x7a8a9a},
 {n:'Arrockvay',x:550,z:50,r:220,lv:15,c:[.45,.40,.32],en:['guard','darkwiz'],fog:0x8a7a5a},
 {n:'Ildernesway',x:0,z:-650,r:420,lv:50,c:[.18,.12,.10],en:['revenant','skeleton','demon'],fog:0x3a2820},
 {n:'Alway Aridkhay',x:580,z:400,r:260,lv:10,c:[.68,.55,.30],en:['scorpion','warrior'],fog:0xb0a070},
-{n:'Aladorfay',x:-480,z:280,r:240,lv:20,c:[.50,.50,.48],en:['whiteknight','dwarf'],fog:0x9a9a98},
+{n:'Aladorfay',x:-480,z:280,r:240,lv:20,c:[.32,.52,.28],en:['whiteknight','dwarf'],fog:0x9a9a98},
 {n:'Arbarianba Illagevay',x:280,z:-250,r:180,lv:8,c:[.38,.32,.20],en:['barbarian'],fog:0x7a6a4a},
 {n:'Aynordray',x:-300,z:-150,r:200,lv:12,c:[.20,.28,.16],en:['vampire','zombie'],fog:0x3a4830},
-{n:'Ortpay Arimsay',x:-160,z:480,r:220,lv:5,c:[.38,.46,.34],en:['pirate','mugger'],fog:0x8a9a8a},
+{n:'Ortpay Arimsay',x:-160,z:480,r:220,lv:5,c:[.26,.48,.22],en:['pirate','mugger'],fog:0x8a9a8a},
 {n:'Edgevillay',x:150,z:-350,r:150,lv:25,c:[.32,.28,.20],en:['skeleton','guard'],fog:0x6a5a40},
 {n:'Atherbycay',x:-500,z:-400,r:180,lv:18,c:[.28,.42,.26],en:['zombie'],fog:0x506848},
 // === EXPANDED REGIONS ===
@@ -1753,7 +1834,7 @@ const regions=[
 {n:'Anilleyay',x:-1400,z:500,r:200,lv:30,c:[.36,.42,.30],en:['ogre','guard'],fog:0x7a8a6a},
 {n:'Anifiscay',x:1300,z:-200,r:240,lv:35,c:[.15,.20,.12],en:['vampire','wolf','ghost'],fog:0x2a3820},
 {n:'Orytaniamay',x:1600,z:-400,r:350,lv:40,c:[.12,.16,.10],en:['ghost','shade','vampire'],fog:0x1a2a18},
-{n:'Aramjakay',x:-200,z:1800,r:400,lv:15,c:[.32,.52,.20],en:['spider','snake','tribesman'],fog:0x6a9a50},
+{n:'Aramjakay',x:-200,z:1800,r:400,lv:15,c:[.22,.55,.16],en:['spider','snake','tribesman'],fog:0x6a9a50},
 {n:'Imhavenbray',x:-500,z:2200,r:280,lv:20,c:[.28,.46,.16],en:['spider','drake','snake'],fog:0x5a8a40},
 {n:'Ollheimtray',x:-200,z:-3500,r:350,lv:55,c:[.30,.28,.24],en:['troll','wolf'],fog:0x5a5040},
 {n:'Odgay Arsway',x:0,z:-4500,r:400,lv:80,c:[.18,.14,.22],en:['demon','golem','wyrm'],fog:0x2a2030},
@@ -2076,7 +2157,15 @@ drops.brutalred=[{i:"Agondray Onesbay",c:1},{i:"Edray Agonhidedray x2",c:.6},{i:
 drops.brutalblack=[{i:"Agondray Onesbay",c:1},{i:"Ackblay Agonhidedray x2",c:.6},{i:"Oinscay x400",c:.6}];
 drops.kraken_spawn=[{i:"Oinscay x10",c:.5}];drops.tentacle=[{i:"Oinscay x15",c:.5}];
 function getReg(x,z){let b=regions[0],d=1e9;for(const r of regions){const dd=Math.hypot(x-r.x,z-r.z);if(dd<d){d=dd;b=r}}return b}
-function biomeCol(x,z){const r=getReg(x,z),v=Math.sin(x*1.7+z*2.3)*.03;return[Math.max(0,Math.min(1,r.c[0]+v)),Math.max(0,Math.min(1,r.c[1]+v*.7)),Math.max(0,Math.min(1,r.c[2]+v*.5))]}
+// Biome classifiers using actual pig-latin region names
+function isDesertBiome(rg){return rg.n==='Alway Aridkhay'||rg.n==='Esertday Ateauplay'||rg.n==='Ophanemsay'||rg.n==='Enaphossmay'||rg.n.includes('Aridkhay')}
+function isWildBiome(rg){return rg.n==='Ildernesway'||rg.n==='Eepday Ildernesway'||rg.n==='Aynordray'||rg.n==='Orytaniamay'||rg.n==='Anifiscay'}
+function isTropBiome(rg){return rg.n==='Aramjakay'||rg.n==='Imhavenbray'||rg.n==='Osmay Elay Armlesshay'}
+function biomeCol(x,z){const r=getReg(x,z);
+// Multi-octave noise for natural grass color variation
+const v1=Math.sin(x*1.7+z*2.3)*.03,v2=Math.sin(x*.4+z*.6)*.025,v3=Math.cos(x*.12-z*.18)*.02;
+const v=v1+v2+v3;
+return[Math.max(0,Math.min(1,r.c[0]+v)),Math.max(0,Math.min(1,r.c[1]+v*.7+Math.abs(v2)*.5)),Math.max(0,Math.min(1,r.c[2]+v*.5))]}
 
 // Seeded RNG for consistent procedural terrain
 function seededRand(x,z){let n=Math.sin(x*127.1+z*311.7)*43758.5453;return n-Math.floor(n)}
@@ -2124,7 +2213,13 @@ const lakes=[
 {x:800,z:900,r:50,d:10},{x:-3500,z:-100,r:60,d:12},{x:2500,z:-1500,r:45,d:9},
 {x:-2000,z:1400,r:55,d:8},{x:1500,z:800,r:40,d:7},{x:-800,z:-3400,r:50,d:10},
 {x:300,z:1800,r:35,d:6},{x:-1400,z:600,r:30,d:5},{x:2000,z:1000,r:45,d:8},
-{x:-3000,z:-2000,r:70,d:15},{x:3500,z:-500,r:55,d:10},{x:-5000,z:500,r:80,d:14}
+{x:-3000,z:-2000,r:70,d:15},{x:3500,z:-500,r:55,d:10},{x:-5000,z:500,r:80,d:14},
+// Additional lakes for denser water features
+{x:-600,z:800,r:25,d:5},{x:400,z:-100,r:20,d:4},{x:-900,z:400,r:28,d:6},
+{x:1000,z:200,r:22,d:5},{x:-200,z:600,r:18,d:4},{x:600,z:1200,r:35,d:7},
+{x:-1600,z:-600,r:40,d:8},{x:1800,z:-200,r:30,d:6},{x:-700,z:1600,r:45,d:9},
+{x:100,z:-600,r:22,d:5},{x:-1000,z:-800,r:32,d:7},{x:2200,z:400,r:38,d:8},
+{x:-3200,z:800,r:50,d:10},{x:1200,z:1600,r:28,d:6},{x:-400,z:3000,r:55,d:11}
 ];
 function isInLake(x,z){for(const l of lakes){const d=Math.hypot(x-l.x,z-l.z);if(d<l.r)return{...l,dist:d}}return null}
 
@@ -2868,7 +2963,7 @@ function init(){
 console.log('INIT START');
 // Initialize GPU instancers for building elements
 initBuildingInstancers();
-scene=new THREE.Scene();scene.background=new THREE.Color(0xaaccee);scene.fog=new THREE.FogExp2(0xaaccee,.00015);
+scene=new THREE.Scene();scene.background=new THREE.Color(0xb8d4ee);scene.fog=new THREE.FogExp2(0xb8d4ee,.00012);
 cam=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,1,8000);
 renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance',stencil:false,depth:true});
 renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(1);
@@ -2880,8 +2975,8 @@ document.body.appendChild(renderer.domElement);
 // Bright outdoor lighting
 scene.add(new THREE.AmbientLight(0x8899aa,1.2));
 const sun=new THREE.DirectionalLight(0xfff5e0,3.0);sun.position.set(200,350,-100);sun.castShadow=true;
-sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.near=10;sun.shadow.camera.far=900;
-sun.shadow.camera.left=-200;sun.shadow.camera.right=200;sun.shadow.camera.top=200;sun.shadow.camera.bottom=-200;
+sun.shadow.mapSize.set(4096,4096);sun.shadow.camera.near=10;sun.shadow.camera.far=1200;
+sun.shadow.camera.left=-300;sun.shadow.camera.right=300;sun.shadow.camera.top=300;sun.shadow.camera.bottom=-300;
 sun.shadow.bias=-.0003;sun.shadow.normalBias=.03;scene.add(sun);
 // Sky fill light
 const fill=new THREE.DirectionalLight(0xaaccee,.8);fill.position.set(-200,100,150);scene.add(fill);
@@ -2889,12 +2984,13 @@ const fill=new THREE.DirectionalLight(0xaaccee,.8);fill.position.set(-200,100,15
 const rim=new THREE.DirectionalLight(0xeebb88,.6);rim.position.set(-80,180,-250);scene.add(rim);
 // Hemisphere: bright sky / warm ground
 scene.add(new THREE.HemisphereLight(0xccddff,0x886644,.9));
-// Sky dome (dramatic gradient)
+// Sky dome (vibrant gradient — warm horizon to brilliant blue zenith)
 const skyGeo=new THREE.SphereGeometry(5000,32,24);
 const skyColors=new Float32Array(skyGeo.attributes.position.count*3);
 for(let i=0;i<skyGeo.attributes.position.count;i++){const y=skyGeo.attributes.position.getY(i)/5000;
-const t=Math.max(0,Math.min(1,(y+.2)/.7));
-const r=.55+t*.3,g=.65+t*.25,b=.8+t*.15;
+const t=Math.max(0,Math.min(1,(y+.15)/.75));
+// Horizon: warm golden-white → Mid: bright blue → Zenith: deep azure
+const r=.92-.52*t,g=.88-.28*t,b=.82+.18*t;
 skyColors[i*3]=r;skyColors[i*3+1]=g;skyColors[i*3+2]=b}
 skyGeo.setAttribute('color',new THREE.BufferAttribute(skyColors,3));
 const skyMat=new MS({vertexColors:true,side:THREE.BackSide,fog:false,roughness:1,metalness:0});
@@ -2911,8 +3007,8 @@ mt.shT=new MS({color:0xd8b060,roughness:.32,metalness:.82});
 
 // Biome-colored terrain (80000x80000) - massive world
 mt.snow=new MS({color:0xeeeeff,roughness:.7,metalness:.05});
-mt.lakeMat=new MS({color:0x2a7a9a,roughness:.05,metalness:.4,transparent:true,opacity:.75,side:THREE.DoubleSide,emissive:0x1a4a6a,emissiveIntensity:.15});
-const gGeo=new THREE.PlaneGeometry(80000,80000,250,250);
+mt.lakeMat=new MS({color:0x1a6a8a,roughness:.02,metalness:.55,transparent:true,opacity:.8,side:THREE.DoubleSide,emissive:0x0a4a6a,emissiveIntensity:.25,envMapIntensity:1.2});
+const gGeo=new THREE.PlaneGeometry(80000,80000,400,400);
 const gp=gGeo.attributes.position;
 const vc=new Float32Array(gp.count*3);
 for(let i=0;i<gp.count;i++){const lx=gp.getX(i),lz=-gp.getY(i);
@@ -2924,16 +3020,37 @@ else if(h>80){const rf=Math.min(1,(h-80)/40);vc[i*3]=bc[0]*(1-rf)+.45*rf;vc[i*3+
 else{vc[i*3]=bc[0];vc[i*3+1]=bc[1];vc[i*3+2]=bc[2]}}
 gGeo.setAttribute('color',new THREE.BufferAttribute(vc,3));
 gGeo.computeVertexNormals();
-const ground=new THREE.Mesh(gGeo,new MS({vertexColors:true,roughness:.88}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);groundMesh=ground;
-// === LAKES ===
-lakes.forEach(l=>{const lGeo=new THREE.CircleGeometry(l.r,24);const lMesh=new THREE.Mesh(lGeo,mt.lakeMat);lMesh.rotation.x=-Math.PI/2;lMesh.position.set(l.x,meshTerrainH(l.x,l.z)+1,l.z);scene.add(lMesh)});
+const ground=new THREE.Mesh(gGeo,new MS({vertexColors:true,roughness:.85}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);groundMesh=ground;
+// === LAKES with shore detail ===
+lakes.forEach(l=>{
+const lGeo=new THREE.CircleGeometry(l.r,32);const lMesh=new THREE.Mesh(lGeo,mt.lakeMat);
+lMesh.rotation.x=-Math.PI/2;lMesh.position.set(l.x,meshTerrainH(l.x,l.z)+1,l.z);scene.add(lMesh);
+// Shore rocks around each lake
+const nRocks=Math.max(6,Math.floor(l.r*.4));
+for(let i=0;i<nRocks;i++){const a=i/nRocks*Math.PI*2+Math.random()*.3;const rd=l.r*.95+Math.random()*4;
+const rx=l.x+Math.cos(a)*rd,rz=l.z+Math.sin(a)*rd;const rh=meshTerrainH(rx,rz);
+const rs=.8+Math.random()*2;const rock=new THREE.Mesh(new THREE.IcosahedronGeometry(rs,0),mt.rk);
+rock.position.set(rx,rh+rs*.3,rz);rock.rotation.set(Math.random(),Math.random(),Math.random());
+rock.castShadow=true;scene.add(rock)}
+// Reeds/cattails at shore
+const nReeds=Math.max(4,Math.floor(l.r*.3));
+for(let i=0;i<nReeds;i++){const a=i/nReeds*Math.PI*2+Math.random()*.5;const rd=l.r*.85+Math.random()*6;
+const rx=l.x+Math.cos(a)*rd,rz=l.z+Math.sin(a)*rd;const rh=meshTerrainH(rx,rz);
+const reed=new THREE.Mesh(new THREE.CylinderGeometry(.05,.08,2+Math.random()*2,3),
+new MS({color:0x3a5a20,roughness:1}));reed.position.set(rx,rh+1.5,rz);scene.add(reed)}});
 
-// River running through the world
+// === RIVERS — multiple segments winding through the world ===
 const rGeo=new THREE.PlaneGeometry(26,600,24,80);
 riverMesh=new THREE.Mesh(rGeo,mt.wt);riverMesh.rotation.x=-Math.PI/2;riverMesh.position.set(220,.8,0);scene.add(riverMesh);
-// Second river segment
 const rGeo2=new THREE.PlaneGeometry(20,400,16,50);
 const rv2=new THREE.Mesh(rGeo2,mt.wt);rv2.rotation.x=-Math.PI/2;rv2.position.set(-350,.6,-200);scene.add(rv2);
+// Additional river segments for richer landscape
+const rvData=[
+{w:18,l:500,x:-1200,z:300,rot:.3},{w:15,l:350,x:1400,z:-600,rot:-.4},
+{w:22,l:700,x:-2500,z:-800,rot:.15},{w:14,l:300,x:800,z:1400,rot:-.6}];
+rvData.forEach(r=>{const rg=new THREE.PlaneGeometry(r.w,r.l,12,40);
+const rm=new THREE.Mesh(rg,mt.wt);rm.rotation.x=-Math.PI/2;rm.rotation.z=r.rot||0;
+rm.position.set(r.x,.7,r.z);scene.add(rm)});
 
 function arch(x,z,rot,sc){const s=sc||1,g=new THREE.Group();
 const lp=new THREE.Mesh(new THREE.BoxGeometry(4*s,22*s,4*s),mt.st);lp.position.set(-6*s,11*s,0);lp.castShadow=true;g.add(lp);
@@ -2973,24 +3090,24 @@ const winGlassMat=new MS({color:0x2a4a6a,roughness:.15,metalness:.3,emissive:0x1
 // Foundation
 const found=new THREE.Mesh(new THREE.BoxGeometry(wW+2*s,1.5*s,wD+2*s),mt.st);found.position.y=.75*s;found.castShadow=true;g.add(found);
 // Circle collider removed — entry handled by makeEnterable + enterBuilding system
-// Interior floor
-const intFloor=new THREE.Mesh(new THREE.BoxGeometry(wW-.5*s,.2*s,wD-.5*s),intFloorMat);intFloor.position.y=1.6*s;intFloor.receiveShadow=true;g.add(intFloor);
-// Back wall (solid)
-const backW=new THREE.Mesh(new THREE.BoxGeometry(wW,wH,wallT),mt.wd);backW.position.set(0,wH/2+1.5*s,-wD/2);backW.castShadow=true;g.add(backW);
-// Left wall (solid)
-const leftW=new THREE.Mesh(new THREE.BoxGeometry(wallT,wH,wD),mt.wd);leftW.position.set(-wW/2,wH/2+1.5*s,0);leftW.castShadow=true;g.add(leftW);
+// Interior floor at proper ground level
+const intFloor=new THREE.Mesh(new THREE.BoxGeometry(wW-.5*s,.2*s,wD-.5*s),intFloorMat);intFloor.position.y=0.1*s;intFloor.receiveShadow=true;g.add(intFloor);
+// Back wall (solid) - starts from floor level
+const backW=new THREE.Mesh(new THREE.BoxGeometry(wW,wH,wallT),mt.wd);backW.position.set(0,wH/2+0.2*s,-wD/2);backW.castShadow=true;g.add(backW);
+// Left wall (solid) - starts from floor level
+const leftW=new THREE.Mesh(new THREE.BoxGeometry(wallT,wH,wD),mt.wd);leftW.position.set(-wW/2,wH/2+0.2*s,0);leftW.castShadow=true;g.add(leftW);
 // Right wall (solid)
 const rightW=leftW.clone();rightW.position.x=wW/2;g.add(rightW);
 // Front wall — two sections flanking doorway
 const fwSideW=(wW-doorW)/2;
-const fwL=new THREE.Mesh(new THREE.BoxGeometry(fwSideW,wH,wallT),mt.wd);fwL.position.set(-(doorW+fwSideW)/2,wH/2+1.5*s,wD/2);fwL.castShadow=true;g.add(fwL);
+const fwL=new THREE.Mesh(new THREE.BoxGeometry(fwSideW,wH,wallT),mt.wd);fwL.position.set(-(doorW+fwSideW)/2,wH/2+0.2*s,wD/2);fwL.castShadow=true;g.add(fwL);
 const fwR=fwL.clone();fwR.position.x=(doorW+fwSideW)/2;g.add(fwR);
 // Lintel above door
-const lintel=new THREE.Mesh(new THREE.BoxGeometry(doorW+1*s,1.2*s,wallT+.2*s),mt.stD);lintel.position.set(0,doorH2+1.5*s+.6*s,wD/2);lintel.castShadow=true;g.add(lintel);
+const lintel=new THREE.Mesh(new THREE.BoxGeometry(doorW+1*s,1.2*s,wallT+.2*s),mt.stD);lintel.position.set(0,doorH2+0.2*s+.6*s,wD/2);lintel.castShadow=true;g.add(lintel);
 // Top section above door
-const topH=wH-doorH2-1.2*s;if(topH>0){const topW=new THREE.Mesh(new THREE.BoxGeometry(doorW,topH,wallT),mt.wd);topW.position.set(0,doorH2+1.5*s+1.2*s+topH/2,wD/2);g.add(topW)}
-// Door — pivots on left edge
-const doorPivot=new THREE.Group();doorPivot.position.set(-doorW/2,1.5*s,wD/2);
+const topH=wH-doorH2-1.2*s;if(topH>0){const topW=new THREE.Mesh(new THREE.BoxGeometry(doorW,topH,wallT),mt.wd);topW.position.set(0,doorH2+0.2*s+1.2*s+topH/2,wD/2);g.add(topW)}
+// Door — pivots on left edge at floor level
+const doorPivot=new THREE.Group();doorPivot.position.set(-doorW/2,0.2*s,wD/2);
 const doorPanel=new THREE.Mesh(new THREE.BoxGeometry(doorW,doorH2,.25*s),doorMat);doorPanel.position.set(doorW/2,doorH2/2,0);doorPanel.castShadow=true;doorPivot.add(doorPanel);
 // Door handle
 const doorHandle=new THREE.Mesh(new THREE.SphereGeometry(.2*s,5,5),mt.gold);doorHandle.position.set(doorW*.8,doorH2*.45,.2*s);doorPivot.add(doorHandle);
@@ -3024,101 +3141,59 @@ const sh2=sh1.clone();sh2.position.z=-(winW/2+.35*s);g.add(sh2)});
 // Chimney
 const chim=new THREE.Mesh(new THREE.BoxGeometry(2*s,4*s,2*s),mt.st);chim.position.set(-4*s,wH+5*s,-3*s);chim.castShadow=true;g.add(chim);
 const chimTop=new THREE.Mesh(new THREE.BoxGeometry(2.4*s,.4*s,2.4*s),mt.stD);chimTop.position.set(-4*s,wH+7.2*s,-3*s);g.add(chimTop);
-// Corner posts
-[[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([cx,cz])=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.3*s,.4*s,wH+.5*s,5),mt.wd);p.position.set(cx*(wW/2-.2*s),wH/2+1.5*s,cz*(wD/2-.2*s));p.castShadow=true;g.add(p)});
-// Steps leading to door
-for(let i=0;i<4;i++){const step=new THREE.Mesh(new THREE.BoxGeometry(doorW+2*s,.4*s,1.4*s),mt.st);step.position.set(0,1.5*s-i*.4*s,wD/2+.6*s+i*1.4*s);step.receiveShadow=true;g.add(step)}
-// Interior detail: table + chair
-const tbl=new THREE.Mesh(new THREE.BoxGeometry(3*s,.15*s,2*s),mt.wd);tbl.position.set(0,3.5*s,-2*s);g.add(tbl);
-const tblLeg1=new THREE.Mesh(new THREE.CylinderGeometry(.1*s,.1*s,2*s,4),mt.wd);
-[[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([lx,lz])=>{const lg=tblLeg1.clone();lg.position.set(lx*1.3*s,2.4*s,-2*s+lz*.8*s);g.add(lg)});
-g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g)}
-function tower(x,z,s,mat){s=(s||1)*2;mat=mat||mt.st;const h=meshTerrainH(x,z);const g=new THREE.Group();
-// === RNG VARIATION per tower instance ===
+// Corner posts - aligned with floor level
+[[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([cx,cz])=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.3*s,.4*s,wH+.5*s,5),mt.wd);p.position.set(cx*(wW/2-.2*s),wH/2+0.2*s,cz*(wD/2-.2*s));p.castShadow=true;g.add(p)});
+// Steps leading to door - start from floor level
+for(let i=0;i<4;i++){const step=new THREE.Mesh(new THREE.BoxGeometry(doorW+2*s,.4*s,1.4*s),mt.st);step.position.set(0,0.2*s-i*.4*s,wD/2+.6*s+i*1.4*s);step.receiveShadow=true;g.add(step)}
+// Interior detail: table + chair - positioned at new floor level
+const tbl=new THREE.Mesh(new THREE.BoxGeometry(3*s,.15*s,2*s),mt.wd);tbl.position.set(0,1.2*s,-2*s);g.add(tbl);
+const tblLeg1=new THREE.Mesh(new THREE.CylinderGeometry(.1*s,.1*s,1*s,4),mt.wd);
+[[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([lx,lz])=>{const lg=tblLeg1.clone();lg.position.set(lx*1.3*s,0.7*s,-2*s+lz*.8*s);g.add(lg)});
+g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g);
+addCircleSolid(x,z,Math.max(wW,wD)/2+2,h,h+wH+8*s);
+// Increased footprint to account for roof overhang and prevent phasing
+markPlace(x,z,Math.max(wW,wD)+10);}
+function tower(x,z,s,mat){
+s=(s||1)*2;mat=mat||mt.st;const h=meshTerrainH(x,z);const g=new THREE.Group();
 const seed=Math.abs(Math.sin(x*127.1+z*311.7)*43758.5453)%1;
-const bodyH=(24+seed*18)*s;  // height 24-42
-const baseR=(7+seed*3)*s;    // radius 7-10
-const topR=(5+seed*2.5)*s;
-const nSides=8+Math.floor(seed*8);  // 8-15 sides
-const roofStyle=Math.floor(seed*4);  // 0=cone,1=dome,2=flat+battlements,3=spire
-const nWindows=2+Math.floor(seed*5); // 2-6
-const nLevels=2+Math.floor(seed*3);  // 2-4 window levels
-const hasBalcony=seed>.35;
-const hasButtress=seed>.6;
-const wallCol=new THREE.Color().setHSL(.07+seed*.05,.15+seed*.15,.35+seed*.15);
-const tMat=new MS({color:wallCol,roughness:.8,metalness:.05});
-const useMat=mat===mt.st?tMat:mat;
-// Base (wider, variable)
-const base=new THREE.Mesh(new THREE.CylinderGeometry(baseR*.9,baseR*1.1,4*s,nSides),useMat);base.position.y=2*s;base.castShadow=true;g.add(base);
-// Main body
-const b=new THREE.Mesh(new THREE.CylinderGeometry(topR,baseR,bodyH,nSides),useMat);b.position.y=bodyH/2+4*s;b.castShadow=true;g.add(b);
-addCircleSolid(x,z,baseR*1.1,h,h+bodyH+8*s);
-// Battlement ring
-const nMerlons=nSides;
-for(let i=0;i<nMerlons;i++){const a=i/nMerlons*Math.PI*2;const cr=new THREE.Mesh(new THREE.BoxGeometry(2.2*s,1.8*s+seed*1.2*s,1.4*s),mt.stD);cr.position.set(Math.cos(a)*topR*1.02,bodyH+5*s,Math.sin(a)*topR*1.02);cr.rotation.y=a;cr.castShadow=true;g.add(cr)}
-// Roof based on roofStyle
-const roofY=bodyH+6*s;
-if(roofStyle===0){// Cone
-const roof=new THREE.Mesh(new THREE.ConeGeometry(topR*1.3,(8+seed*8)*s,nSides),mt.rfSlate);roof.position.y=roofY+(4+seed*4)*s;roof.castShadow=true;g.add(roof);
-const fin=new THREE.Mesh(new THREE.SphereGeometry(.5*s,5,5),mt.gold);fin.position.y=roofY+(12+seed*8)*s;g.add(fin)}
-else if(roofStyle===1){// Dome
-const dome=new THREE.Mesh(new THREE.SphereGeometry(topR*1.2,nSides,8,0,Math.PI*2,0,Math.PI/2),mt.rfSlate);dome.position.y=roofY;dome.castShadow=true;g.add(dome);
-const fin=new THREE.Mesh(new THREE.CylinderGeometry(.2*s,.2*s,3*s,4),mt.gold);fin.position.y=roofY+topR*1.2+1.5*s;g.add(fin)}
-else if(roofStyle===2){// Flat with extra battlements
-const flatRf=new THREE.Mesh(new THREE.CylinderGeometry(topR*1.15,topR*1.15,.8*s,nSides),useMat);flatRf.position.y=roofY;g.add(flatRf);
-for(let i=0;i<nMerlons;i++){const a=i/nMerlons*Math.PI*2;if(i%2===0){const cr2=new THREE.Mesh(new THREE.BoxGeometry(2*s,3*s,1.2*s),mt.stD);cr2.position.set(Math.cos(a)*topR*1.08,roofY+2*s,Math.sin(a)*topR*1.08);cr2.rotation.y=a;g.add(cr2)}}}
-else{// Spire (tall narrow)
-const spire=new THREE.Mesh(new THREE.ConeGeometry(topR*.6,(18+seed*14)*s,nSides),mt.rfSlate);spire.position.y=roofY+(9+seed*7)*s;spire.castShadow=true;g.add(spire);
-const fin=new THREE.Mesh(new THREE.SphereGeometry(.4*s,4,4),mt.gold);fin.position.y=roofY+(27+seed*14)*s;g.add(fin)}
-// Windows - variable count and levels
-const winMat=new MS({color:0x101010,roughness:1});
-for(let lv=0;lv<nLevels;lv++){for(let i=0;i<nWindows;i++){const a=i/nWindows*Math.PI*2+lv*.3;
-const slit=new THREE.Mesh(new THREE.BoxGeometry(.4*s,(1.5+seed)*s,.15*s),winMat);
-slit.position.set(Math.cos(a)*(topR+.5*s),6*s+lv*(bodyH/nLevels),Math.sin(a)*(topR+.5*s));slit.rotation.y=a;g.add(slit)}}
-// Balcony (conditional)
-if(hasBalcony){const balcY=(bodyH*.6+4)*s;
-const balcRing=new THREE.Mesh(new THREE.TorusGeometry(topR*1.15,.25*s,5,nSides),useMat);balcRing.position.y=balcY;balcRing.rotation.x=Math.PI/2;g.add(balcRing);
-const balcFloor=new THREE.Mesh(new THREE.CylinderGeometry(topR*1.15,topR*1.15,.25*s,nSides),useMat);balcFloor.position.y=balcY-.15*s;g.add(balcFloor)}
-// Buttresses (conditional)
-if(hasButtress){const nBut=3+Math.floor(seed*3);
-for(let i=0;i<nBut;i++){const a=i/nBut*Math.PI*2;
-const butt=new THREE.Mesh(new THREE.BoxGeometry(1.5*s,bodyH*.6,2*s),useMat);
-butt.position.set(Math.cos(a)*(baseR+1*s),bodyH*.3,Math.sin(a)*(baseR+1*s));butt.rotation.y=a;butt.castShadow=true;g.add(butt)}}
-// Door
-{const tDoorW=3*s,tDoorH=6*s,tR=baseR*.95;
-const tDoorPivot=new THREE.Group();tDoorPivot.position.set(-tDoorW/2,0,tR);
-const tDoorPanel=new THREE.Mesh(new THREE.BoxGeometry(tDoorW,tDoorH,.3*s),new MS({color:0x3a2818,roughness:.85,metalness:.05}));tDoorPanel.position.set(tDoorW/2,tDoorH/2,0);tDoorPanel.castShadow=true;tDoorPivot.add(tDoorPanel);
-const tDH=new THREE.Mesh(new THREE.SphereGeometry(.2*s,5,5),mt.gold);tDH.position.set(tDoorW*.8,tDoorH*.4,.2*s);tDoorPivot.add(tDH);
-for(let bi=0;bi<2;bi++){const bb=new THREE.Mesh(new THREE.BoxGeometry(tDoorW-.3*s,.2*s,.35*s),mt.armorDk);bb.position.set(tDoorW/2,tDoorH*.25+bi*tDoorH*.35,0);tDoorPivot.add(bb)}
-g.add(tDoorPivot);
-doors.push({pivot:tDoorPivot,x:x,z:z+tR,openAng:-Math.PI/2,cur:0})}
-// INTERIOR: Hollow space and spiral stairs
-const innerR=topR*0.6; // Interior radius
-const floorY=4*s;
-// Ground floor
-const floor0=new THREE.Mesh(new THREE.CylinderGeometry(innerR,innerR,.5*s,nSides),new MS({color:0x4a3a2a,roughness:.9}));floor0.position.y=floorY;g.add(floor0);
-// Upper floors every 10 units
-const nFloors=Math.floor(bodyH/10);
-for(let fl=1;fl<nFloors;fl++){
-const flY=floorY+fl*10*s;
-const flMesh=new THREE.Mesh(new THREE.CylinderGeometry(innerR*.9,innerR*.9,.5*s,nSides),new MS({color:0x4a3a2a,roughness:.9}));flMesh.position.y=flY;g.add(flMesh);
-// Floor hole in center for stairs
-const hole=new THREE.Mesh(new THREE.CylinderGeometry(innerR*.3,innerR*.3,.6*s,nSides),new MS({color:0x2a1a0a,roughness:1}));hole.position.y=flY;g.add(hole)}
-// Spiral staircase
-const stairR=innerR*.7;const nSteps=Math.floor(bodyH/2);
-for(let i=0;i<nSteps;i++){
-const ang=i*0.5;const sy=floorY+i*2*s;
-const step=new THREE.Mesh(new THREE.BoxGeometry(2*s,.4*s,1*s),new MS({color:0x5a4a3a,roughness:.85}));
-step.position.set(Math.cos(ang)*stairR,sy,Math.sin(ang)*stairR);step.rotation.y=ang;g.add(step);
-// Step support
-const sup=new THREE.Mesh(new THREE.BoxGeometry(.3*s,sy,.3*s),new MS({color:0x4a3a2a,roughness:.9}));
-sup.position.set(Math.cos(ang)*stairR,sy/2,Math.sin(ang)*stairR);g.add(sup)}
-// Central stair pole
-const pole=new THREE.Mesh(new THREE.CylinderGeometry(.3*s,.3*s,bodyH,nSides),new MS({color:0x3a2a1a,roughness:.9}));pole.position.y=bodyH/2+floorY;g.add(pole)
-// Torch
-const fm=new THREE.Mesh(new THREE.SphereGeometry(1.2,6,6),mt.fl);fm.position.y=bodyH*.8;g.add(fm);
+// Dimensions — all exterior only, no interior geometry
+const R=8*s;         // base radius
+const Rt=6.5*s;      // top radius (slight taper)
+const H=30*s;        // body height
+const sides=10;
+const wallCol=new THREE.Color().setHSL(.07+seed*.05,.18+seed*.12,.38+seed*.12);
+const wMat=new MS({color:wallCol,roughness:.82});
+// Tapered cylindrical body
+const body=new THREE.Mesh(new THREE.CylinderGeometry(Rt,R,H,sides),wMat);
+body.position.y=H/2;body.castShadow=true;g.add(body);
+// Battlement ring (small merlons sitting on top)
+for(let i=0;i<sides;i++){const a=i/sides*Math.PI*2;
+if(i%2===0){const m=new THREE.Mesh(new THREE.BoxGeometry(2*s,2.5*s,1.5*s),mt.stD);
+m.position.set(Math.cos(a)*Rt,H+1.25*s,Math.sin(a)*Rt);m.rotation.y=a;m.castShadow=true;g.add(m)}}
+// Conical roof cap
+const roofH=8*s;
+const roof=new THREE.Mesh(new THREE.ConeGeometry(Rt*1.15,roofH,sides),mt.rfSlate);
+roof.position.y=H+roofH/2;roof.castShadow=true;g.add(roof);
+// Arrow slit windows (flush, no protrusion)
+const slitMat=new MS({color:0x0a0a0a,roughness:1});
+for(let lv=0;lv<3;lv++){for(let i=0;i<4;i++){const a=i/4*Math.PI*2+lv*.4;
+const slit=new THREE.Mesh(new THREE.BoxGeometry(.35*s,1.8*s,.1),slitMat);
+slit.position.set(Math.cos(a)*(Rt+.1),H*.25+lv*(H*.25),Math.sin(a)*(Rt+.1));
+slit.rotation.y=a;g.add(slit)}}
+// Door arch (dark opening on front face)
+const dW=3*s,dH=5*s,dR=R+.2;
+const archMat=new MS({color:0x2a2018,roughness:.9});
+const aL=new THREE.Mesh(new THREE.BoxGeometry(.7*s,dH,.5*s),archMat);aL.position.set(-dW/2-.35*s,dH/2,dR);g.add(aL);
+const aR=aL.clone();aR.position.x=dW/2+.35*s;g.add(aR);
+const aTop=new THREE.Mesh(new THREE.BoxGeometry(dW+1.4*s,.7*s,.5*s),archMat);aTop.position.set(0,dH+.35*s,dR);g.add(aTop);
+const doorFill=new THREE.Mesh(new THREE.BoxGeometry(dW,dH,.15),new MS({color:0x0a0806,roughness:1}));doorFill.position.set(0,dH/2,dR);g.add(doorFill);
+// Torch (smaller, lower inside body)
+const fm=new THREE.Mesh(new THREE.SphereGeometry(.4,6,6),mt.fl);fm.position.y=H*.5;g.add(fm);
 g.position.set(x,h,z);scene.add(g);
-torchPositions.push({x,y:h+bodyH*.8,z,mesh:fm,ph:Math.random()*6.28,big:false})}
+addCircleSolid(x,z,R+2,h,h+H+roofH);
+// Increased tower footprint to prevent building overlap
+markPlace(x,z,R*1.5+6);
+torchPositions.push({x,y:h+H*.5,z,mesh:fm,ph:Math.random()*6.28,big:false})}
 
 // === NEW DETAILED BUILDINGS WITH INTERIORS ===
 
@@ -3167,7 +3242,8 @@ const flowerBox=new THREE.Mesh(new THREE.BoxGeometry(2.5*sc,.5*sc,.8*sc),new MS(
 flowerBox.position.set(sx*(wW/2+.2),wH*.3-1.5*sc,.5*sc);g.add(flowerBox);});
 g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g);
 addCircleSolid(x,z,Math.max(wW,wD)/2+2,h,h+wH+10*sc);
-markPlace(x,z,Math.max(wW,wD)/2+4);
+// Increased footprint for roof overhang
+markPlace(x,z,Math.max(wW,wD)+8);
 makeEnterable(x,z,'inn','Tavern & Inn',Math.max(wW,wD)/2+3);}
 
 // Blacksmith/Forge - Workshop with forge, anvil, loft
@@ -3216,7 +3292,8 @@ const smoke=new THREE.Mesh(new THREE.SphereGeometry(2*sc,6,6),new MS({color:0x44
 smoke.position.set(-wW*.3,wH+10*sc,-wD*.3);g.add(smoke);
 g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g);
 addCircleSolid(x,z,Math.max(wW,wD)/2+2,h,h+wH+12*sc);
-markPlace(x,z,Math.max(wW,wD)/2+4);
+// Increased footprint for roof overhang
+markPlace(x,z,Math.max(wW,wD)+8);
 makeEnterable(x,z,'forge','Blacksmith Forge',Math.max(wW,wD)/2+3);}
 
 // Windmill - Rotating blades, internal ladder to top
@@ -3237,19 +3314,7 @@ const dPanel=new THREE.Mesh(new THREE.BoxGeometry(dW,dH,.3*sc),new MS({color:0x4
 dPanel.position.set(dW/2,dH/2,0);dPanel.castShadow=true;dPivot.add(dPanel);
 g.add(dPivot);
 doors.push({pivot:dPivot,x:x,z:z+tR*.9,openAng:-Math.PI/2,cur:0});
-// Interior floors (3 levels)
-for(let fi=1;fi<=3;fi++){
-const flY=fi*(tH/4);
-const fl=new THREE.Mesh(new THREE.CircleGeometry(tR*.6,8),new MS({color:0x5a4a3a,roughness:.9}));
-fl.rotation.x=-Math.PI/2;fl.position.y=flY;g.add(fl);
-// Center hole for ladder
-const hole=new THREE.Mesh(new THREE.CircleGeometry(tR*.2,8),new MS({color:0x2a1a0a,roughness:1}));
-hole.rotation.x=-Math.PI/2;hole.position.y=flY+.02;g.add(hole);}
-// Central ladder
-const ladPole=new THREE.Mesh(new THREE.CylinderGeometry(.15*sc,.15*sc,tH,6),mt.wd);ladPole.position.y=tH/2;g.add(ladPole);
-for(let li=0;li<15;li++){
-const rung=new THREE.Mesh(new THREE.BoxGeometry(1*sc,.1*sc,.15*sc),mt.wd);
-rung.position.y=li*(tH/15);g.add(rung);}
+// (Windmill interior removed - enterBuilding handles it)
 // Rotating blades group
 const bladeGroup=new THREE.Group();bladeGroup.position.set(0,tH+tR*.3,0);
 // Hub
@@ -3268,67 +3333,53 @@ windmills.push({mesh:bladeGroup,x:x,z:z});
 const mill=new THREE.Mesh(new THREE.CylinderGeometry(2*sc,.3*sc,2*sc,8),mt.st);mill.position.set(0,2*sc,0);g.add(mill);
 g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g);
 addCircleSolid(x,z,tR*1.2,h,h+tH+5*sc);
-markPlace(x,z,tR*1.5);
+// Increased footprint for windmill and blades
+markPlace(x,z,tR*2+4);
 makeEnterable(x,z,'windmill','Windmill',tR+3);}
 
-// Watchtower - Military tower with battlements, multiple floors
+// Watchtower — clean square military tower, exterior only
 function watchtower(x,z,rot,sc){
 sc=(sc||1)*2;const h=meshTerrainH(x,z);const g=new THREE.Group();
 const seed=Math.abs(Math.sin(x*71.3+z*241.7)*43758.5453)%1;
-const tW=(8+seed*3)*sc,tH=(35+seed*12)*sc;
+const W=10*sc;        // width of square base
+const H=28*sc;        // total height
 const wallCol=new THREE.Color().setHSL(.1+seed*.04,.15+seed*.1,.4+seed*.1);
-const wMat=new MS({color:wallCol,roughness:.8});
-// Main tower (square)
-const body=new THREE.Mesh(new THREE.BoxGeometry(tW,tH,tW),wMat);body.position.y=tH/2;body.castShadow=true;g.add(body);
-// Crenellated top
-const crenW=tW+1*sc;
-for(let ci=0;ci<8;ci++){
-const cx=(ci<4?1:-1)*((ci%2===0?crenW/2:crenW/2-1.5*sc));
-const cz=(ci<4?-1:1)*((ci%2===1?crenW/2:crenW/2-1.5*sc));
-const cren=new THREE.Mesh(new THREE.BoxGeometry(1.5*sc,2*sc,1.5*sc),wMat);
-cren.position.set(cx,tH+1*sc,cz);g.add(cren);}
-// Roof platform
-const roofPlat=new THREE.Mesh(new THREE.BoxGeometry(tW,.5*sc,tW),new MS({color:0x4a4a4a}));
-roofPlat.position.y=tH;g.add(roofPlat);
-// Working door at base
+const wMat=new MS({color:wallCol,roughness:.82});
+// Square body
+const body=new THREE.Mesh(new THREE.BoxGeometry(W,H,W),wMat);
+body.position.y=H/2;body.castShadow=true;g.add(body);
+// Flat roof platform
+const roofPlat=new THREE.Mesh(new THREE.BoxGeometry(W+1*sc,.6*sc,W+1*sc),new MS({color:0x4a4a4a,roughness:.9}));
+roofPlat.position.y=H;g.add(roofPlat);
+// Crenellations (alternating merlons around top edge)
+const merlonSize=1.5*sc;
+[[-1,0],[1,0],[0,-1],[0,1]].forEach(([dx,dz])=>{
+for(let i=-1;i<=1;i+=2){
+const m=new THREE.Mesh(new THREE.BoxGeometry(merlonSize,2*sc,merlonSize),wMat);
+m.position.set(dx*(W/2)+dz*i*(W/3),H+1*sc,dz*(W/2)+dx*i*(W/3));g.add(m)}});
+// Arrow slits on each face
+const slitMat=new MS({color:0x0a0a0a,roughness:1});
+[0,1,2,3].forEach(face=>{const ang=face*Math.PI/2;
+for(let lv=0;lv<2;lv++){
+const slit=new THREE.Mesh(new THREE.BoxGeometry(.3*sc,2*sc,.15),slitMat);
+const sx=Math.sin(ang)*(W/2+.1),sz=Math.cos(ang)*(W/2+.1);
+slit.position.set(sx,H*.3+lv*H*.3,sz);slit.rotation.y=ang;g.add(slit)}});
+// Door (dark opening on front face)
 const dW=2.5*sc,dH=5*sc;
-const dPivot=new THREE.Group();dPivot.position.set(-dW/2,0,tW/2);
-const dPanel=new THREE.Mesh(new THREE.BoxGeometry(dW,dH,.3*sc),new MS({color:0x3a2a1a,roughness:.9}));
-dPanel.position.set(dW/2,dH/2,0);dPanel.castShadow=true;dPivot.add(dPanel);
-// Iron reinforcement
-const ironB=new THREE.Mesh(new THREE.BoxGeometry(dW,.2*sc,.35*sc),mt.iron);ironB.position.set(dW/2,dH*.3,0);dPivot.add(ironB);
-const ironB2=ironB.clone();ironB2.position.y=dH*.7;dPivot.add(ironB2);
-g.add(dPivot);
-doors.push({pivot:dPivot,x:x,z:z+tW/2,openAng:-Math.PI/2,cur:0});
-// Interior floors (4 levels)
-for(let fl=1;fl<=4;fl++){
-const flY=fl*(tH/5);
-const floor=new THREE.Mesh(new THREE.BoxGeometry(tW*.8,.2*sc,tW*.8),new MS({color:0x4a4a4a,roughness:.9}));
-floor.position.y=flY;g.add(floor);
-// Center hole for ladder
-const hole=new THREE.Mesh(new THREE.BoxGeometry(tW*.25,.25*sc,tW*.25),new MS({color:0x1a1a1a}));
-hole.position.y=flY;g.add(hole);}
-// Central ladder shaft
-const ladPole=new THREE.Mesh(new THREE.CylinderGeometry(.2*sc,.2*sc,tH,6),mt.iron);ladPole.position.y=tH/2;g.add(ladPole);
-for(let li=0;li<20;li++){
-const rung=new THREE.Mesh(new THREE.BoxGeometry(1.2*sc,.1*sc,.15*sc),mt.iron);
-rung.position.y=li*(tH/20);g.add(rung);}
-// Arrow slits
-for(let si=0;si<3;si++){
-const slitH=tH*.25+si*tH*.25;
-[-1,1].forEach(sx=>{
-const slit=new THREE.Mesh(new THREE.BoxGeometry(.3*sc,2*sc,.2*sc),new MS({color:0x0a0a0a}));
-slit.position.set(sx*(tW/2+.1),slitH,0);g.add(slit);});}
-// Torch sconces
-[-1,1].forEach(sx=>{
-const sconce=new THREE.Mesh(new THREE.CylinderGeometry(.3*sc,.4*sc,.8*sc,6),mt.iron);
-sconce.position.set(sx*(tW/2+.2),tH*.5,tW/2+.2);g.add(sconce);
-const flame=new THREE.Mesh(new THREE.SphereGeometry(.4*sc,6,6),mt.fl);flame.position.set(sx*(tW/2+.2),tH*.5+.6*sc,tW/2+.2);g.add(flame);
-torchPositions.push({x:x+sx*(tW/2+.2)*Math.cos(rot||0),y:h+tH*.5+.6*sc,z:z+sx*(tW/2+.2)*Math.sin(rot||0),mesh:flame,ph:Math.random()*6.28,big:false});});
+const doorFill=new THREE.Mesh(new THREE.BoxGeometry(dW,dH,.15),new MS({color:0x0a0806,roughness:1}));
+doorFill.position.set(0,dH/2,W/2+.1);g.add(doorFill);
+const archMat=new MS({color:0x2a2018,roughness:.9});
+const aL=new THREE.Mesh(new THREE.BoxGeometry(.6*sc,dH,.4*sc),archMat);aL.position.set(-dW/2-.3*sc,dH/2,W/2+.1);g.add(aL);
+const aR=aL.clone();aR.position.x=dW/2+.3*sc;g.add(aR);
+const aTop=new THREE.Mesh(new THREE.BoxGeometry(dW+1.2*sc,.6*sc,.4*sc),archMat);aTop.position.set(0,dH+.3*sc,W/2+.1);g.add(aTop);
+// Torch (smaller, lower inside body)
+const fm=new THREE.Mesh(new THREE.SphereGeometry(.4,6,6),mt.fl);fm.position.y=H*.5;g.add(fm);
+torchPositions.push({x,y:h+H*.5,z,mesh:fm,ph:Math.random()*6.28,big:false});
 g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g);
-addCircleSolid(x,z,tW*.7,h,h+tH+3*sc);
-markPlace(x,z,tW);
-makeEnterable(x,z,'watchtower','Watchtower',tW);}
+addCircleSolid(x,z,W*.7,h,h+H+2*sc);
+// Increased footprint for watchtower
+markPlace(x,z,W*1.2+4);
+makeEnterable(x,z,'watchtower','Watchtower',W);}
 
 // Mansion - Large multi-story house with grand staircase
 function mansion(x,z,rot,sc){
@@ -3373,9 +3424,9 @@ for(let si=0;si<12;si++){
 const stepW=3*sc;
 const step=new THREE.Mesh(new THREE.BoxGeometry(stepW,.3*sc,1*sc),new MS({color:0x5a4a3a,roughness:.85}));
 step.position.set(0,si*(wH*.5/12),-wD*.2+si*(wD*.3/12));g.add(step);
-// Stair railing
-const rail=new THREE.Mesh(new THREE.CylinderGeometry(.1*sc,.1*sc,wH*.5,6),mt.gold);
-rail.position.set(stepW/2,si*(wH*.5/12)+wH*.25,0);g.add(rail);}
+// Short railing post per step
+const rail=new THREE.Mesh(new THREE.CylinderGeometry(.08*sc,.08*sc,1.5*sc,4),mt.gold);
+rail.position.set(stepW/2,si*(wH*.5/12)+.75*sc,-wD*.2+si*(wD*.3/12));g.add(rail);}
 // Windows with shutters
 [-1,1].forEach(sx=>{
 for(let wi=0;wi<2;wi++){
@@ -3392,7 +3443,8 @@ const chim=new THREE.Mesh(new THREE.BoxGeometry(1.5*sc,wH+6*sc,1.5*sc),new MS({c
 chim.position.set(cx,wH/2+3*sc,-wD*.3);g.add(chim);});
 g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g);
 addCircleSolid(x,z,Math.max(wW,wD)/2+3,h,h+wH+8*sc);
-markPlace(x,z,Math.max(wW,wD)/2+5);
+// Increased footprint for roof overhang and mansion size
+markPlace(x,z,Math.max(wW,wD)+10);
 makeEnterable(x,z,'mansion','Mansion Estate',Math.max(wW,wD)/2+4);}
 
 // Chapel - Small church with nave, altar, bell tower
@@ -3444,7 +3496,8 @@ const crossV=new THREE.Mesh(new THREE.BoxGeometry(.2*sc,2*sc,.2*sc),mt.gold);cro
 const crossH=new THREE.Mesh(new THREE.BoxGeometry(1.5*sc,.2*sc,.2*sc),mt.gold);crossH.position.set(0,tH+8.5*sc,nL/2+tW/2);g.add(crossH);
 g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g);
 addCircleSolid(x,z,Math.max(nW,nL)/2+2,h,h+nH+15*sc);
-markPlace(x,z,Math.max(nW,nL)/2+3);
+// Increased footprint for chapel and bell tower
+markPlace(x,z,Math.max(nW,nL)+8);
 makeEnterable(x,z,'chapel','Village Chapel',Math.max(nW,nL)/2+2);}
 
 // Barn/Stable - Long building with stalls, hay loft
@@ -3495,21 +3548,22 @@ const hayPile=new THREE.Mesh(new THREE.ConeGeometry(3*sc,4*sc,8),new MS({color:0
 hayPile.position.set(bW*.8,2*sc,-bL*.4);g.add(hayPile);
 g.position.set(x,h,z);g.rotation.y=rot||0;scene.add(g);
 addCircleSolid(x,z,Math.max(bW,bL)/2+2,h,h+bH+5*sc);
-markPlace(x,z,Math.max(bW,bL)/2+3);
+// Increased footprint for barn and roof
+markPlace(x,z,Math.max(bW,bL)+6);
 makeEnterable(x,z,'barn','Barn & Stables',Math.max(bW,bL)/2+2);}
 
 
 function pine(x,z){const h=meshTerrainH(x,z);const g=new THREE.Group();
 // Roots (exposed)
 for(let i=0;i<4;i++){const a=i/4*Math.PI*2;const root=new THREE.Mesh(new THREE.CylinderGeometry(.15,.4,3,4),mt.bk);root.position.set(Math.cos(a)*1.5,.5,Math.sin(a)*1.5);root.rotation.z=Math.cos(a)*.5;root.rotation.x=Math.sin(a)*.5;root.castShadow=true;g.add(root)}
-// Trunk (tapered, knotty)
-const tr=new THREE.Mesh(new THREE.CylinderGeometry(.8,2,16,8),mt.bk);tr.position.y=8;tr.castShadow=true;g.add(tr);
+// Trunk (tapered, knotty) — natural scale
+const tr=new THREE.Mesh(new THREE.CylinderGeometry(.4,1,8,8),mt.bk);tr.position.y=4;tr.castShadow=true;g.add(tr);
 // Bark knots
 for(let i=0;i<5;i++){const kn=new THREE.Mesh(new THREE.SphereGeometry(.3+Math.random()*.3,5,5),mt.bk);kn.position.set((Math.random()-.5)*1.5,3+Math.random()*10,(Math.random()-.5)*1.5);g.add(kn)}
-// Branches with foliage layers (7 layers, decreasing size)
-for(let i=0;i<7;i++){const cn=new THREE.Mesh(new THREE.ConeGeometry(7.5-i*1,5,10),i%2?mt.lfL:mt.lf);cn.position.y=12+i*3;cn.castShadow=true;g.add(cn);
+// Branches with foliage layers (5 tiers, proper scale)
+for(let i=0;i<5;i++){const cn=new THREE.Mesh(new THREE.ConeGeometry(3.5-i*.5,3.5,8),i%2?mt.lfL:mt.lf);cn.position.y=6+i*2;cn.castShadow=true;g.add(cn);
 // Sub-branches
-if(i<5){for(let j=0;j<3;j++){const a=j/3*Math.PI*2+i*.5;const br=new THREE.Mesh(new THREE.CylinderGeometry(.08,.15,2.5,4),mt.bk);br.position.set(Math.cos(a)*(3-i*.3),11+i*3,Math.sin(a)*(3-i*.3));br.rotation.z=Math.cos(a)*.6;br.rotation.x=Math.sin(a)*.6;g.add(br)}}}
+if(i<3){for(let j=0;j<3;j++){const a=j/3*Math.PI*2+i*.5;const br=new THREE.Mesh(new THREE.CylinderGeometry(.06,.1,1.5,4),mt.bk);br.position.set(Math.cos(a)*(1.5-i*.2),5.5+i*2,Math.sin(a)*(1.5-i*.2));br.rotation.z=Math.cos(a)*.5;br.rotation.x=Math.sin(a)*.5;g.add(br)}}}
 g.position.set(x,h,z);scene.add(g)}
 function palm(x,z){const h=meshTerrainH(x,z);const g=new THREE.Group();
 // Trunk (curved, segmented)
@@ -3668,22 +3722,7 @@ for(let bi=0;bi<3;bi++){const band=new THREE.Mesh(new THREE.BoxGeometry(catDoorW
 const dH=new THREE.Mesh(new THREE.SphereGeometry(.25*sc,5,5),mt.gold);dH.position.set(catDoorW*.7,catDoorH*.5,.2*sc);catDoorPivot.add(dH);
 g.add(catDoorPivot);
 doors.push({pivot:catDoorPivot,x:x,z:z+21*sc,openAng:-Math.PI/2,cur:0});
-// Interior floors and stairs to bell towers
-const catInnerW=14*sc,catInnerD=32*sc;
-for(let cl=1;cl<3;cl++){
-const cflY=cl*10*sc;
-const cFloor=new THREE.Mesh(new THREE.BoxGeometry(catInnerW,1*sc,catInnerD),new MS({color:0x3a2a1a,roughness:.9}));
-cFloor.position.set(0,cflY,0);g.add(cFloor);
-// Hole for stairs
-const cHole=new THREE.Mesh(new THREE.BoxGeometry(catInnerW*.3,1.2*sc,catInnerD*.3),new MS({color:0x1a0a0a,roughness:1}));
-cHole.position.set(0,cflY,0);g.add(cHole)}
-// Stairs to bell towers
-[-1,1].forEach(s=>{
-const bStairR=5*sc;const bNSteps=20;
-for(let bs=0;bs<bNSteps;bs++){
-const bang=bs*0.3+s*Math.PI;const bsy=bs*1.5*sc;
-const bstep=new THREE.Mesh(new THREE.BoxGeometry(1.5*sc,.3*sc,.8*sc),new MS({color:0x4a3a2a,roughness:.85}));
-bstep.position.set(s*14*sc+Math.cos(bang)*bStairR,bsy,19*sc+Math.sin(bang)*bStairR);bstep.rotation.y=bang;g.add(bstep)}});
+// (Cathedral interior removed - enterBuilding handles it)
 // Pointed gable
 const gable=new THREE.Mesh(new THREE.ConeGeometry(12*sc,14*sc,4),mt.stGoth);gable.position.set(0,37*sc,21*sc);gable.rotation.y=Math.PI/4;gable.castShadow=true;g.add(gable);
 // Rose window (circle of small arches)
@@ -3726,70 +3765,70 @@ torch(490,90);torch(620,10);
 // ========== WILDERNESS (0,-650) ==========
 for(let i=0;i<5;i++){const rx=(Math.random()-.5)*300,rz=-550-Math.random()*200;if(canPlace(rx,rz,20)){ruin(rx,rz);markPlace(rx,rz,20)}}
 for(let i=0;i<3;i++){const lx=(Math.random()-.5)*200,lz=-600-Math.random()*150;const lv=new THREE.Mesh(new THREE.CircleGeometry(6+Math.random()*8,8),mt.lava);lv.rotation.x=-Math.PI/2;lv.position.set(lx,meshTerrainH(lx,lz)+.5,lz);scene.add(lv);torchPositions.push({x:lx,y:meshTerrainH(lx,lz)+4,z:lz,mesh:lv,ph:Math.random()*6.28,big:true,col:0xff4400})}
-tower(-45,-580,1.5);markPlace(-45,-580,28);makeEnterable(-45,-580,'tower','Wilderness Tower');tower(55,-580,1.5);markPlace(55,-580,28);makeEnterable(55,-580,'tower','Wilderness Tower');
+tower(-45,-580,1.5);makeEnterable(-45,-580,'tower','Wilderness Tower');tower(55,-580,1.5);makeEnterable(55,-580,'tower','Wilderness Tower');
 
 // ========== AL KHARID (580,400) ==========
-tower(525,350,1.2);markPlace(525,350,28);makeEnterable(525,350,'tower','Al Kharid Tower');tower(640,450,1.2);markPlace(640,450,28);makeEnterable(640,450,'tower','Al Kharid Tower');bonfire(580,400);
+tower(525,350,1.2);makeEnterable(525,350,'tower','Al Kharid Tower');tower(640,450,1.2);makeEnterable(640,450,'tower','Al Kharid Tower');bonfire(580,400);
 
 // ========== FALADOR (-480,280) ==========
 cathedral(-480,280,Math.PI/2,1);markPlace(-480,280,60);bonfire(-480,260);makeEnterable(-480,280,'cathedral','Falador Cathedral');
 
 // ========== BARBARIAN VILLAGE (280,-250) ==========
-hut(260,-240,.3,1.2);markPlace(260,-240,24);hut(300,-260,-.5,1);markPlace(300,-260,20);bonfire(280,-250);
+hut(260,-240,.3,1.2);hut(340,-280,-.5,1);bonfire(280,-250);
 
 // ========== DRAYNOR (-300,-150) ==========
-hut(-320,-160,1,.8);markPlace(-320,-160,20);hut(-280,-180,-.5,.9);markPlace(-280,-180,20);tower(-315,-100,1.2);markPlace(-315,-100,28);makeEnterable(-315,-100,'tower','Draynor Tower');bonfire(-300,-150);
+hut(-320,-160,1,.8);hut(-220,-200,-.5,.9);tower(-315,-60,1.2);makeEnterable(-315,-60,'tower','Draynor Tower');bonfire(-300,-150);
 
 // ========== PORT SARIM (-160,480) ==========
-hut(-190,460,.5,1);markPlace(-190,460,20);hut(-150,470,.8,1);markPlace(-150,470,20);bridge(-160,420,0,40);
+hut(-220,450,.5,1);hut(-100,490,.8,1);bridge(-160,420,0,40);
 const hull=new THREE.Mesh(new THREE.BoxGeometry(14,6,30),mt.wd);hull.position.set(-30,meshTerrainH(-30,510)+3,510);hull.castShadow=true;scene.add(hull);markPlace(-30,510,36);
 bonfire(-160,470);
 
 // ========== EDGEVILLE (150,-350) ==========
-hut(140,-340,.5,1);markPlace(140,-340,20);hut(170,-345,-.3,1);markPlace(170,-345,20);bonfire(155,-350);
+hut(100,-340,.5,1);hut(210,-360,-.3,1);bonfire(155,-350);
 
 // ========== CATHERBY (-500,-400) ==========
-hut(-520,-390,.3,.9);markPlace(-520,-390,20);hut(-505,-395,-.5,.9);markPlace(-505,-395,20);bonfire(-500,-400);
+hut(-560,-380,.3,.9);hut(-440,-420,-.5,.9);bonfire(-500,-400);
 
 // ========== ARDOUGNE (-1200,100) ==========
 cathedral(-1200,100,0,1);markPlace(-1200,100,60);bonfire(-1200,100);torch(-1250,100);torch(-1150,100);
 
 // ========== CANIFIS (1300,-200) ==========
-hut(1270,-210,.3,.8);markPlace(1270,-210,20);hut(1330,-205,-.4,.8);markPlace(1330,-205,20);tower(1340,-180,1.2);markPlace(1340,-180,28);makeEnterable(1340,-180,'tower','Canifis Tower');bonfire(1300,-200);
+hut(1220,-230,.3,.8);hut(1380,-190,-.4,.8);tower(1300,-120,1.2);makeEnterable(1300,-120,'tower','Canifis Tower');bonfire(1300,-200);
 
 // ========== MORYTANIA (1600,-400) ==========
 for(let i=0;i<3;i++){const rx=1550+Math.random()*100,rz=-450+Math.random()*80;if(canPlace(rx,rz,20)){ruin(rx,rz);markPlace(rx,rz,20)}}
-tower(1600,-400,1.5);markPlace(1600,-400,28);makeEnterable(1600,-400,'tower','Morytania Tower');bonfire(1600,-400);
+tower(1600,-400,1.5);makeEnterable(1600,-400,'tower','Morytania Tower');bonfire(1600,-400);
 
 // ========== KARAMJA (-200,1800) ==========
-hut(-230,1790,.3,1);markPlace(-230,1790,20);hut(-170,1810,-.5,1);markPlace(-170,1810,20);bonfire(-200,1800);
+hut(-280,1770,.3,1);hut(-120,1830,-.5,1);bonfire(-200,1800);
 
 // ========== TROLLHEIM (-200,-3500) ==========
 for(let i=0;i<3;i++){const rx=-250+Math.random()*100,rz=-3530+Math.random()*60;if(canPlace(rx,rz,20)){ruin(rx,rz);markPlace(rx,rz,20)}}
-tower(-200,-3480,1.5);markPlace(-200,-3480,28);makeEnterable(-200,-3480,'tower','Trollheim Tower');bonfire(-200,-3500);
+tower(-200,-3480,1.5);makeEnterable(-200,-3480,'tower','Trollheim Tower');bonfire(-200,-3500);
 
 // ========== GOD WARS (0,-4500) ==========
 for(let i=0;i<4;i++){const rx=-100+Math.random()*200,rz=-4550+Math.random()*100;if(canPlace(rx,rz,20)){ruin(rx,rz);markPlace(rx,rz,20)}}
-tower(-50,-4500,2.5);markPlace(-50,-4500,36);makeEnterable(-50,-4500,'tower','God Wars Tower (Saradomin)');tower(50,-4500,2.5);markPlace(50,-4500,36);makeEnterable(50,-4500,'tower','God Wars Tower (Zamorak)');
+tower(-80,-4500,2.5);makeEnterable(-80,-4500,'tower','God Wars Tower (Saradomin)');tower(80,-4500,2.5);makeEnterable(80,-4500,'tower','God Wars Tower (Zamorak)');
 
 // ========== DEEP WILDERNESS (0,-1800) ==========
 for(let i=0;i<5;i++){const rx=-200+Math.random()*400,rz=-1900+Math.random()*200;if(canPlace(rx,rz,20)){ruin(rx,rz);markPlace(rx,rz,20)}}
 
 // ========== SEERS VILLAGE (-800,-100) ==========
-hut(-840,-110,.3,1);markPlace(-840,-110,20);hut(-770,-100,-.5,1);markPlace(-770,-100,20);tower(-820,-80,1.2);markPlace(-820,-80,28);makeEnterable(-820,-80,'tower','Seers Tower');bonfire(-800,-100);
+hut(-880,-130,.3,1);hut(-720,-80,-.5,1);tower(-800,-20,1.2);makeEnterable(-800,-20,'tower','Seers Tower');bonfire(-800,-100);
 
 // ========== RELLEKKA (-400,-3800) ==========
-hut(-440,-3810,.3,1.2);markPlace(-440,-3810,24);hut(-370,-3800,-.5,1.2);markPlace(-370,-3800,24);bonfire(-400,-3800);
+hut(-480,-3830,.3,1.2);hut(-320,-3770,-.5,1.2);bonfire(-400,-3800);
 
 // ========== KELDAGRIM (-800,-3200) ==========
-tower(-855,-3230,2);markPlace(-855,-3230,36);makeEnterable(-855,-3230,'tower','Keldagrim East Tower');tower(-740,-3230,2);markPlace(-740,-3230,36);makeEnterable(-740,-3230,'tower','Keldagrim West Tower');bonfire(-800,-3200);cave(-820,-3250,.2);
+tower(-880,-3230,2);makeEnterable(-880,-3230,'tower','Keldagrim East Tower');tower(-720,-3230,2);makeEnterable(-720,-3230,'tower','Keldagrim West Tower');bonfire(-800,-3200);cave(-820,-3250,.2);
 
 // ========== PRIFDDINAS (-4000,-300) ==========
 cathedral(-4000,-300,0,1.5);markPlace(-4000,-300,70);bonfire(-4000,-300);makeEnterable(-4000,-300,'cathedral','Prifddinas Cathedral');
 
 // ========== TZHAAR CITY (1800,1200) ==========
 for(let i=0;i<3;i++){const lx=1760+Math.random()*80,lz=1160+Math.random()*80;const lv=new THREE.Mesh(new THREE.CircleGeometry(5,8),mt.lava);lv.rotation.x=-Math.PI/2;lv.position.set(lx,meshTerrainH(lx,lz)+.5,lz);scene.add(lv);torchPositions.push({x:lx,y:meshTerrainH(lx,lz)+3,z:lz,mesh:lv,ph:Math.random()*6.28,big:true,col:0xff3300})}
-tower(1800,1200,1.8);markPlace(1800,1200,32);makeEnterable(1800,1200,'tower','TzHaar Tower');cave(1810,1180,.2);bonfire(1800,1200);
+tower(1800,1200,1.8);makeEnterable(1800,1200,'tower','TzHaar Tower');cave(1810,1180,.2);bonfire(1800,1200);
 
 // === BRIDGES over rivers ===
 bridge(220,0,Math.PI/2,32);bridge(220,100,Math.PI/2,32);bridge(220,-100,Math.PI/2,32);
@@ -3797,13 +3836,15 @@ bridge(-350,-100,Math.PI/2,26);bridge(-350,-300,Math.PI/2,26);
 bridge(-1200,200,0,30);bridge(1300,-100,Math.PI/2,30);bridge(-200,1650,0,40);
 
 console.log('INIT: hand-placed done, starting scatter');
-// === SCATTER TREES (GPU InstancedMesh — 6 draw calls instead of ~9600) ===
-{const PINE_MAX=1200,PALM_MAX=400,DEAD_MAX=300;
+// === SCATTER TREES (GPU InstancedMesh — dense forests) ===
+{const PINE_MAX=6000,PALM_MAX=1500,DEAD_MAX=800;
 const _pos=new THREE.Vector3(),_quat=new THREE.Quaternion(),_scl=new THREE.Vector3(),_m=new THREE.Matrix4();
-// Pine: trunk cylinder + canopy cone
-const pineTG=new THREE.CylinderGeometry(.6,1,12,4);const pineCG=new THREE.ConeGeometry(5,14,5);
+// Pine: trunk cylinder + canopy cone — natural scale (trunk h=6, canopy r=3 h=7)
+const pineTG=new THREE.CylinderGeometry(.3,.7,6,5);const pineCG=new THREE.ConeGeometry(3,7,7);
+const pineMidCG=new THREE.ConeGeometry(2.5,5,7);
 const pineTrunks=new THREE.InstancedMesh(pineTG,mt.bk,PINE_MAX);
 const pineCanopies=new THREE.InstancedMesh(pineCG,mt.lf,PINE_MAX);
+const pineMidCan=new THREE.InstancedMesh(pineMidCG,mt.lfL,PINE_MAX);
 // Palm: trunk + top sphere
 const palmTG=new THREE.CylinderGeometry(.3,.7,14,4);const palmCG=new THREE.SphereGeometry(4,5,4);
 const palmTrunks=new THREE.InstancedMesh(palmTG,mt.bk,PALM_MAX);
@@ -3814,23 +3855,26 @@ const deadTG=new THREE.CylinderGeometry(.2,.7,10,4);const deadBG=new THREE.Cylin
 const deadTrunks=new THREE.InstancedMesh(deadTG,deadMat,DEAD_MAX);
 const deadBranches=new THREE.InstancedMesh(deadBG,deadMat,DEAD_MAX);
 let pi=0,pa=0,de=0;_quat.identity();
-for(let i=0;i<1200;i++){const x=(Math.random()-.5)*60000,z=(Math.random()-.5)*50000;
-if(isInLake(x,z))continue;const rg=getReg(x,z);const h=meshTerrainH(x,z);if(h>100)continue;
-const sc=.7+Math.random()*.6;
-const isDes=rg.n.includes('Desert')||rg.n==='Al Kharid'||rg.n==='Sophanem'||rg.n==='Menaphos';
-const isDead=rg.n==='Wilderness'||rg.n.includes('Wild')||rg.n==='Draynor'||rg.n==='Morytania'||rg.n==='Canifis';
-const isTrop=rg.n==='Karamja'||rg.n==='Brimhaven'||rg.n.includes('Harmless');
+for(let i=0;i<8000&&(pi<PINE_MAX||pa<PALM_MAX||de<DEAD_MAX);i++){const x=(Math.random()-.5)*60000,z=(Math.random()-.5)*50000;
+if(isInLake(x,z))continue;const rg=getReg(x,z);const h=meshTerrainH(x,z);if(h>110)continue;
+const sc=.8+Math.random()*.6;// Scale: trees are 1-1.4x natural size
+const isDes=isDesertBiome(rg);
+const isDead=isWildBiome(rg);
+const isTrop=isTropBiome(rg);
 if((isDes||isTrop)&&pa<PALM_MAX){
-_scl.set(sc,sc+Math.random()*.3,sc);_pos.set(x,h+7*sc,z);_m.compose(_pos,_quat,_scl);palmTrunks.setMatrixAt(pa,_m);
-_pos.set(x,h+15*sc,z);_scl.set(sc,sc*.8,sc);_m.compose(_pos,_quat,_scl);palmTops.setMatrixAt(pa,_m);pa++;
+// Palm trunk h=14 center at h+7, top sphere at h+15
+_scl.set(sc,sc,sc);_pos.set(x,h+7*sc,z);_m.compose(_pos,_quat,_scl);palmTrunks.setMatrixAt(pa,_m);
+_pos.set(x,h+14*sc,z);_scl.set(sc,sc,sc);_m.compose(_pos,_quat,_scl);palmTops.setMatrixAt(pa,_m);pa++;
 }else if(isDead&&de<DEAD_MAX){
 _scl.set(sc,sc,sc);_pos.set(x,h+5*sc,z);_m.compose(_pos,_quat,_scl);deadTrunks.setMatrixAt(de,_m);
-_pos.set(x+sc*2,h+7*sc,z);_scl.set(sc,sc*.8,sc);_m.compose(_pos,_quat,_scl);deadBranches.setMatrixAt(de,_m);de++;
-}else if(pi<PINE_MAX){
-_scl.set(sc,sc+Math.random()*.4,sc);_pos.set(x,h+6*sc,z);_m.compose(_pos,_quat,_scl);pineTrunks.setMatrixAt(pi,_m);
-_pos.set(x,h+13*sc,z);_scl.set(sc,sc,sc);_m.compose(_pos,_quat,_scl);pineCanopies.setMatrixAt(pi,_m);pi++;}}
-pineTrunks.count=pi;pineCanopies.count=pi;palmTrunks.count=pa;palmTops.count=pa;deadTrunks.count=de;deadBranches.count=de;
-[pineTrunks,pineCanopies,palmTrunks,palmTops,deadTrunks,deadBranches].forEach(m=>{m.instanceMatrix.needsUpdate=true;m.frustumCulled=false;scene.add(m)});
+_pos.set(x+sc,h+8*sc,z);_scl.set(sc,sc,sc);_m.compose(_pos,_quat,_scl);deadBranches.setMatrixAt(de,_m);de++;
+}else if(pi<PINE_MAX&&!isDes){
+// Trunk h=6 center at h+3, upper canopy at h+8, mid canopy at h+5
+_scl.set(sc,sc,sc);_pos.set(x,h+3*sc,z);_m.compose(_pos,_quat,_scl);pineTrunks.setMatrixAt(pi,_m);
+_pos.set(x,h+8*sc,z);_scl.set(sc,sc,sc);_m.compose(_pos,_quat,_scl);pineCanopies.setMatrixAt(pi,_m);
+_pos.set(x,h+5.5*sc,z);_scl.set(sc*1.15,sc,sc*1.15);_m.compose(_pos,_quat,_scl);pineMidCan.setMatrixAt(pi,_m);pi++;}}
+pineTrunks.count=pi;pineCanopies.count=pi;pineMidCan.count=pi;palmTrunks.count=pa;palmTops.count=pa;deadTrunks.count=de;deadBranches.count=de;
+[pineTrunks,pineCanopies,pineMidCan,palmTrunks,palmTops,deadTrunks,deadBranches].forEach(m=>{m.instanceMatrix.needsUpdate=true;m.frustumCulled=false;m.castShadow=true;scene.add(m)});
 }
 
 // === SCATTER BOULDERS (GPU instanced - 2 draw calls instead of 800) ===
@@ -3844,17 +3888,101 @@ if(Math.random()>.5&&c1<800){bInst1.setMatrixAt(c1++,dm)}else if(c2<800){bInst2.
 bInst1.count=c1;bInst2.count=c2;bInst1.instanceMatrix.needsUpdate=true;bInst2.instanceMatrix.needsUpdate=true;
 bInst1.castShadow=true;bInst2.castShadow=true;scene.add(bInst1);scene.add(bInst2)}
 
-// === GRASS TUFTS (GPU instanced - 1 draw call instead of 2000) ===
-{const grassGeo=new THREE.PlaneGeometry(1,2.5);
-const grassMat=new MS({color:0x3a5a20,roughness:1,side:THREE.DoubleSide,transparent:true,opacity:.7});
-const grassInst=new THREE.InstancedMesh(grassGeo,grassMat,5000);
-let gi=0;const gm=new THREE.Matrix4(),gr=new THREE.Matrix4();
-for(let i=0;i<3000&&gi<5000;i++){const gx=(Math.random()-.5)*50000,gz=(Math.random()-.5)*40000;const rg=getReg(gx,gz);
-if(rg.n==='Wilderness'||rg.n==='Al Kharid'||isInLake(gx,gz))continue;
-const gh=meshTerrainH(gx,gz);if(gh>80)continue;
-gr.makeRotationY(Math.random()*Math.PI);gm.makeTranslation(gx,gh+1.5,gz);gm.multiply(gr);grassInst.setMatrixAt(gi++,gm);
-gr.makeRotationY(Math.random()*Math.PI+Math.PI/2);gm.makeTranslation(gx,gh+1.5,gz);gm.multiply(gr);grassInst.setMatrixAt(gi++,gm)}
-grassInst.count=gi;grassInst.instanceMatrix.needsUpdate=true;scene.add(grassInst)}
+// === DENSE GRASS BLADES (GPU instanced cross-planes — lush ground cover) ===
+{const GRASS_MAX=60000;
+// Short grass blades: wide and low to the ground
+const grassBladeGeo=new THREE.PlaneGeometry(1.2,.6);
+// Vary grass colors for natural look
+const grassMats=[
+new MS({color:0x3a6a22,roughness:1,side:THREE.DoubleSide,transparent:true,opacity:.85}),
+new MS({color:0x2a5a18,roughness:1,side:THREE.DoubleSide,transparent:true,opacity:.8}),
+new MS({color:0x4a7a2a,roughness:1,side:THREE.DoubleSide,transparent:true,opacity:.82})];
+const grassInsts=grassMats.map(m=>new THREE.InstancedMesh(grassBladeGeo,m,Math.ceil(GRASS_MAX/3)));
+const gCounts=[0,0,0];const gm=new THREE.Matrix4(),gr=new THREE.Matrix4(),gs=new THREE.Matrix4();
+for(let i=0;i<40000;i++){const gx=(Math.random()-.5)*50000,gz=(Math.random()-.5)*40000;const rg=getReg(gx,gz);
+if(isWildBiome(rg)||isDesertBiome(rg)||isInLake(gx,gz))continue;
+const gh=meshTerrainH(gx,gz);if(gh>85||gh<-5)continue;
+const idx=i%3;const maxPer=Math.ceil(GRASS_MAX/3);if(gCounts[idx]>=maxPer)continue;
+const sc=.8+Math.random()*.8;
+// Cross-plane pair for 3D look — placed flat on ground
+for(let r=0;r<2;r++){if(gCounts[idx]>=maxPer)break;
+gr.makeRotationY(Math.random()*Math.PI+r*Math.PI*.5);gs.makeScale(sc,sc,sc);
+gm.makeTranslation(gx+(Math.random()-.5)*3,gh+0.3,gz+(Math.random()-.5)*3);gm.multiply(gr);gm.multiply(gs);
+grassInsts[idx].setMatrixAt(gCounts[idx]++,gm);}}
+grassInsts.forEach((inst,i)=>{inst.count=gCounts[i];inst.instanceMatrix.needsUpdate=true;inst.frustumCulled=false;scene.add(inst)})}
+
+// === BUSHES (GPU instanced — 3 types for variety) ===
+{const BUSH_MAX=4000;
+// Round bush (sphere), hedge bush (box), flowering bush (sphere + color)
+const bushGeo1=new THREE.SphereGeometry(1,6,5);const bushGeo2=new THREE.IcosahedronGeometry(1.2,1);const bushGeo3=new THREE.SphereGeometry(.9,5,4);
+// Distort vertices for organic look
+[bushGeo1,bushGeo2,bushGeo3].forEach(g=>{const p=g.attributes.position;for(let i=0;i<p.count;i++){p.setX(i,p.getX(i)+(Math.random()-.5)*.3);p.setY(i,Math.max(0,p.getY(i)+(Math.random()-.5)*.25));p.setZ(i,p.getZ(i)+(Math.random()-.5)*.3)}g.computeVertexNormals()});
+const bushMat1=new MS({color:0x264a18,roughness:.9,flatShading:true});
+const bushMat2=new MS({color:0x1a3a12,roughness:.92,flatShading:true});
+const bushMat3=new MS({color:0x2a5520,roughness:.88,flatShading:true});
+const bushInst1=new THREE.InstancedMesh(bushGeo1,bushMat1,Math.ceil(BUSH_MAX/3));
+const bushInst2=new THREE.InstancedMesh(bushGeo2,bushMat2,Math.ceil(BUSH_MAX/3));
+const bushInst3=new THREE.InstancedMesh(bushGeo3,bushMat3,Math.ceil(BUSH_MAX/3));
+const bCounts=[0,0,0];const bm=new THREE.Matrix4();
+for(let i=0;i<BUSH_MAX;i++){const bx=(Math.random()-.5)*50000,bz=(Math.random()-.5)*40000;const rg=getReg(bx,bz);
+if(isDesertBiome(rg)||isInLake(bx,bz))continue;
+const bh=meshTerrainH(bx,bz);if(bh>90||bh<-3)continue;
+const idx=i%3;const maxPer=Math.ceil(BUSH_MAX/3);if(bCounts[idx]>=maxPer)continue;
+const sc=1.2+Math.random()*2.5;bm.makeScale(sc,sc*.6+Math.random()*.4*sc,sc);bm.setPosition(bx,bh+sc*.35,bz);
+[bushInst1,bushInst2,bushInst3][idx].setMatrixAt(bCounts[idx]++,bm);}
+[bushInst1,bushInst2,bushInst3].forEach((inst,i)=>{inst.count=bCounts[i];inst.instanceMatrix.needsUpdate=true;inst.frustumCulled=false;inst.castShadow=true;scene.add(inst)})}
+
+// === WILDFLOWERS (GPU instanced — 4 colors scattered in meadows) ===
+{const FLOWER_MAX=6000;
+const flGeo=new THREE.PlaneGeometry(.4,1.2);
+const flMats=[
+new MS({color:0xdd88aa,roughness:1,side:THREE.DoubleSide,transparent:true,opacity:.9,emissive:0x441122,emissiveIntensity:.15}),
+new MS({color:0xeecc44,roughness:1,side:THREE.DoubleSide,transparent:true,opacity:.9,emissive:0x443300,emissiveIntensity:.12}),
+new MS({color:0xaa66dd,roughness:1,side:THREE.DoubleSide,transparent:true,opacity:.88,emissive:0x220044,emissiveIntensity:.15}),
+new MS({color:0xeeeeff,roughness:1,side:THREE.DoubleSide,transparent:true,opacity:.85,emissive:0x222233,emissiveIntensity:.1})];
+const flInsts=flMats.map(m=>new THREE.InstancedMesh(flGeo,m,Math.ceil(FLOWER_MAX/4)));
+const flC=[0,0,0,0];const fm=new THREE.Matrix4(),fr=new THREE.Matrix4();
+for(let i=0;i<FLOWER_MAX;i++){const fx=(Math.random()-.5)*40000,fz=(Math.random()-.5)*32000;const rg=getReg(fx,fz);
+if(isWildBiome(rg)||isDesertBiome(rg)||isInLake(fx,fz))continue;
+const fh=meshTerrainH(fx,fz);if(fh>60||fh<-2)continue;
+const idx=i%4;const maxPer=Math.ceil(FLOWER_MAX/4);if(flC[idx]>=maxPer)continue;
+fr.makeRotationY(Math.random()*Math.PI);fm.makeTranslation(fx,fh+.5,fz);fm.multiply(fr);
+flInsts[idx].setMatrixAt(flC[idx]++,fm);}
+flInsts.forEach((inst,i)=>{inst.count=flC[i];inst.instanceMatrix.needsUpdate=true;inst.frustumCulled=false;scene.add(inst)})}
+
+// === FERNS & UNDERGROWTH (GPU instanced) ===
+{const FERN_MAX=3000;
+const fernGeo=new THREE.PlaneGeometry(2.5,1.8);
+const fernMat=new MS({color:0x1a4a14,roughness:1,side:THREE.DoubleSide,transparent:true,opacity:.75});
+const fernInst=new THREE.InstancedMesh(fernGeo,fernMat,FERN_MAX);
+let fc=0;const fm2=new THREE.Matrix4(),fr2=new THREE.Matrix4(),fs2=new THREE.Matrix4();
+for(let i=0;i<FERN_MAX&&fc<FERN_MAX;i++){const fx=(Math.random()-.5)*45000,fz=(Math.random()-.5)*35000;const rg=getReg(fx,fz);
+if(isDesertBiome(rg)||isInLake(fx,fz))continue;
+const fh=meshTerrainH(fx,fz);if(fh>70||fh<-2)continue;
+const sc=.8+Math.random()*1.2;
+// Lay flat on ground with slight tilt
+fr2.makeRotationX(-Math.PI/2+Math.random()*.3-.15);fs2.makeScale(sc,sc,sc);
+const ry=new THREE.Matrix4().makeRotationY(Math.random()*Math.PI*2);
+fm2.makeTranslation(fx,fh+.15,fz);fm2.multiply(ry);fm2.multiply(fr2);fm2.multiply(fs2);
+fernInst.setMatrixAt(fc++,fm2);}
+fernInst.count=fc;fernInst.instanceMatrix.needsUpdate=true;fernInst.frustumCulled=false;scene.add(fernInst)}
+
+// === VOLUMETRIC CLOUDS (billboard spheres in the sky) ===
+{const CLOUD_GROUPS=60;const cloudGeo=new THREE.SphereGeometry(1,7,5);
+const cloudMat=new MS({color:0xffffff,roughness:1,transparent:true,opacity:.65,emissive:0xddeeff,emissiveIntensity:.3,flatShading:true});
+const cloudMat2=new MS({color:0xeeeeff,roughness:1,transparent:true,opacity:.5,emissive:0xccddee,emissiveIntensity:.2,flatShading:true});
+window._cloudGroups=[];
+for(let i=0;i<CLOUD_GROUPS;i++){const cg=new THREE.Group();
+const cx=(Math.random()-.5)*60000,cz=(Math.random()-.5)*50000;
+const cy=400+Math.random()*300;
+// Each cloud = cluster of 5-12 overlapping spheres
+const n=5+Math.floor(Math.random()*8);
+for(let j=0;j<n;j++){const s=30+Math.random()*60;
+const m=new THREE.Mesh(cloudGeo,Math.random()>.3?cloudMat:cloudMat2);
+m.position.set((Math.random()-.5)*s*2,(Math.random()-.5)*s*.3,(Math.random()-.5)*s*1.5);
+m.scale.set(s,s*.35+Math.random()*s*.15,s*.7);cg.add(m)}
+cg.position.set(cx,cy,cz);cg.userData.speed=.08+Math.random()*.12;cg.userData.baseX=cx;
+scene.add(cg);window._cloudGroups.push(cg)}}
 
 // === HARVESTABLE VEGETATION - Fruit Trees & Berry Bushes ===
 // These spawn harvestable food items when player interacts with them
@@ -4006,7 +4134,8 @@ for(const f of cityFootprints){if(Math.hypot(rx-f.x,rz-f.z)<f.r+80){tooClose=tru
 if(tooClose)continue;
 const rType=ruralTypes[Math.floor(Math.random()*ruralTypes.length)];
 const rSc=.8+Math.random()*.6;
-const rFoot=rType==='windmill'?20*rSc:rType==='barn'?22*rSc:16*rSc;
+// Increased footprints to match new building markPlace() values
+const rFoot=rType==='windmill'?(6+2)*2*rSc+4:rType==='barn'?(24+8)*rSc+6:(10*1.2+4)*rSc;
 if(!canPlace(rx,rz,rFoot))continue;
 markPlace(rx,rz,rFoot);
 const rRot=Math.random()*Math.PI*2;
@@ -4021,13 +4150,14 @@ console.log('INIT: scatter done, starting procCity');
 function procCity(cx,cz,radius,density,style){
 const bTypes=['house','shop','tavern','workshop','warehouse','manor','inn','forge','mansion','chapel'];
 const nBuildings=Math.floor(density*radius/4);
-// City walls — mark footprints along perimeter
+// Corner towers FIRST so their footprints block wall placement (tower() now calls markPlace internally)
+for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const tx=cx+Math.cos(a)*(radius+8),tz=cz+Math.sin(a)*(radius+8);tower(tx,tz,1.3);}
+// City walls — skip segments that overlap a tower footprint
 const wallSegs=Math.floor(radius*2*Math.PI/30);
 for(let i=0;i<wallSegs;i++){const a=i/wallSegs*Math.PI*2;
 const wx=cx+Math.cos(a)*(radius+5),wz=cz+Math.sin(a)*(radius+5);
-wall(wx,wz,16,18,a);markPlace(wx,wz,20)}
-// Corner towers
-for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const tx=cx+Math.cos(a)*(radius+8),tz=cz+Math.sin(a)*(radius+8);tower(tx,tz,1.3);markPlace(tx,tz,28)}
+if(!canPlace(wx,wz,18))continue;// skip if too close to a tower
+wall(wx,wz,16,18,a);markPlace(wx,wz,22)}
 // Gate arches
 for(let i=0;i<4;i++){const a=i/4*Math.PI*2;const gx=cx+Math.cos(a)*(radius+5),gz=cz+Math.sin(a)*(radius+5);gothicArch(gx,gz,a,1);markPlace(gx,gz,16)}
 // Streets
@@ -4042,11 +4172,13 @@ const bx=cx+Math.cos(a)*r,bz=cz+Math.sin(a)*r;
 if(isInLake(bx,bz))continue;
 const bType=bTypes[Math.floor(Math.random()*bTypes.length)];
 const sc=.7+Math.random()*.6;
-let footprint=40*sc;
-if(bType==='manor'||bType==='mansion')footprint=70*sc;
-else if(bType==='warehouse')footprint=55*sc;
-else if(bType==='inn'||bType==='forge')footprint=50*sc;
-else if(bType==='chapel')footprint=45*sc;
+// Increased footprints to account for roof overhang and prevent building phasing
+// These match the new larger markPlace() values in each building function
+let footprint=70*sc;
+if(bType==='manor'||bType==='mansion')footprint=110*sc;
+else if(bType==='warehouse')footprint=90*sc;
+else if(bType==='inn'||bType==='forge')footprint=90*sc;
+else if(bType==='chapel')footprint=80*sc;
 if(!canPlace(bx,bz,footprint))continue;
 markPlace(bx,bz,footprint);placed++;
 const bRot=a+Math.PI+Math.random()*.4-.2;
@@ -4105,21 +4237,21 @@ for(let b=0;b<3;b++){const bOff=(b-1)*segLen/3;
 const merlon=new THREE.Mesh(new THREE.BoxGeometry(3*sc,4*sc,wallT+1),mt.stD);
 merlon.position.set(wm.position.x+Math.cos(-(a+a2)/2+Math.PI/2)*bOff,wallH+2*sc,wm.position.z+Math.sin(-(a+a2)/2+Math.PI/2)*bOff);
 merlon.rotation.y=wm.rotation.y;g.add(merlon)}}
-// --- CORNER TOWERS (8 massive towers, each unique) ---
+// --- CORNER TOWERS (8 clean cylindrical towers) ---
 for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const tx=Math.cos(a)*(wallR+4*sc),tz=Math.sin(a)*(wallR+4*sc);
-const cseed=Math.abs(Math.sin(i*127.1+cx*31.7+cz*47.3)*43758.5453)%1;
-const tH=(45+cseed*25)*sc;const tR=(9+cseed*4)*sc;const tTopR=(8+cseed*3)*sc;
-const tSides=8+Math.floor(cseed*8);const cRoofStyle=Math.floor(cseed*3);
-const tBase=new THREE.Mesh(new THREE.CylinderGeometry(tTopR,tR+2*sc,tH,tSides),mt.stGoth);tBase.position.set(tx,tH/2,tz);tBase.castShadow=true;g.add(tBase);
-if(cRoofStyle===0){const tRoof=new THREE.Mesh(new THREE.ConeGeometry(tTopR+2*sc,(14+cseed*10)*sc,tSides),mt.rfSlate);tRoof.position.set(tx,tH+(7+cseed*5)*sc,tz);tRoof.castShadow=true;g.add(tRoof)}
-else if(cRoofStyle===1){const dome=new THREE.Mesh(new THREE.SphereGeometry(tTopR+1*sc,tSides,8,0,Math.PI*2,0,Math.PI/2),mt.rfSlate);dome.position.set(tx,tH,tz);g.add(dome)}
-else{const flatR=new THREE.Mesh(new THREE.CylinderGeometry(tTopR+1*sc,tTopR+1*sc,.8*sc,tSides),mt.stD);flatR.position.set(tx,tH+.4*sc,tz);g.add(flatR)}
-const tFin=new THREE.Mesh(new THREE.SphereGeometry(1.2*sc,5,5),mt.gold);tFin.position.set(tx,tH+(cRoofStyle===0?(21+cseed*10):4)*sc,tz);g.add(tFin);
-// Tower battlements
-const nMer=tSides;
-for(let b=0;b<nMer;b++){const ba=b/nMer*Math.PI*2;
-const merlon=new THREE.Mesh(new THREE.BoxGeometry(2.5*sc,3.5*sc,2.5*sc),mt.stD);
-merlon.position.set(tx+Math.cos(ba)*(tTopR+.5*sc),tH+2*sc,tz+Math.sin(ba)*(tTopR+.5*sc));g.add(merlon)}}
+const tH=50*sc;const tR=10*sc;const tTopR=9*sc;const tSides=10;
+// Tapered cylinder body
+const tBody=new THREE.Mesh(new THREE.CylinderGeometry(tTopR,tR,tH,tSides),mt.stGoth);
+tBody.position.set(tx,tH/2,tz);tBody.castShadow=true;g.add(tBody);
+// Cone roof
+const roofH=10*sc;
+const tRoof=new THREE.Mesh(new THREE.ConeGeometry(tTopR*1.1,roofH,tSides),mt.rfSlate);
+tRoof.position.set(tx,tH+roofH/2,tz);tRoof.castShadow=true;g.add(tRoof);
+// Merlons (alternating around top)
+for(let b=0;b<tSides;b+=2){const ba=b/tSides*Math.PI*2;
+const merlon=new THREE.Mesh(new THREE.BoxGeometry(2*sc,2.5*sc,1.5*sc),mt.stD);
+merlon.position.set(tx+Math.cos(ba)*tTopR,tH+1.25*sc,tz+Math.sin(ba)*tTopR);
+merlon.rotation.y=ba;g.add(merlon)}}
 // --- KEEP (central massive tower) ---
 const keepW=50*sc,keepD=40*sc,keepH=80*sc;
 const keep=new THREE.Mesh(new THREE.BoxGeometry(keepW,keepH,keepD),mt.stGoth);keep.position.y=keepH/2;keep.castShadow=true;g.add(keep);
@@ -4132,22 +4264,7 @@ const m2=m1.clone();m2.position.z=-keepD/2;g.add(m2)}
 for(let i=0;i<8;i++){const bz=-keepD/2+i*keepD/7;
 const m1=new THREE.Mesh(new THREE.BoxGeometry(3*sc,5*sc,3*sc),mt.stD);m1.position.set(keepW/2,keepH+4.5*sc,bz);g.add(m1);
 const m2=m1.clone();m2.position.x=-keepW/2;g.add(m2)}
-// Keep interior - floors and spiral stairs
-const keepInnerW=keepW*.6,keepInnerD=keepD*.6;
-for(let kl=1;kl<4;kl++){
-const kflY=kl*20*sc;
-const kFloor=new THREE.Mesh(new THREE.BoxGeometry(keepInnerW,1*sc,keepInnerD),new MS({color:0x4a3a2a,roughness:.9}));
-kFloor.position.set(0,kflY,0);g.add(kFloor);
-// Floor hole for stairs
-const kHole=new THREE.Mesh(new THREE.BoxGeometry(keepInnerW*.3,1.2*sc,keepInnerD*.3),new MS({color:0x2a1a0a,roughness:1}));
-kHole.position.set(0,kflY,0);g.add(kHole)}
-// Spiral stairs in keep
-const kStairR=Math.min(keepInnerW,keepInnerD)*.35;
-const kNSteps=Math.floor(keepH/3);
-for(let ks=0;ks<kNSteps;ks++){
-const kang=ks*0.4;const ksy=5*sc+ks*3*sc;
-const kstep=new THREE.Mesh(new THREE.BoxGeometry(2*sc,.5*sc,1*sc),new MS({color:0x5a4a3a,roughness:.85}));
-kstep.position.set(Math.cos(kang)*kStairR,ksy,Math.sin(kang)*kStairR);kstep.rotation.y=kang;g.add(kstep)}
+// (Keep interior stairs/floors removed — interior generated by enterBuilding)
 // Keep windows (rows of tall gothic windows)
 for(let lv=0;lv<3;lv++){for(let i=0;i<6;i++){const wx=-keepW/2+keepW/(6+1)*(i+1);
 const win=new THREE.Mesh(new THREE.BoxGeometry(2*sc,8*sc,.5),new MS({color:0x1a2a4a,emissive:0x0a1a3a,emissiveIntensity:.6,transparent:true,opacity:.5}));
@@ -4204,8 +4321,22 @@ for(let i=0;i<6;i++){const ta=i/6*Math.PI*2;const ttx=Math.cos(ta)*40*sc,ttz=Mat
 const tPost=new THREE.Mesh(new THREE.CylinderGeometry(.4*sc,.5*sc,12*sc,5),mt.wd);tPost.position.set(ttx,6*sc,ttz);g.add(tPost);
 const tFlame=new THREE.Mesh(new THREE.SphereGeometry(1*sc,6,6),mt.fl);tFlame.position.set(ttx,13*sc,ttz);g.add(tFlame);
 torchPositions.push({x:cx+ttx*Math.cos(rot)-ttz*Math.sin(rot),y:bY+13*sc,z:cz+ttx*Math.sin(rot)+ttz*Math.cos(rot),mesh:tFlame,ph:i,big:true})}
-// Inner well
+// Inner well with roof
 const well=new THREE.Mesh(new THREE.CylinderGeometry(3*sc,3.5*sc,3*sc,10),mt.st);well.position.set(20*sc,1.5*sc,20*sc);g.add(well);
+const wellRoof=new THREE.Mesh(new THREE.ConeGeometry(4.5*sc,5*sc,6),mt.rf);wellRoof.position.set(20*sc,8*sc,20*sc);g.add(wellRoof);
+[-1,1].forEach(s=>{const wp=new THREE.Mesh(new THREE.CylinderGeometry(.3*sc,.3*sc,6*sc,4),mt.wd);wp.position.set(20*sc+s*3*sc,4.5*sc,20*sc);g.add(wp)});
+// Courtyard flagstone floor
+const courtFloor=new THREE.Mesh(new THREE.CylinderGeometry(wallR*.55,wallR*.6,1*sc,16),new MS({color:0x6a6a60,roughness:.92}));
+courtFloor.position.y=.5*sc;courtFloor.receiveShadow=true;g.add(courtFloor);
+// Scattered debris/rubble near walls
+for(let i=0;i<20;i++){const da=Math.random()*Math.PI*2;const dd=wallR*.75+Math.random()*wallR*.2;
+const dx=Math.cos(da)*dd,dz=Math.sin(da)*dd;const ds=.3+Math.random()*.8;
+const debris=new THREE.Mesh(new THREE.IcosahedronGeometry(ds*sc,0),mt.rk);debris.position.set(dx,.5*sc*ds,dz);
+debris.rotation.set(Math.random(),Math.random(),Math.random());g.add(debris)}
+// Banner poles on gatehouse
+[-1,1].forEach(s=>{const bp=new THREE.Mesh(new THREE.CylinderGeometry(.2*sc,.2*sc,18*sc,4),mt.wd);bp.position.set(s*12*sc,ghH+10*sc,wallR);g.add(bp);
+const banner=new THREE.Mesh(new THREE.PlaneGeometry(4*sc,8*sc),new MS({color:0x881122,roughness:.9,side:THREE.DoubleSide}));
+banner.position.set(s*12*sc+2*sc,ghH+4*sc,wallR);g.add(banner)});
 g.position.set(cx,bY,cz);g.rotation.y=rot;scene.add(g);
 markPlace(cx,cz,(wallR+20*sc)*2);
 }
@@ -4301,9 +4432,11 @@ const rx=Math.cos(a)*r,rz=Math.sin(a)*r;
 const rLen=r*Math.PI*2/rampSegs*1.2;
 const ramp=new THREE.Mesh(new THREE.BoxGeometry(rLen,1.5*sc,rampW),floorMat);
 ramp.position.set(rx,y+.75*sc,rz);ramp.rotation.y=-a+Math.PI/2;ramp.receiveShadow=true;g.add(ramp);
-// Path railing
+// Path railings (outer + inner)
 if(i%3===0){const rail=new THREE.Mesh(new THREE.BoxGeometry(.5*sc,4*sc,.5*sc),whiteMat);
-rail.position.set(rx+Math.cos(a+Math.PI/2)*rampW*.4,y+3*sc,rz+Math.sin(a+Math.PI/2)*rampW*.4);g.add(rail)}}
+rail.position.set(rx+Math.cos(a+Math.PI/2)*rampW*.4,y+3*sc,rz+Math.sin(a+Math.PI/2)*rampW*.4);g.add(rail);
+const railI=new THREE.Mesh(new THREE.BoxGeometry(.5*sc,4*sc,.5*sc),whiteMat);
+railI.position.set(rx+Math.cos(a-Math.PI/2)*rampW*.4,y+3*sc,rz+Math.sin(a-Math.PI/2)*rampW*.4);g.add(railI)}}
 // === TOP TIER: THRONE ROOM & CORONATION COURT ===
 const topY=tiers*tierH;const topR=baseR*.25;
 // Throne room building
@@ -4769,8 +4902,14 @@ const chair=new THREE.Mesh(new THREE.BoxGeometry(1,1.5,.1),mt.wd);chair.position
 const fire=new THREE.Mesh(new THREE.SphereGeometry(1.8,8,8),mt.fl);fire.position.set(w/3.5,1000+2.5,-l/3.5);buildingGroup.add(fire);
 // Second floor (rooms)
 const fl2=new THREE.Mesh(new THREE.BoxGeometry(w*.9,.3,l*.7),new MS({color:0x5a4a3a}));fl2.position.set(0,1000+h*.6,0);buildingGroup.add(fl2);
-// Stairs
-for(let si=0;si<8;si++){const step=new THREE.Mesh(new THREE.BoxGeometry(2,.2,1),new MS({color:0x4a3a2a}));step.position.set(-w*.3,1000+si*(h*.6/8),-l*.2+si*(l*.3/8));buildingGroup.add(step);}}
+// Stairs — wider with stringer support
+const stMat=new MS({color:0x4a3a2a,roughness:.9});
+for(let si=0;si<10;si++){const step=new THREE.Mesh(new THREE.BoxGeometry(3,.25,1.2),stMat);step.position.set(-w*.3,1000+si*(h*.6/10),-l*.2+si*(l*.3/10));step.castShadow=true;buildingGroup.add(step);}
+// Stair stringer (support beam)
+const stLen=Math.sqrt((l*.3)*(l*.3)+(h*.6)*(h*.6));
+const stAng=Math.atan2(h*.6,l*.3);
+const stringer=new THREE.Mesh(new THREE.BoxGeometry(.4,stLen,.8),stMat);stringer.position.set(-w*.3-.8,1000+h*.3,-l*.2+l*.15);stringer.rotation.x=-stAng+Math.PI/2;buildingGroup.add(stringer);
+const stringer2=stringer.clone();stringer2.position.x=-w*.3+.8;buildingGroup.add(stringer2);}
 else if(b.type==='shop'){
 // Counters
 const cnt1=new THREE.Mesh(new THREE.BoxGeometry(3,2.5,8),new MS({color:0x6a5a4a}));cnt1.position.set(-w/4,1000+1.25,0);buildingGroup.add(cnt1);
@@ -4795,8 +4934,18 @@ const flG=new THREE.Mesh(new THREE.BoxGeometry(w*.95,.3,l*.95),new MS({color:0x7
 // Second and third floors
 const fl2=new THREE.Mesh(new THREE.BoxGeometry(w*.9,.2,l*.8),new MS({color:0x6a5a4a}));fl2.position.set(0,1000+h*.35,0);buildingGroup.add(fl2);
 const fl3=new THREE.Mesh(new THREE.BoxGeometry(w*.85,.2,l*.6),new MS({color:0x6a5a4a}));fl3.position.set(0,1000+h*.7,0);buildingGroup.add(fl3);
-// Grand staircase
-for(let si=0;si<12;si++){const step=new THREE.Mesh(new THREE.BoxGeometry(4,.25,1),new MS({color:0x5a4a3a}));step.position.set(0,1000+si*(h*.35/12),-l*.25+si*(l*.4/12));buildingGroup.add(step);}
+// Grand staircase — wider with carpet runner & railings
+const gsMat=new MS({color:0x5a4a3a,roughness:.85});
+const carpetMat=new MS({color:0x6a1a1a,roughness:.95});
+for(let si=0;si<14;si++){const step=new THREE.Mesh(new THREE.BoxGeometry(6,.3,1.4),gsMat);step.position.set(0,1000+si*(h*.35/14),-l*.25+si*(l*.4/14));step.castShadow=true;buildingGroup.add(step);
+const carpet=new THREE.Mesh(new THREE.BoxGeometry(3,.32,1.35),carpetMat);carpet.position.copy(step.position);carpet.position.y+=.02;buildingGroup.add(carpet);}
+// Stair railings
+for(let side=-1;side<=1;side+=2){for(let ri=0;ri<5;ri++){
+const ry=1000+ri*(h*.35/5)+h*.035;const rz=-l*.25+ri*(l*.4/5)+l*.04;
+const post=new THREE.Mesh(new THREE.CylinderGeometry(.1,.15,2.2,4),gsMat);post.position.set(side*2.8,ry+1,rz);buildingGroup.add(post);}
+const railLen=Math.sqrt((l*.4)*(l*.4)+(h*.35)*(h*.35));
+const railAng=Math.atan2(h*.35,l*.4);
+const rail=new THREE.Mesh(new THREE.BoxGeometry(.15,railLen,.15),gsMat);rail.position.set(side*2.8,1000+h*.175+1.5,-l*.25+l*.2);rail.rotation.x=-railAng+Math.PI/2;buildingGroup.add(rail);}
 // Furniture
 const diningTable=new THREE.Mesh(new THREE.CylinderGeometry(3,3,1.5,8),new MS({color:0x4a3a2a}));diningTable.position.set(0,1000+.75,l*.3);buildingGroup.add(diningTable);
 // Chairs around table
@@ -4862,17 +5011,21 @@ const fire=new THREE.Mesh(new THREE.SphereGeometry(1,6,6),mt.fl);fire.position.s
 const inLight=new THREE.PointLight(0xffaa66,.8,Math.max(w,l)*.8,1.5);inLight.position.set(0,1000+h-2,0);buildingGroup.add(inLight);
 scene.add(buildingGroup);
 // Position player inside
-player.x=0;player.y=1002;player.z=l/4;
-// FIX: Rebuild colliders to set up interior collision properly
+player.x=0;player.z=l/4;
+// Rebuild colliders first so surfaceH finds the interior floor
 buildColliders();
+const _entryFloorY=surfaceH(player.x,player.z,1100);
+player.y=Math.max(1002,_entryFloorY+1);
+player.vy=0;player.grounded=true;
 log('Entered '+b.name,'#0f0');}
 
 function exitBuilding(){if(!insideBuilding)return;
 if(buildingGroup){scene.remove(buildingGroup);buildingGroup=null}
 // Return to outside position
-player.x=insideBuilding.outsideX;player.z=insideBuilding.outsideZ+3;player.y=meshTerrainH(player.x,player.z)+2;
-// FIX: Rebuild colliders to remove interior walls and prevent invisible barriers
+player.x=insideBuilding.outsideX;player.z=insideBuilding.outsideZ+3;
 buildColliders();
+player.y=surfaceH(player.x,player.z,100)+2;
+player.vy=0;player.grounded=true;
 log('Exited '+insideBuilding.name,'#0f0');insideBuilding=null;}
 
 // Generate dungeons at key locations
@@ -4969,7 +5122,7 @@ const fireflies=new THREE.Points(ffGeo,new THREE.PointsMaterial({color:0xeedd66,
 
 composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,cam));
 // Bloom at half res for glow effects (affordable now with reduced draw calls)
-const bloomPass=new UnrealBloomPass(new THREE.Vector2(innerWidth/2,innerHeight/2),0.4,0.4,0.85);composer.addPass(bloomPass);
+const bloomPass=new UnrealBloomPass(new THREE.Vector2(innerWidth/2,innerHeight/2),0.55,0.5,0.8);composer.addPass(bloomPass);
 const dsGrade=new ShaderPass(DSColorGradeShader);composer.addPass(dsGrade);
 window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight)});
 initTargetRing();scene.add(targetRing);
@@ -5401,12 +5554,12 @@ const g=new THREE.Group();
 // Glowing orb
 const orb=new THREE.Mesh(new THREE.SphereGeometry(sz,8,8),new MS({color:col,emissive:col,emissiveIntensity:1.2,roughness:.2,metalness:.4,transparent:true,opacity:.85}));
 g.add(orb);
-// Vertical light pillar (DS style)
-const pillar=new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,12,6),new MS({color:col,emissive:col,emissiveIntensity:2,transparent:true,opacity:.35,side:THREE.DoubleSide}));
-pillar.position.y=4;g.add(pillar);
+// Vertical light pillar (DS style) — kept short
+const pillar=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,4,6),new MS({color:col,emissive:col,emissiveIntensity:2,transparent:true,opacity:.35,side:THREE.DoubleSide}));
+pillar.position.y=1.5;g.add(pillar);
 // Soft halo ring on ground
-const halo=new THREE.Mesh(new THREE.RingGeometry(1.5,3,16),new MS({color:col,emissive:col,emissiveIntensity:.8,transparent:true,opacity:.25,side:THREE.DoubleSide}));
-halo.rotation.x=-Math.PI/2;halo.position.y=-.5;g.add(halo);
+const halo=new THREE.Mesh(new THREE.RingGeometry(1,2,16),new MS({color:col,emissive:col,emissiveIntensity:.8,transparent:true,opacity:.25,side:THREE.DoubleSide}));
+halo.rotation.x=-Math.PI/2;halo.position.y=-.3;g.add(halo);
 return g}
 // === UNIQUE ITEM ID SYSTEM ===
 let nextItemUID=1;
@@ -5763,13 +5916,81 @@ if(playerGroup.userData.rLeg)playerGroup.userData.rLeg.rotation.x=-leanDir*0.8;
 // New unified character animation system
 animateCharacter(playerGroup,0.016);}
 
-// Camera: always orbits behind player, player is always in frame
+// Camera positioning
+if(cameraMode==='first'){
+// First-person: camera is at player eye level, looks toward mouse
+const eyeH=meshTerrainH(player.x,player.z)+9;
+cam.position.set(player.x,eyeH,player.z);
+// Build look direction from camYaw/camPitch (mouse controls orientation)
+const fpDir=new THREE.Vector3(-Math.sin(camYaw)*Math.cos(camPitch),-Math.sin(camPitch),-Math.cos(camYaw)*Math.cos(camPitch));
+cam.lookAt(player.x+fpDir.x*100,eyeH+fpDir.y*100,player.z+fpDir.z*100);
+// Hide player mesh in 1st person
+if(playerGroup)playerGroup.visible=false;
+}else{
+// Third-person: always orbits behind player
+if(playerGroup)playerGroup.visible=true;
 const camX=player.x+Math.sin(camYaw)*Math.cos(camPitch)*camDist;
 const camZ=player.z+Math.cos(camYaw)*Math.cos(camPitch)*camDist;
 const camY=player.y+Math.sin(camPitch)*camDist;
 cam.position.x+=(camX-cam.position.x)*.1;cam.position.z+=(camZ-cam.position.z)*.1;cam.position.y+=(camY-cam.position.y)*.1;
-// Camera always looks at player — lock-on does NOT move the camera
-cam.lookAt(player.x,player.y+8,player.z);
+cam.lookAt(player.x,player.y+8,player.z);}
+// === SPELL PREVIEW LINE ===
+// Compute current spell target point using full 3D ray (supports vertical aiming)
+if(!window._spellPrevRC)window._spellPrevRC=new THREE.Raycaster();
+let _spellTargetPt=null;
+const _originPt=new THREE.Vector3(player.x,player.y+8,player.z);
+if(lockOn&&lockOn.mesh){
+_spellTargetPt=lockOn.mesh.position.clone();_spellTargetPt.y+=6;
+}else if(cameraMode==='first'){
+const _fpDir2=new THREE.Vector3(-Math.sin(camYaw)*Math.cos(camPitch),-Math.sin(camPitch),-Math.cos(camYaw)*Math.cos(camPitch)).normalize();
+_spellTargetPt=_originPt.clone().addScaledVector(_fpDir2,spellTargetDepth);
+}else{
+// 3rd person: use same ground-plane intersect as shootProjectile so preview matches actual shot
+window._spellPrevRC.setFromCamera({x:mouse.x,y:mouse.y},cam);
+const _rayDir2=window._spellPrevRC.ray.direction.clone().normalize();
+const _denom2=_rayDir2.y;
+if(Math.abs(_denom2)>0.001){
+const _t2=(player.y+8-cam.position.y)/_denom2;
+if(_t2>0){
+_spellTargetPt=new THREE.Vector3(cam.position.x+_rayDir2.x*_t2,player.y+8,cam.position.z+_rayDir2.z*_t2);
+}else{
+_spellTargetPt=cam.position.clone().addScaledVector(_rayDir2,spellTargetDepth);
+}}else{
+_spellTargetPt=cam.position.clone().addScaledVector(_rayDir2,spellTargetDepth);
+}}
+// Find the nearest active spell projectile heading toward _spellTargetPt
+let _activeSpellProj=null;
+if(_spellTargetPt){
+for(let i=0;i<particles.length;i++){
+const p=particles[i];
+if(p.userData&&p.userData.type==='spell'&&p.userData.life>0){
+_activeSpellProj=p;break;}}}
+// Draw/update preview line
+if(_spellTargetPt){
+if(!spellPreviewLine){
+const _plGeo=new THREE.BufferGeometry();
+_plGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(6),3));
+const _plMat=new THREE.LineBasicMaterial({color:0x88aaff,transparent:true,opacity:0.55,depthTest:false});
+spellPreviewLine=new THREE.Line(_plGeo,_plMat);
+spellPreviewLine.renderOrder=999;
+scene.add(spellPreviewLine);}
+const _plPos=spellPreviewLine.geometry.attributes.position;
+// If a spell is in flight, show line from spell position to target (remaining path only)
+if(_activeSpellProj){
+_plPos.setXYZ(0,_activeSpellProj.position.x,_activeSpellProj.position.y,_activeSpellProj.position.z);
+_plPos.setXYZ(1,_spellTargetPt.x,_spellTargetPt.y,_spellTargetPt.z);
+spellPreviewLine.visible=true;
+}else{
+// No spell in flight — show the full aim line
+_plPos.setXYZ(0,_originPt.x,_originPt.y,_originPt.z);
+_plPos.setXYZ(1,_spellTargetPt.x,_spellTargetPt.y,_spellTargetPt.z);
+spellPreviewLine.visible=true;
+}
+_plPos.needsUpdate=true;
+// Store for shootProjectile use
+window._currentSpellTarget=_spellTargetPt;
+}else{
+if(spellPreviewLine)spellPreviewLine.visible=false;}
 
 for(let i=enemies.length-1;i>=0;i--){let e=enemies[i];
 // Skip full AI for far-away enemies (performance: only process nearby)
@@ -5796,7 +6017,29 @@ const isDragon=e.type==='dragon'||e.type==='bluedragon'||e.type==='greendragon'|
 if(isDragon){
 const ud=e.mesh.userData;
 // Initialize dragon state
-if(typeof ud.isFlying==='undefined'){ud.isFlying=true;ud.flyHeight=40+Math.random()*20;ud.landing=false;ud.landTimer=0;}
+if(typeof ud.isFlying==='undefined'){ud.isFlying=true;ud.flyHeight=40+Math.random()*20;ud.landing=false;ud.landTimer=0;ud.groundTimer=0;ud.takeoffTimer=0;ud.landCycle=(200+Math.random()*300)|0;ud.groundStay=(180+Math.random()*180)|0;ud.takeoffDur=80;}
+// Landing / takeoff cycle
+ud.landTimer=(ud.landTimer||0)+1;
+const _groundY2=meshTerrainH(e.mesh.position.x,e.mesh.position.z);
+if(ud.isFlying&&!ud.landing&&ud.landTimer>ud.landCycle&&dist<120){
+// Begin descent
+ud.landing=true;ud.landTimer=0;ud.descentStart=e.mesh.position.y;ud.descentT=0;ud.descentDur=90;}
+if(ud.landing){
+ud.descentT++;
+const tf=Math.min(1,ud.descentT/ud.descentDur);
+// Smooth ease-in landing (cubic ease)
+const ease=tf*tf*(3-2*tf);
+const targetY=_groundY2+2;
+e.mesh.position.y=ud.descentStart*(1-ease)+targetY*ease;
+if(tf>=1){ud.isFlying=false;ud.landing=false;ud.groundTimer=0;}}
+if(!ud.isFlying&&!ud.landing){
+ud.groundTimer=(ud.groundTimer||0)+1;
+if(ud.groundTimer>ud.groundStay){
+// Takeoff: gradually ascend
+ud.isFlying=true;ud.landing=false;ud.groundTimer=0;
+ud.landTimer=0;ud.landCycle=(200+Math.random()*300)|0;// Reset cycle
+e.mesh.position.y=_groundY2+2;// Ensure on ground before lift
+}}
 const groundY=meshTerrainH(e.mesh.position.x,e.mesh.position.z);
 // Dragons hunt NPCs - find nearest enemy target (not player, not other dragons)
 let target=null;let targetDist=Infinity;
@@ -5835,7 +6078,9 @@ const chaseSpd=.18;e.mesh.position.x+=Math.cos(tFaceAng)*chaseSpd;e.mesh.positio
 e.mesh.rotation.y+=((tFaceAng-e.mesh.rotation.y)*.08);}}
 // Wing animation
 if(ud.wings){
-const flapSpeed=ud.isFlying?10:4;const flapAmp=ud.isFlying?.8:.2;
+const _dProg=ud.landing&&ud.descentDur?Math.min(1,ud.descentT/ud.descentDur):0;
+const flapSpeed=ud.landing?(4+6*(1-_dProg)):ud.isFlying?10:4;
+const flapAmp=ud.landing?(.2+.6*(1-_dProg)):ud.isFlying?.8:.2;
 ud.wings.forEach((w,wi)=>{w.rotation.z=(wi===0?1:-1)*Math.sin(time*flapSpeed)*flapAmp;});}
 // Neck and tail animation
 if(ud.neckSegs){ud.neckSegs.forEach((ns,ni)=>{ns.rotation.x=-.4+Math.sin(time*3+ni*.5)*.1;});}
@@ -5871,8 +6116,8 @@ e.mesh.position.x=eco.x;e.mesh.position.z=eco.z;
 e.strafeAng+=.012*e.strafeCW;
 const sx=Math.cos(e.strafeAng)*.1,sz=Math.sin(e.strafeAng)*.1;
 e.mesh.position.x+=sx;e.mesh.position.z+=sz;}
-// Ground height adjustment
-e.mesh.position.y=groundY+2;
+// Ground height adjustment — smooth settle
+const _tY=groundY+2;e.mesh.position.y+= (_tY-e.mesh.position.y)*.15;
 e.mesh.rotation.y=faceAng;
 // Attack logic
 if(dist<e.atkRange&&e.atkCD<=0&&e.swingT<=0){
@@ -6172,6 +6417,9 @@ if(dustPts){dustPts.position.set(player.x,0,player.z);if(cullFrame%2===0){const 
 
 if(riverMesh&&cullFrame%3===0){const wp=riverMesh.geometry.attributes.position;for(let i=0;i<wp.count;i++){wp.setZ(i,Math.sin(wp.getX(i)*.3+time*2)*.5+Math.cos(wp.getY(i)*.2+time*1.4)*.3)}wp.needsUpdate=true}
 
+// Cloud drift animation
+if(window._cloudGroups&&cullFrame%4===0){for(const cg of window._cloudGroups){cg.position.x+=cg.userData.speed*4;if(cg.position.x>30000)cg.position.x=-30000;}}
+
 if(keys['f']||gpButtons.lb){const nT=Math.hypot(player.x+100,player.z-50)<50;const nR=Math.hypot(player.x+70,player.z+80)<40;
 if(nT){skills.Woodcutting.xp+=18;hitFX(player.x,player.y+8,player.z,0x44aa22);log('Woodcutting +18xp','#6a4');updateXpBar()}
 else if(nR){skills.Fishing.xp+=22;hitFX(player.x,player.y+8,player.z,0x2288ff);log('Fishing +22xp','#48f');updateXpBar()}}
@@ -6268,7 +6516,10 @@ if(ws&&ws.readyState===1&&++sendCt%3===0){ws.send(JSON.stringify({t:'p',id:myId,
 
 composer.render()}
 
+window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){for(const k in keys)keys[k]=false;}});
 window.addEventListener('keydown',e=>{
+if(e.repeat)return;
 const k=e.key.toLowerCase();keys[k]=true;keys[e.code]=true;
 if(k==='tab'){e.preventDefault();cycleLock()}
 if(k==='f'&&gameStarted){e.preventDefault();toggleLock()}
@@ -6320,6 +6571,7 @@ else{tp.style.display=showTeleport?'block':'none'}}
 if(k==='p'){const ab=document.getElementById('ability-browser');const sb=document.getElementById('spell-book');sb.classList.remove('active');ab.classList.toggle('active');if(ab.classList.contains('active')){buildAbCats();buildAbList()}}
 if(k==='o'){const sb=document.getElementById('spell-book');const ab=document.getElementById('ability-browser');ab.classList.remove('active');sb.classList.toggle('active');if(sb.classList.contains('active')){buildSbCats();buildSbList()}}
 if(k==='m'){const wm=document.getElementById('world-map');if(wm.classList.contains('active')){wm.classList.remove('active')}else{wm.classList.add('active');drawWorldMap()}}
+if(k==='v'&&gameStarted){e.preventDefault();cameraMode=cameraMode==='first'?'third':'first';if(cameraMode==='third'&&document.pointerLockElement)document.exitPointerLock();log('Camera: '+(cameraMode==='first'?'1st Person (V to toggle, Scroll = target depth)':'3rd Person (V to toggle, Scroll = zoom)'),'#ffd700');}
 if(k==='insert'){e.preventDefault();toggleEditorMode()}
 if(k==='escape'){
 const ed=document.getElementById('editor-mode');if(ed&&ed.style.display==='block'){toggleEditorMode();return}
@@ -6408,7 +6660,7 @@ else if(action==='skills'){document.querySelectorAll('.tab-btn').forEach(b=>b.cl
 });
 
 // Keybind rebinder
-const kbDefs=[['move_fwd','Move Forward','w'],['move_back','Move Back','s'],['move_left','Strafe Left','a'],['move_right','Strafe Right','d'],['jump','Jump','shift'],['roll','Roll / Dodge',' '],['attack','Attack','1'],['parry','Parry / Block','2'],['heal','Heal (Estus)','3'],['gather','Gather','g'],['lockon','Lock-On Toggle','f'],['interact','Interact','e'],['lockoncycle','Lock-On Cycle','tab'],['inventory','Inventory','i'],['skills','Skills','k'],['map','World Map','m'],['teleport','Teleport','t'],['abilities','Ability Browser','p'],['autoloot','Auto-Loot','l'],['sprint','Sprint','q'],['prayer','Prayer','5'],['dungeon','Dungeon / Gauntlet','u'],['save','Quick Save','f5']];
+const kbDefs=[['move_fwd','Move Forward','w'],['move_back','Move Back','s'],['move_left','Strafe Left','a'],['move_right','Strafe Right','d'],['sprint','Sprint (hold)','shift'],['jump','Jump','z'],['roll','Roll / Dodge','space'],['dash_left','Dash Left','q'],['dash_right','Dash Right','e'],['attack','Attack','1'],['parry','Parry / Block','2'],['heal','Heal (Estus)','3'],['gather','Gather / Chop','g'],['interact','Interact / Pickup','e'],['lockon','Lock-On Toggle','f'],['lockoncycle','Lock-On Cycle','tab'],['camera_mode','Toggle 1st/3rd Person','v'],['inventory','Inventory','i'],['skills','Skills','k'],['abilities','Ability Browser','p'],['spellbook','Spell Book','o'],['map','World Map','m'],['minimap','Minimap Toggle','n'],['teleport','Teleport','t'],['dungeon','Dungeon / Gauntlet','u'],['autoloot','Auto-Loot','l'],['prayer','Prayer','5'],['bury_bones','Bury Bones','6'],['save','Quick Save','f5'],['editor','Editor Mode','insert']];
 const kbMap={};kbDefs.forEach(([id,desc,def])=>{kbMap[id]={desc,key:def}});
 const kbGrid=document.getElementById('kb-grid');
 function buildKbGrid(){kbGrid.innerHTML='';kbDefs.forEach(([id,desc])=>{const entry=document.createElement('div');entry.className='ctrl-entry';const d=document.createElement('span');d.className='ctrl-desc';d.textContent=desc;const k=document.createElement('span');k.className='esc-keybind';k.textContent=kbMap[id].key.toUpperCase();k.dataset.id=id;
@@ -6421,11 +6673,15 @@ window.addEventListener('beforeunload',()=>{if(gameStarted&&!player.dead)saveGam
 window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false;keys[e.code]=false});
 window.addEventListener('mousemove',e=>{
 mouse.x=(e.clientX/innerWidth)*2-1;mouse.y=-(e.clientY/innerHeight)*2+1;
-if(mouse.mid){const s=(gameOpts?gameOpts.sens:5)/5;const fx=gameOpts?gameOpts.flipx:1;const fy=gameOpts?gameOpts.flipy:1;camYaw+=e.movementX*.005*s*fx;camPitch=Math.max(.05,Math.min(1.2,camPitch-e.movementY*.005*s*fy))}
+const s=(gameOpts?gameOpts.sens:5)/5;const fx=gameOpts?gameOpts.flipx:1;const fy=gameOpts?gameOpts.flipy:1;
+if(cameraMode==='first'||(mouse.mid)){camYaw+=e.movementX*.005*s*fx;const _pMin=cameraMode==='first'?-1.2:0.05;camPitch=Math.max(_pMin,Math.min(1.2,camPitch-e.movementY*.005*s*fy))}
 });
-window.addEventListener('mousedown',e=>{if(e.button===0){mouse.down=true;clickTarget(e)}if(e.button===2)mouse.right=true;if(e.button===1){e.preventDefault();mouse.mid=true}});
+window.addEventListener('mousedown',e=>{if(e.button===0){mouse.down=true;clickTarget(e);if(cameraMode==='first'&&gameStarted&&document.pointerLockElement!==document.body)document.body.requestPointerLock();}if(e.button===2)mouse.right=true;if(e.button===1){e.preventDefault();mouse.mid=true}});
 window.addEventListener('mouseup',e=>{if(e.button===0)mouse.down=false;if(e.button===2)mouse.right=false;if(e.button===1)mouse.mid=false});
-window.addEventListener('wheel',e=>{camDist=Math.max(8,Math.min(300,camDist+e.deltaY*.08))});
+window.addEventListener('wheel',e=>{
+if(cameraMode==='first'){spellTargetDepth=Math.max(5,Math.min(2000,spellTargetDepth+e.deltaY*.4));}
+else if(e.shiftKey){spellTargetDepth=Math.max(10,Math.min(2000,spellTargetDepth+e.deltaY*.5));}
+else{camDist=Math.max(8,Math.min(300,camDist+e.deltaY*.08));}});
 window.addEventListener('contextmenu',e=>e.preventDefault());
 
 let ws,myId=-1,otherPlayers={},sendCt=0;
@@ -6710,6 +6966,56 @@ const gameOpts={blood:true,particles:true,flipy:1,flipx:1,sens:5,bloom:true,brig
 const classStats={warrior:{hp:160,sta:110,poi:60},knight:{hp:180,sta:90,poi:68},sorcerer:{hp:100,sta:80,poi:140},deprived:{hp:80,sta:80,poi:80},ranger:{hp:120,sta:100,poi:90}};
 let gameStarted=false;
 
+function showTutorial(){
+const overlay=document.getElementById('tutorial-overlay');
+const classSec=document.getElementById('tut-class');
+const classTips={
+warrior:{icon:'⚔',color:'#ff8844',title:'Warrior',tips:[
+['Berserker Playstyle','High damage, low defence. Attack fast and roll away. Never stand still.'],
+['Battle Shout (Ability)','Boosts damage for several seconds — pop it before big fights.'],
+['Execute','Unlockable ability: deals massive damage below 30% enemy HP. Prioritize this.'],
+['Stamina matters','Warrior burns Stamina fast. Manage it: roll only when needed, sprint in short bursts.'],
+['Weapons','Scimitars = fastest, Battleaxes = hardest-hitting. Equip from Inventory (I).']
+]},
+knight:{icon:'🛡',color:'#88ccff',title:'Knight',tips:[
+['Tanky Fighter','You start with the best armour. Use Block (RMB/2) to reduce incoming damage.'],
+['Judgment &amp; Crusader Strike','Core combo abilities — assign them to slots 4 &amp; 5 via the Ability Browser (P).'],
+['Divine Protection','Emergency cooldown — gives 50% damage reduction. Save it for boss bursts.'],
+['Shield Bash','Stagger enemies when your parry is on cooldown. Follow up with a heavy attack.'],
+['Holy Light','Self-heal ability on a moderate cooldown — assign it to your bar!']
+]},
+sorcerer:{icon:'✨',color:'#aa88ff',title:'Sorcerer',tips:[
+['Mana (Blue bar)','Every spell costs Mana (blue bar). It regenerates slowly — manage it carefully.'],
+['Lock-On is essential (F)','Frostbolt requires a locked target. Press F to lock, Tab to cycle.'],
+['Spell Path Preview','The blue line shows exactly where your spell travels. Aim with your mouse.'],
+['First-Person aiming (V)','Switch to 1st-person for pinpoint spell accuracy; scroll wheel adjusts target depth.'],
+['Fireball &gt; Frostbolt combo','Fireball for burst damage, Frostbolt to slow and kite. Assign both to your action bar.']
+]},
+ranger:{icon:'🏹',color:'#88ff88',title:'Ranger',tips:[
+['Infinite Arrows','Rangers never run out of arrows. Shoot freely.'],
+['Steady Shot &amp; Aimed Shot','Core damage abilities — assign them early. Aimed Shot hits hardest.'],
+["Hunter's Mark (F + Mark ability)",'Mark the target then attack for a 15% damage bonus on every hit.'],
+['Kite enemies','Use your range advantage: stay back, roll away when enemies close in.'],
+['Serpent Sting','Applies a damage-over-time effect. Great on tough enemies &amp; bosses.']
+]},
+deprived:{icon:'💀',color:'#cccccc',title:'Deprived',tips:[
+['No starting gear','You begin naked with minimum stats — loot everything you find immediately.'],
+['Balanced growth','Stats are equal, so you can develop any playstyle. Experiment freely.'],
+['Gather early','Chop trees (G near trees) and mine rocks for crafting materials.'],
+['First priority','Kill a Goblin or Wolf to loot basic weapons ASAP. Check your Inventory (I).'],
+['Hard mode','This class is intentionally punishing. Every decision matters.']
+]}
+};
+const data=classTips[playerClass];
+if(data){
+classSec.innerHTML='<div class="tut-heading" style="color:'+data.color+';">'+data.icon+' '+data.title.toUpperCase()+' CLASS TIPS</div>'+
+data.tips.map(([t,d])=>'<div class="tut-row"><span class="tut-key" style="color:'+data.color+';border-color:'+data.color+'44;">'+t+'</span><span class="tut-desc">'+d+'</span></div>').join('');
+}else classSec.innerHTML='';
+overlay.style.display='block';
+document.getElementById('tut-close-btn').onclick=()=>{overlay.style.display='none';localStorage.setItem('ss_tutorial_seen','1');};
+}
+window.showTutorial=showTutorial;
+
 function startGame(isLoad){
 document.getElementById('main-menu').classList.add('hidden');
 document.getElementById('char-create').classList.remove('show');
@@ -6721,7 +7027,8 @@ document.getElementById('xp-bar-wrap').classList.add('active');
 document.getElementById('esc-hud-btn').classList.add('active');
 document.body.style.cursor='crosshair';
 if(!gameStarted){gameStarted=true;
-try{init();if(isLoad)loadGame();updateSkillUI();updateEqUI();loop();connectMP()}catch(err){const cl=document.getElementById('chat-log');if(cl)cl.innerHTML='<div style="color:red;font-size:14px">ERROR: '+err.message+'<br>'+err.stack+'</div>';console.error(err)}}}
+try{init();if(isLoad)loadGame();updateSkillUI();updateEqUI();loop();connectMP()}catch(err){const cl=document.getElementById('chat-log');if(cl)cl.innerHTML='<div style="color:red;font-size:14px">ERROR: '+err.message+'<br>'+err.stack+'</div>';console.error(err)}}
+if(!isLoad&&!localStorage.getItem('ss_tutorial_seen')){setTimeout(showTutorial,600);}}
 
 document.querySelectorAll('.mi').forEach(el=>el.addEventListener('click',()=>{
 const a=el.dataset.a;
@@ -7342,6 +7649,7 @@ log('You leave the Corrupted Gauntlet.','#cc88ff');}
 const _origGameLoop=typeof loop==='function'?loop:null;
 // Patch attack key (1) to check gauntlet boss targeting
 const _gauKeyHandler=function(e){
+if(e.repeat)return;
 if(!gau||!gau.active||gau.phase!=='boss')return;
 const k=e.key?e.key.toLowerCase():e.code;
 if(k==='1'||k==='digit1'){gauPlayerAttack()}};
@@ -7386,6 +7694,7 @@ dm.innerHTML='<div style="font-size:18px;color:#e040fb;font-weight:700;text-alig
 '<div style="text-align:center;margin-top:6px"><span style="cursor:pointer;color:#887;font-size:10px;border:1px solid #442244;padding:3px 10px;border-radius:3px" onclick="document.getElementById(\'dungeon-menu\').remove()">Close ('+dungeonKey+')</span></div>';
 document.body.appendChild(dm);}
 document.addEventListener('keydown',function(e){
+if(e.repeat)return;
 const dungeonKey=(typeof kbMap!=='undefined'&&kbMap.dungeon)?kbMap.dungeon.key:'u';
 if(e.key&&e.key.toLowerCase()===dungeonKey&&typeof gameStarted!=='undefined'&&gameStarted){
 e.preventDefault();
@@ -8114,9 +8423,10 @@ class GameHandler(http.server.BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.send_header('Content-Length', str(len(data)))
-            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+            self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0')
             self.send_header('Pragma', 'no-cache')
             self.send_header('Expires', '0')
+            self.send_header('ETag', '"v' + str(hash(GAME_HTML) & 0xFFFFFFFF) + '"')
             self.end_headers()
             self.wfile.write(data)
         else:
