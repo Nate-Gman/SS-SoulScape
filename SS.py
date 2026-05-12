@@ -8611,6 +8611,5820 @@ if(distToNPC<8){e.preventDefault();showQuestDialog();}}});
 // Spawn quest NPC and add to game loop
 setTimeout(()=>{spawnQuestNPC();},5000);// Spawn after world loads
 
+// =====================================================================
+// ===  v5 EXPANSION PACK  (more monsters, NPCs, dungeons, buildings) ==
+// =====================================================================
+(function v5Expansion(){
+// ---- 1. NEW MONSTERS (added to eHP / eCol) --------------------------
+const NEW_MOBS = {
+kobold:{hp:24,col:0x556a3a},gnoll:{hp:55,col:0x7a6a3a},lizardman:{hp:80,col:0x3a7a4a},
+sandwurm:{hp:120,col:0xc8b070},frostwolf:{hp:75,col:0xb0c8e0},shadowstalker:{hp:95,col:0x281a3a},
+swampling:{hp:60,col:0x4a6a3a},marshhag:{hp:105,col:0x3a4a3a},reefdrake:{hp:170,col:0x3a8aaa},
+volcanopup:{hp:90,col:0xcc4a10},obsidiangolem:{hp:260,col:0x1a1a2a},stormharpy:{hp:110,col:0xa0c8ff},
+dustelemental:{hp:150,col:0xb0a070},voidwalker:{hp:200,col:0x2a1040},sirenofdeep:{hp:240,col:0x3a6a8a},
+goblin_chief:{hp:160,col:0x3a8a30,boss:true},lichking:{hp:520,col:0xa0b0c0,boss:true},
+dreadwyrm:{hp:680,col:0x3a1a4a,boss:true},infernofist:{hp:780,col:0xaa3010,boss:true},
+forestguardian:{hp:600,col:0x2a6a2a,boss:true},
+crystalbat:{hp:35,col:0xa0d0ff},corruptedfairy:{hp:55,col:0x9a4aaa},minotaur:{hp:175,col:0x7a4a30},
+plaguespecter:{hp:130,col:0x3a5a2a},stonesentinel:{hp:240,col:0x6a6a6a}
+};
+for(const k in NEW_MOBS){if(eHP[k]==null)eHP[k]=NEW_MOBS[k].hp;if(eCol[k]==null)eCol[k]=NEW_MOBS[k].col;}
+
+// Make all existing types valid kill-quest targets with scaled rewards
+for(const k in eHP){
+if(!questRewards[k]){
+const hp=eHP[k]; const isBoss=hp>=300;
+questRewards[k]={xp:Math.max(20,Math.round(hp*0.6)),gold:Math.max(40,Math.round(hp*(isBoss?4:1.8)))};
+}}
+
+// ---- 2. EXTRA QUEST NPCs (random kill-quests) -----------------------
+const extraQuestNPCs=[];
+const QUEST_POOLS=[
+{tier:'apprentice',targets:['goblin','rat','chicken','spider','cow','kobold','gnoll'],count:[3,8],reward:[40,90]},
+{tier:'journeyman',targets:['skeleton','zombie','wolf','bandit','imp','lizardman','frostwolf','swampling'],count:[4,10],reward:[80,180]},
+{tier:'veteran',targets:['orc','ogre','troll','vampire','hellhound','shadowstalker','volcanopup','minotaur'],count:[3,8],reward:[160,320]},
+{tier:'master',targets:['drake','golem','wyrm','demon','knight','reefdrake','dustelemental','plaguespecter','obsidiangolem'],count:[2,5],reward:[320,640]},
+{tier:'legendary',targets:['dragon','hydra','kraken','cerberus','vorkath','dreadwyrm','infernofist','forestguardian','lichking'],count:[1,2],reward:[640,1500]}
+];
+function randInt(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+function genQuestSpec(pool){
+const t=pool.targets[Math.floor(Math.random()*pool.targets.length)];
+const c=randInt(pool.count[0],pool.count[1]);
+const xp=randInt(pool.reward[0],pool.reward[1]);
+const gold=randInt(pool.reward[0]*2,pool.reward[1]*3);
+return {target:t,count:c,desc:'Slay '+c+' '+t.replace(/_/g,' ')+'s',xp:xp,gold:gold,tier:pool.tier};
+}
+function buildExtraQuestNPC(x,z,name,tier,bodyCol){
+const h=meshTerrainH(x,z);
+const g=new THREE.Group();
+const body=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.4,5,8),new THREE.MeshStandardMaterial({color:bodyCol,roughness:.7}));
+body.position.y=2.5;body.castShadow=true;g.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(1,8,8),new THREE.MeshStandardMaterial({color:0xccaa88,roughness:.6}));
+head.position.y=5.5;g.add(head);
+// Floating marker
+const markG=new THREE.Group();markG.position.y=7.5;
+const mb=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.55,6),new THREE.MeshStandardMaterial({color:0xffd700,emissive:0xffaa00,emissiveIntensity:2}));
+mb.position.y=0;markG.add(mb);
+const mt2=new THREE.Mesh(new THREE.SphereGeometry(.32,6,6),new THREE.MeshStandardMaterial({color:0xffd700,emissive:0xffaa00,emissiveIntensity:2}));
+mt2.position.y=.45;markG.add(mt2);
+g.add(markG);
+g.position.set(x,h,z);scene.add(g);
+const npc={mesh:g,marker:markG,x:x,z:z,h:h,name:name,tier:tier,
+quests:Array.from({length:3},()=>genQuestSpec(QUEST_POOLS.find(p=>p.tier===tier)||QUEST_POOLS[0])),
+active:null,kills:0,t:Math.random()*6.28};
+extraQuestNPCs.push(npc);
+return npc;
+}
+function showExtraQuestDialog(npc){
+const ex=document.getElementById('extra-quest-dialog');if(ex)ex.remove();
+const d=document.createElement('div');d.id='extra-quest-dialog';
+d.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(20,15,10,0.96);border:3px solid #c8a96e;border-radius:12px;padding:20px;z-index:1000;min-width:340px;max-width:420px;color:#ddd;font-family:serif;box-shadow:0 0 30px rgba(200,169,110,0.4);';
+let html='<div style="color:#ffd700;font-size:17px;font-weight:bold;margin-bottom:14px;text-align:center;">'+npc.name+' <span style="color:#aa8833;font-size:11px;">['+npc.tier+']</span></div>';
+if(npc.active){
+const cur=npc.kills;const pct=Math.min(100,(cur/npc.active.count)*100);
+html+='<div style="background:rgba(50,40,30,0.85);padding:12px;border-radius:8px;margin-bottom:12px;">';
+html+='<div style="color:#aa8833;font-size:11px;">Active Task:</div>';
+html+='<div style="color:#fff;font-weight:bold;margin:6px 0;">'+npc.active.desc+'</div>';
+html+='<div style="background:#332211;height:18px;border-radius:4px;overflow:hidden;border:1px solid #554422;"><div style="background:linear-gradient(90deg,#ffd700,#ffaa00);height:100%;width:'+pct+'%;"></div></div>';
+html+='<div style="text-align:center;color:#ffd700;font-size:13px;margin-top:4px;">'+cur+' / '+npc.active.count+'</div>';
+if(cur>=npc.active.count){
+html+='<button onclick="window.__claimExtra(\''+npc.name+'\')" style="width:100%;margin-top:10px;padding:10px;background:#335522;color:#8f8;border:2px solid #5a5;border-radius:6px;cursor:pointer;font-weight:bold;">💰 Claim '+npc.active.gold+'g + '+npc.active.xp+'xp</button>';
+} else {
+html+='<button onclick="window.__abandonExtra(\''+npc.name+'\')" style="width:100%;margin-top:10px;padding:8px;background:#552222;color:#f88;border:2px solid #a33;border-radius:6px;cursor:pointer;">Abandon Task</button>';
+}
+html+='</div>';
+} else {
+html+='<div style="color:#aa8833;margin-bottom:12px;text-align:center;font-size:12px;">Pick a contract:</div>';
+npc.quests.forEach((q,i)=>{
+html+='<button onclick="window.__acceptExtra(\''+npc.name+'\','+i+')" style="width:100%;margin-bottom:6px;padding:10px;background:#332211;color:#ffd700;border:2px solid #554422;border-radius:6px;cursor:pointer;text-align:left;">';
+html+='<div style="font-weight:bold;">'+q.desc+'</div>';
+html+='<div style="font-size:11px;color:#aa8833;">Reward: '+q.gold+' gold &middot; '+q.xp+' XP</div>';
+html+='</button>';});
+}
+html+='<button onclick="document.getElementById(\'extra-quest-dialog\').remove()" style="width:100%;margin-top:10px;padding:10px;background:#3a2222;color:#cc9988;border:2px solid #6a3a3a;border-radius:6px;cursor:pointer;">Close</button>';
+d.innerHTML=html;document.body.appendChild(d);
+}
+window.__acceptExtra=function(name,idx){
+const npc=extraQuestNPCs.find(n=>n.name===name);if(!npc)return;
+npc.active={...npc.quests[idx]};npc.kills=0;
+log('Contract accepted: '+npc.active.desc,'#ffd700');
+const d=document.getElementById('extra-quest-dialog');if(d)d.remove();
+};
+window.__abandonExtra=function(name){
+const npc=extraQuestNPCs.find(n=>n.name===name);if(!npc)return;
+npc.active=null;npc.kills=0;
+const d=document.getElementById('extra-quest-dialog');if(d)d.remove();
+};
+window.__claimExtra=function(name){
+const npc=extraQuestNPCs.find(n=>n.name===name);if(!npc||!npc.active)return;
+const r=npc.active;
+skills.Attack.xp+=Math.round(r.xp*.5);skills.Strength.xp+=Math.round(r.xp*.5);skills.Hitpoints.xp+=Math.round(r.xp*.3);
+const goldItem={name:'Gold Coins x'+r.gold,uid:null};
+if(inventory.length<28){inventory.push(goldItem);updateInvUI();}
+log('Contract complete! +'+r.xp+' XP, +'+r.gold+' gold','#0f0');
+// Refresh available quests
+const pool=QUEST_POOLS.find(p=>p.tier===npc.tier)||QUEST_POOLS[0];
+npc.quests=Array.from({length:3},()=>genQuestSpec(pool));
+npc.active=null;npc.kills=0;updateXpBar();
+const d=document.getElementById('extra-quest-dialog');if(d)d.remove();
+};
+
+// Spawn quest givers across many cities
+setTimeout(()=>{
+buildExtraQuestNPC(560,40,'Captain Olas','apprentice',0x884422);
+buildExtraQuestNPC(-490,310,'Master Kel','journeyman',0x445588);
+buildExtraQuestNPC(-1230,90,'Houndmaster Rin','journeyman',0x666633);
+buildExtraQuestNPC(560,400,'Sage Aramin','veteran',0xaa6622);
+buildExtraQuestNPC(-310,-150,'Warden Brus','veteran',0x885533);
+buildExtraQuestNPC(-820,-3220,'High Marshal','master',0x442266);
+buildExtraQuestNPC(1820,1220,'Ember Lord','master',0xaa3322);
+buildExtraQuestNPC(0,-4480,'The Oracle','legendary',0x442288);
+buildExtraQuestNPC(-490,-380,'Reaver Jhal','veteran',0x553355);
+buildExtraQuestNPC(-200,1850,'Stormcaller','master',0x2244aa);
+},5500);
+
+// Hook enemy-kill: wrap trackQuestKill to also update extra NPCs
+const _origTrack=trackQuestKill;
+trackQuestKill=function(type){
+_origTrack(type);
+for(const npc of extraQuestNPCs){
+if(npc.active && npc.active.target===type){
+npc.kills++;
+log('['+npc.name+'] '+npc.kills+'/'+npc.active.count+' '+type+' slain','#ffcc44');
+}}
+// Dungeon kill tracking
+if(inDungeon){inDungeon.killCount=(inDungeon.killCount||0)+1;if(type===inDungeon.bossType)inDungeon.bossKilled=true;}
+};
+
+// ---- 3. DUNGEON CLEAR / LOOTABLE CHEST ------------------------------
+const DUNGEON_LOOT={
+demon:['Reddragon Armour','Demonic Sigil','100 Gold','Greater Potion x3'],
+golem:['Stone Heart','Runic Plate','80 Gold','Mana Crystal x3'],
+wyrm:['Wyrm Scale','Mithril Blade','120 Gold','Speed Tonic x2'],
+hydra:['Hydra Tooth','Dragonscale Boots','200 Gold','Greater Potion x5'],
+dragon:['Dragon Hide','Sunforged Edge','250 Gold','Mana Crystal x5'],
+kraken:['Kraken Ink','Trident of Tides','180 Gold','Air Talisman'],
+vampire:['Vampiric Cloak','Blood Vial','140 Gold','Vitality Elixir'],
+tzhaar:['Obsidian Core','Magma Cloak','220 Gold','Fire Shield Scroll'],
+cerberus:['Crystal Bone','Hellhound Pelt','260 Gold','Mythic Tome'],
+vorkath:['Frostbite Helm','Dragon Bones','300 Gold','Ancient Rune'],
+nightmare:['Nightmare Shroud','Shadow Crown','320 Gold','Dream Essence'],
+nex:['Ancient Crystal','Wraith Robes','500 Gold','Aether Reaver'],
+jad:['Tzhaar-Ket','Fire Cape','450 Gold','Phoenix Feather'],
+zuk:['Infernal Cape','Igneous Stone','800 Gold','Mythic Tome x2'],
+elf:['Elven Bow','Crystal Shard','180 Gold','Forest Charm'],
+lichking:['Lich Crown','Skull of Power','600 Gold','Necrotic Tome'],
+dreadwyrm:['Dread Heart','Void Scale','700 Gold','Aether Reaver'],
+forestguardian:['Heartwood','Druid Staff','550 Gold','Nature Pact'],
+infernofist:['Infernal Gauntlet','Magma Heart','700 Gold','Fire Sigil']
+};
+function spawnDungeonChest(d){
+if(!dungeonGroup||!d.rooms)return;
+const bossRoom=d.rooms[d.rooms.length-1];
+const cy=-d.depth*50+1.5;
+const g=new THREE.Group();
+const box=new THREE.Mesh(new THREE.BoxGeometry(3.5,2.2,2.4),new MS({color:0xd8b048,roughness:.3,metalness:.7}));
+box.position.y=1.1;box.castShadow=true;g.add(box);
+const lid=new THREE.Mesh(new THREE.BoxGeometry(3.7,.6,2.6),new MS({color:0xc0982a,roughness:.35,metalness:.65}));
+lid.position.y=2.5;g.add(lid);
+const glow=new THREE.PointLight(0xffd06a,1.8,18);glow.position.y=3;g.add(glow);
+g.position.set(bossRoom.x,cy,bossRoom.z);dungeonGroup.add(g);
+d.lootChest={mesh:g,x:bossRoom.x,z:bossRoom.z,y:cy,looted:false};
+}
+function lootDungeonChest(d){
+if(!d.lootChest||d.lootChest.looted)return;
+d.lootChest.looted=true;
+// Pulse: animate lid up + fade glow on next frames via userData
+d.lootChest.mesh.children[1].position.y=4.2;// lid up
+const pool=DUNGEON_LOOT[d.bossType]||['Mythic Tome','Greater Potion x3','250 Gold','Mana Crystal x4'];
+const picked=[];for(let i=0;i<3;i++){const it=pool[Math.floor(Math.random()*pool.length)];picked.push(it);}
+let goldGained=0;
+for(const item of picked){
+if(/^\d+\s*Gold/.test(item)){const m=item.match(/^(\d+)/);if(m)goldGained+=parseInt(m[1]);}
+else if(inventory.length<28){inventory.push({name:item,uid:null});}
+}
+if(goldGained>0&&inventory.length<28)inventory.push({name:'Gold Coins x'+goldGained,uid:null});
+updateInvUI();
+log('🎁 Dungeon chest opened! Loot: '+picked.join(', ')+(goldGained?(' (+'+goldGained+'g)'):''),'#ffd700');
+// XP bonus
+skills.Attack.xp+=80;skills.Strength.xp+=80;skills.Defence.xp+=80;skills.Hitpoints.xp+=60;updateXpBar();
+}
+function grantDungeonClearBonus(d){
+if(d.clearBonusGiven)return;d.clearBonusGiven=true;
+const bonus=200*(d.depth||1);
+if(inventory.length<28)inventory.push({name:'Gold Coins x'+bonus,uid:null});
+log('🏆 DUNGEON CLEARED — depth '+d.depth+' — +'+bonus+'g bonus & chest unlocked!','#0f0');
+updateInvUI();
+}
+
+// Wrap enterDungeon: spawn lootable chest, reset state
+const _origEnter=enterDungeon;
+enterDungeon=function(d){
+_origEnter(d);
+d.killCount=0;d.bossKilled=false;d.clearBonusGiven=false;
+if(d.lootChest)d.lootChest.looted=false;
+// Slight delay so dungeonGroup exists
+setTimeout(()=>spawnDungeonChest(d),50);
+};
+
+// Wrap checkInteractions: detect chest-loot proximity + clear status
+const _origCheck=checkInteractions;
+checkInteractions=function(){
+if(typeof _origCheck==='function')_origCheck();
+// Dungeon clear detection
+if(inDungeon&&inDungeon.bossKilled&&!inDungeon.clearBonusGiven){
+grantDungeonClearBonus(inDungeon);
+}
+// Chest interaction
+if(inDungeon&&inDungeon.lootChest&&!inDungeon.lootChest.looted){
+const c=inDungeon.lootChest;
+const dx=player.x-c.x,dz=player.z-c.z;
+if(Math.hypot(dx,dz)<5 && (keys['KeyE']||(gpButtons&&gpButtons.x))){
+lootDungeonChest(inDungeon);
+}}
+// Extra-NPC interaction (E)
+for(const npc of extraQuestNPCs){
+const dx=player.x-npc.x,dz=player.z-npc.z;
+if(Math.hypot(dx,dz)<7 && (keys['KeyE']||(gpButtons&&gpButtons.x))){
+if(!document.getElementById('extra-quest-dialog'))showExtraQuestDialog(npc);
+break;
+}}
+// Animate markers
+for(const npc of extraQuestNPCs){
+npc.t+=0.05;
+if(npc.marker){npc.marker.position.y=7.5+Math.sin(npc.t)*0.3;npc.marker.rotation.y+=0.02;}}
+};
+
+// ---- 4. EXTRA DUNGEONS (more content) -------------------------------
+// Defer until function is defined (it is, by this point)
+try{
+genDungeon(1700,-2400,3,'fire','dreadwyrm');
+genDungeon(-3300,1100,2,'undead','lichking');
+genDungeon(2800,1800,4,'fire','infernofist');
+genDungeon(-2000,-1500,3,'cave','forestguardian');
+genDungeon(900,2800,2,'cave','reefdrake');
+genDungeon(-3800,-2200,4,'undead','lichking');
+}catch(err){console.warn('extra dungeon gen failed',err);}
+
+// ---- 5. EXTRA ENTERABLE BUILDINGS -----------------------------------
+try{
+makeEnterable(70,-20,'forge','Lumbridge Forge');
+makeEnterable(45,55,'chapel','Lumbridge Chapel');
+makeEnterable(580,-20,'mansion','Varrock Palace Hall');
+makeEnterable(595,80,'tavern','Dancing Donkey');
+makeEnterable(-540,250,'forge','Falador Smithy');
+makeEnterable(-460,350,'chapel','White Knights Chapel');
+makeEnterable(-1180,140,'tavern','Ardougne Plaza Inn');
+makeEnterable(-1330,60,'shop','Ardougne Magic Shop');
+makeEnterable(630,420,'shop','Al Kharid Spice Market');
+makeEnterable(600,440,'tavern','Desert Oasis Tavern');
+makeEnterable(-360,-200,'shop','Draynor Market');
+makeEnterable(-820,-3180,'forge','Trollheim Forge');
+makeEnterable(-840,-3260,'mansion','Trollheim Throne');
+makeEnterable(1800,1180,'forge','TzHaar Smithy');
+makeEnterable(140,-340,'tavern','Edgeville Pub');
+makeEnterable(190,-320,'shop','Edgeville Vault');
+makeEnterable(-1400,520,'shop','Anilleyay Bazaar');
+makeEnterable(1280,-180,'tavern','Anifiscay Wharfhouse');
+makeEnterable(-220,1820,'chapel','Aramjakay Sanctum');
+makeEnterable(-220,-3470,'mansion','Ollheimtray Hall');
+makeEnterable(-820,-130,'shop','Eerssay Trading Post');
+makeEnterable(-410,-3780,'forge','Ellekkaray Forge');
+makeEnterable(-820,-3220,'shop','Eldagrimkay Goods');
+makeEnterable(-4020,-280,'mansion','Ifddinas Cathedral');
+makeEnterable(1820,1220,'shop','Aartzhay Treasury');
+makeEnterable(2520,220,'tavern','Ophanemsay Bunkhouse');
+makeEnterable(820,820,'chapel','Anarisza Shrine');
+makeEnterable(-1480,2020,'forge','Inasmay Workshop');
+}catch(err){console.warn('extra buildings failed',err);}
+
+// ---- 6. DUNGEON LOOT FIX (drop at dungeon floor, not surface) -------
+// Existing spawnLoot uses meshTerrainH(x,z)+4 — for enemies that die inside
+// a dungeon (player.y far below surface) this puts loot in the sky.
+// We wrap to re-target newly-spawned loot meshes to the player's Y.
+const _origSpawnLoot=spawnLoot;
+spawnLoot=function(x,z,e){
+const beforeLen=lootArr.length;
+const result=_origSpawnLoot(x,z,e);
+if(inDungeon){
+const dungeonY=-inDungeon.depth*50; // floor y for current dungeon
+for(let i=beforeLen;i<lootArr.length;i++){
+const m=lootArr[i];
+if(m&&m.position){
+m.position.y=dungeonY+3;
+if(m.userData)m.userData.dungeonY=dungeonY;
+}}
+// Bonus loot inside dungeons — extra coins scaled to depth
+const bonusGold=20*inDungeon.depth+Math.floor(Math.random()*40);
+if(inventory.length<28)inventory.push({name:'Gold Coins x'+bonusGold,uid:null});
+if(updateInvUI)updateInvUI();
+}
+return result;
+};
+
+// ---- 7. WORLD MARKERS: visible NPC labels on minimap (best-effort) --
+// Many minimap functions exist; we just augment data. Safe no-op otherwise.
+
+log('=== v5 Expansion loaded: '+Object.keys(NEW_MOBS).length+' new mobs · '+extraQuestNPCs.length+' quest givers · 6 new dungeons · 28 new enterables · dungeon-loot fix ===','#ffcc44');
+})();
+// =====================================================================
+
+// =====================================================================
+// ===  v6 EXPANSION PACK  (skill tree, WoW mobs, bosses, car, gun)  ===
+// =====================================================================
+(function v6Expansion(){
+// ---- 1. WoW-FLAVORED MONSTERS ---------------------------------------
+const WOW_MOBS={
+murloc:{hp:35,col:0x4a8a6a},kobold_wow:{hp:28,col:0x6a4a2a},quilboar:{hp:55,col:0x8a5a30},
+naga_warrior:{hp:120,col:0x2a6a8a},naga_priestess:{hp:110,col:0x4a8aaa},
+worgen:{hp:140,col:0x6a4a3a},worgen_alpha:{hp:240,col:0x8a5a4a},
+tauren_warrior:{hp:180,col:0x8a6a4a},furbolg:{hp:160,col:0x6a4a30},satyr:{hp:90,col:0x6a3a5a},
+defias_thug:{hp:60,col:0x5a2a2a},defias_pillager:{hp:85,col:0x6a3a2a},
+defias_taskmaster:{hp:160,col:0x8a4a3a},
+felguard:{hp:200,col:0x6a2a1a},voidwalker:{hp:160,col:0x2a1a4a},
+succubus:{hp:120,col:0x8a3a6a},felhunter:{hp:110,col:0x4a2a6a},infernal:{hp:280,col:0x6a3010},
+wendigo:{hp:140,col:0xa0a0c0},yeti:{hp:200,col:0xc0c0d0},dragonkin:{hp:160,col:0x5a8a3a},
+black_whelp:{hp:60,col:0x2a2a2a},red_whelp:{hp:60,col:0x8a2a2a},
+abomination:{hp:240,col:0x7a8a5a},plagueworm:{hp:50,col:0x5a7a3a},ghoul:{hp:80,col:0x6a7a5a},
+banshee:{hp:110,col:0x8aa0c0},scourge_marauder:{hp:180,col:0x4a5a6a},
+fire_imp:{hp:35,col:0xaa3a10},pandaren_brewmaster:{hp:200,col:0xc0a070},
+mogu_warrior:{hp:230,col:0x6a5a4a},mantid_swarmer:{hp:90,col:0x6a8a4a},
+sha_anger:{hp:300,col:0x4a2a4a},saurok_brute:{hp:170,col:0x4a6a3a},
+vrykul_berserker:{hp:220,col:0x8a7a5a},forsaken_crusader:{hp:140,col:0x8a8aaa},
+kraken_tentacle:{hp:120,col:0x3a4a6a},faerie_dragon:{hp:90,col:0xa0a0e0},
+ancient_protector:{hp:280,col:0x3a6a3a},gnoll_alpha:{hp:130,col:0x7a6a3a},
+ogre_mage:{hp:170,col:0x6a5a3a},ogre_lord:{hp:300,col:0x5a4a30},
+arakkoa_seer:{hp:130,col:0x4a4a6a},orc_warlock:{hp:140,col:0x4a6a3a},
+trolls_hexxer:{hp:160,col:0x6a4a6a},forest_stalker:{hp:120,col:0x3a5a3a}
+};
+for(const k in WOW_MOBS){if(eHP[k]==null)eHP[k]=WOW_MOBS[k].hp;if(eCol[k]==null)eCol[k]=WOW_MOBS[k].col;
+if(!questRewards[k]){const hp=WOW_MOBS[k].hp;questRewards[k]={xp:Math.max(20,Math.round(hp*0.6)),gold:Math.max(40,Math.round(hp*1.8))}}}
+
+// ---- 2. NAMED ROAMING WORLD BOSSES ----------------------------------
+const WORLD_BOSSES=[
+{key:'onyxia',name:'Onyxia, Brood Mother',hp:1800,col:0x2a4a2a,x:1500,z:-2000,radius:120,dmg:60},
+{key:'nefarian',name:'Nefarian the Black',hp:2200,col:0x1a1a1a,x:-2800,z:-1800,radius:140,dmg:75},
+{key:'ragnaros',name:'Ragnaros, Firelord',hp:2400,col:0xff4a10,x:2200,z:1900,radius:130,dmg:80},
+{key:'chogall',name:"Cho'gall, Twilight",hp:2000,col:0x6a2a6a,x:-2200,z:2200,radius:120,dmg:65},
+{key:'arthas',name:'Arthas, Lich King',hp:2800,col:0x88aaff,x:-1200,z:-3800,radius:160,dmg:85},
+{key:'kelthuzad',name:"Kel'Thuzad",hp:2100,col:0xa0c0ff,x:-3600,z:-3200,radius:130,dmg:70},
+{key:'illidan',name:'Illidan Stormrage',hp:2500,col:0x6a4aaa,x:-4500,z:1200,radius:150,dmg:78},
+{key:'deathwing',name:'Deathwing the Destroyer',hp:3500,col:0x8a1a1a,x:3200,z:-2500,radius:200,dmg:100},
+{key:'sapphiron',name:'Sapphiron',hp:1900,col:0x88ccff,x:-2400,z:-2800,radius:120,dmg:62},
+{key:'gruul',name:'Gruul the Dragonkiller',hp:2200,col:0x6a5a4a,x:3500,z:300,radius:140,dmg:72}
+];
+const roamingBosses=[];
+function spawnRoamingBoss(b){
+const baseY=meshTerrainH(b.x,b.z);
+const g=new THREE.Group();
+const bodyMat=new MS({color:b.col,roughness:.6,metalness:.2,emissive:b.col,emissiveIntensity:.18});
+const body=new THREE.Mesh(new THREE.CylinderGeometry(2.6,3.0,7,10),bodyMat);
+body.position.y=4;body.castShadow=true;g.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(1.8,10,10),bodyMat);head.position.y=9.5;head.castShadow=true;g.add(head);
+// Crown of spikes for menace
+for(let i=0;i<8;i++){const sp=new THREE.Mesh(new THREE.ConeGeometry(.4,1.8,5),bodyMat);
+const a=i/8*Math.PI*2;sp.position.set(Math.cos(a)*1.8,10.5,Math.sin(a)*1.8);sp.rotation.x=-.3;g.add(sp);}
+// Aura glow
+const aura=new THREE.PointLight(b.col,2.4,40);aura.position.y=6;g.add(aura);
+// Floating crown marker
+const crown=new THREE.Mesh(new THREE.TorusGeometry(1.4,.18,8,16),new THREE.MeshStandardMaterial({color:0xffd700,emissive:0xffaa00,emissiveIntensity:2.5}));
+crown.position.y=13;crown.rotation.x=Math.PI/2;g.add(crown);
+// Name label sprite (simple plane)
+const lblC=document.createElement('canvas');lblC.width=512;lblC.height=64;
+const ctx=lblC.getContext('2d');ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(0,0,512,64);
+ctx.font='bold 28px serif';ctx.textAlign='center';ctx.fillStyle='#ff5544';
+ctx.fillText('★ '+b.name+' ★',256,42);
+const tex=new THREE.CanvasTexture(lblC);
+const lblMat=new THREE.SpriteMaterial({map:tex,transparent:true});
+const label=new THREE.Sprite(lblMat);label.scale.set(20,2.5,1);label.position.y=16;g.add(label);
+g.position.set(b.x,baseY,b.z);scene.add(g);
+const rb={mesh:g,name:b.name,key:b.key,maxHp:b.hp,hp:b.hp,col:b.col,
+home:{x:b.x,z:b.z},radius:b.radius,dmg:b.dmg,
+patrolAngle:Math.random()*Math.PI*2,attackCD:0,crown:crown,aura:aura};
+roamingBosses.push(rb);
+return rb;
+}
+function damageRoamingBoss(rb,dmg){
+rb.hp-=dmg;rb.mesh.children[0].material.emissiveIntensity=.8;
+setTimeout(()=>{if(rb.mesh.children[0])rb.mesh.children[0].material.emissiveIntensity=.18},120);
+if(rb.hp<=0){
+log('🏆 '+rb.name+' DEFEATED! Massive reward!','#ffd700');
+// Big reward
+const rewards=[
+{name:rb.name+' Trophy',uid:null},
+{name:'Legendary Loot Cache',uid:null},
+{name:'Gold Coins x'+(2000+Math.floor(Math.random()*1000)),uid:null}
+];
+for(const r of rewards){if(inventory.length<28)inventory.push(r)}
+skills.Attack.xp+=500;skills.Strength.xp+=500;skills.Defence.xp+=500;skills.Hitpoints.xp+=300;
+addSkillPoints(3);
+updateInvUI();updateXpBar();
+scene.remove(rb.mesh);
+const idx=roamingBosses.indexOf(rb);if(idx>=0)roamingBosses.splice(idx,1);
+// Respawn after 5 min
+setTimeout(()=>{const seed=WORLD_BOSSES.find(x=>x.key===rb.key);if(seed)spawnRoamingBoss(seed)},300000);
+}}
+// Spawn world bosses after world loads
+setTimeout(()=>{WORLD_BOSSES.forEach(spawnRoamingBoss);log('★ '+WORLD_BOSSES.length+' world bosses now roam the realms ★','#ff8844')},7000);
+
+// ---- 3. SKILL TREE / TALENT SYSTEM ----------------------------------
+const TREE={
+combat:[
+{id:'might',name:'Might',desc:'+3% melee damage per rank',max:5,prereq:null,col:'#cc4444'},
+{id:'cleave',name:'Cleaving Strike',desc:'+5% damage to enemies under 50% HP',max:5,prereq:'might',col:'#cc4444'},
+{id:'berserk',name:'Berserker Rage',desc:'+8% damage when below 30% HP',max:3,prereq:'cleave',col:'#cc4444'},
+{id:'execution',name:'Executioner',desc:'+15% damage to dungeon bosses',max:3,prereq:'berserk',col:'#aa2222'},
+{id:'colossus',name:'Colossus',desc:'+25% damage in dungeons depth 3+',max:1,prereq:'execution',col:'#aa2222'}
+],
+defense:[
+{id:'toughness',name:'Toughness',desc:'+5% max HP per rank',max:5,prereq:null,col:'#44aacc'},
+{id:'armor',name:'Iron Hide',desc:'+3% damage reduction per rank',max:5,prereq:'toughness',col:'#44aacc'},
+{id:'regen',name:'Second Wind',desc:'+1 HP regen per second per rank',max:3,prereq:'armor',col:'#44aacc'},
+{id:'fortify',name:'Fortify',desc:'-20% damage taken in dungeons',max:1,prereq:'regen',col:'#226699'},
+{id:'undying',name:'Undying',desc:'Survive killing blow with 1 HP (60s CD)',max:1,prereq:'fortify',col:'#226699'}
+],
+arcane:[
+{id:'focus',name:'Arcane Focus',desc:'+5% magic damage per rank',max:5,prereq:null,col:'#aa44cc'},
+{id:'manawell',name:'Mana Well',desc:'+2 max mana / +1 mana regen per rank',max:5,prereq:'focus',col:'#aa44cc'},
+{id:'pyromancy',name:'Pyromancy',desc:'+25% damage to fire-themed dungeon mobs',max:3,prereq:'manawell',col:'#cc44aa'},
+{id:'necromancy',name:'Necromancy',desc:'+25% damage to undead-themed dungeon mobs',max:3,prereq:'manawell',col:'#cc44aa'},
+{id:'archmage',name:'Archmage',desc:'+50% damage to world bosses',max:1,prereq:'pyromancy',col:'#882288'}
+],
+utility:[
+{id:'haste',name:'Fleetfoot',desc:'+4% move speed per rank',max:5,prereq:null,col:'#44cc66'},
+{id:'lucky',name:'Lucky Strike',desc:'+3% loot drop chance per rank',max:5,prereq:'haste',col:'#44cc66'},
+{id:'fortune',name:'Fortune',desc:'+10% gold gained per rank',max:5,prereq:'lucky',col:'#44cc66'},
+{id:'hunter',name:'Trophy Hunter',desc:'+50% XP from named bosses',max:1,prereq:'fortune',col:'#22aa44'},
+{id:'ascension',name:'Ascension',desc:'+10% to ALL damage and defenses',max:1,prereq:'hunter',col:'#22aa44'}
+]
+};
+const TREE_FLAT={};for(const cat in TREE)for(const n of TREE[cat]){n.cat=cat;TREE_FLAT[n.id]=n}
+let skillTreeRanks=JSON.parse(localStorage.getItem('soulscape_tree_v6')||'{}');
+let skillPoints=parseInt(localStorage.getItem('soulscape_sp_v6')||'5');// start with 5
+function saveTree(){localStorage.setItem('soulscape_tree_v6',JSON.stringify(skillTreeRanks));localStorage.setItem('soulscape_sp_v6',String(skillPoints))}
+function rankOf(id){return skillTreeRanks[id]||0}
+function canLearn(id){const n=TREE_FLAT[id];if(!n)return false;if(rankOf(id)>=n.max)return false;if(skillPoints<=0)return false;if(n.prereq&&rankOf(n.prereq)<1)return false;return true}
+function learn(id){if(!canLearn(id))return false;skillTreeRanks[id]=rankOf(id)+1;skillPoints--;saveTree();refreshTreeUI();log('Skill learned: '+TREE_FLAT[id].name+' rank '+rankOf(id),'#aa66ff');return true}
+function addSkillPoints(n){skillPoints+=n;saveTree();log('+'+n+' skill point'+(n>1?'s':'')+'! (T to spend, '+skillPoints+' available)','#ffaa44')}
+window.__learnNode=function(id){learn(id)};
+
+// Hook level-ups to grant skill points (poll every second; cheap)
+let _lastTotalLv=0;
+function getTotalLv(){let t=0;for(const k in skills)if(skills[k]&&typeof skills[k].lv==='number')t+=skills[k].lv;return t}
+setInterval(()=>{const cur=getTotalLv();if(_lastTotalLv===0){_lastTotalLv=cur;return}if(cur>_lastTotalLv){addSkillPoints(cur-_lastTotalLv);_lastTotalLv=cur}},1000);
+
+// Skill-tree UI
+function openTreeDialog(){
+if(document.getElementById('skill-tree-dialog'))return;
+const d=document.createElement('div');d.id='skill-tree-dialog';
+d.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,rgba(15,10,25,.97),rgba(8,4,18,.99));border:3px solid #aa66ff;border-radius:14px;padding:18px;z-index:1500;width:780px;max-width:95vw;max-height:90vh;overflow-y:auto;color:#ddd;font-family:serif;box-shadow:0 0 40px rgba(170,102,255,.6);';
+const header='<div style="text-align:center;margin-bottom:12px;"><div style="font-size:22px;color:#cc88ff;font-weight:bold;letter-spacing:2px;">⚔ TALENT TREE ⚔</div><div style="color:#aa88dd;font-size:13px;margin-top:4px;">Skill Points Available: <b style="color:#ffd700;font-size:16px;" id="sp-count">'+skillPoints+'</b></div></div>';
+let body='<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">';
+for(const cat in TREE){
+body+='<div style="background:rgba(40,20,60,0.4);border:1px solid #55338a;border-radius:8px;padding:10px;"><div style="color:'+TREE[cat][0].col+';font-weight:bold;font-size:14px;text-align:center;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;border-bottom:1px solid #55338a;padding-bottom:5px;">'+cat+'</div>';
+for(const n of TREE[cat]){
+const r=rankOf(n.id);const ok=canLearn(n.id);
+const status=r>=n.max?'MAX':(ok?'CLICK':(n.prereq&&rankOf(n.prereq)<1?'LOCKED':(skillPoints<=0?'NEED SP':'?')));
+body+='<div onclick="window.__learnNode(\''+n.id+'\')" style="background:rgba(50,30,70,'+(r>0?'.8':'.3')+');border:2px solid '+(r>=n.max?'#ffd700':ok?n.col:'#444466')+';border-radius:6px;padding:8px;margin-bottom:6px;cursor:'+(ok?'pointer':'default')+';transition:transform .1s;'+(ok?'\'\' onmouseover=\'this.style.transform=\\"translateY(-2px)\\"\' onmouseout=\'this.style.transform=\\"\\"\'':'')+'">';
+body+='<div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:'+n.col+';font-weight:bold;">'+n.name+'</span><span style="color:#ffd700;font-size:11px;">'+r+' / '+n.max+'</span></div>';
+body+='<div style="font-size:10px;color:#ccaadd;margin-top:3px;">'+n.desc+'</div>';
+if(n.prereq)body+='<div style="font-size:9px;color:#886688;margin-top:2px;">Req: '+TREE_FLAT[n.prereq].name+'</div>';
+body+='</div>';
+}
+body+='</div>';
+}
+body+='</div>';
+body+='<button onclick="document.getElementById(\'skill-tree-dialog\').remove()" style="width:100%;margin-top:12px;padding:10px;background:#332244;color:#ccaaff;border:2px solid #6644aa;border-radius:6px;cursor:pointer;font-weight:bold;">Close [T]</button>';
+d.innerHTML=header+body;document.body.appendChild(d);
+}
+function refreshTreeUI(){const ex=document.getElementById('skill-tree-dialog');if(ex){ex.remove();openTreeDialog()}}
+
+// Open/close T key
+document.addEventListener('keydown',e=>{
+if(!gameStarted)return;
+const tag=(document.activeElement&&document.activeElement.tagName)||'';
+if(tag==='INPUT'||tag==='TEXTAREA')return;
+if(e.key&&e.key.toLowerCase()==='t'){
+e.preventDefault();
+const ex=document.getElementById('skill-tree-dialog');if(ex){ex.remove();return}
+openTreeDialog();
+}});
+
+// Apply passive bonuses — read by hooks below
+function bonusMul(id){return rankOf(id)}
+window.__getCombatBonus=function(targetType,inDungeonContext,bossKey){
+let mul=1.0;
+// Might
+mul*=1+0.03*bonusMul('might');
+// Berserk if low HP
+if(player.hp/player.maxHp<.3)mul*=1+0.08*bonusMul('berserk');
+// Cleave if target low HP (approx — can't know per-target here)
+// Dungeon boss damage bonus
+if(inDungeonContext)mul*=1+0.15*bonusMul('execution');
+if(inDungeonContext&&inDungeon&&inDungeon.depth>=3)mul*=1+0.25*bonusMul('colossus');
+// Pyro / necro per-mob
+if(inDungeonContext&&inDungeon&&inDungeon.theme==='fire')mul*=1+0.25*bonusMul('pyromancy');
+if(inDungeonContext&&inDungeon&&inDungeon.theme==='undead')mul*=1+0.25*bonusMul('necromancy');
+// World boss
+if(bossKey)mul*=1+0.5*bonusMul('archmage');
+// Ascension
+mul*=1+0.10*bonusMul('ascension');
+return mul;
+};
+window.__getDefenseBonus=function(){
+let red=0;
+red+=0.03*bonusMul('armor');
+if(inDungeon)red+=0.20*bonusMul('fortify');
+red+=0.10*bonusMul('ascension');
+return Math.min(0.85,red);
+};
+window.__getLootBonus=function(){return 0.03*bonusMul('lucky')};
+window.__getGoldBonus=function(){return 1+0.10*bonusMul('fortune')};
+window.__getMoveBonus=function(){return 1+0.04*bonusMul('haste')};
+window.__getMaxHpBonus=function(){return 1+0.05*bonusMul('toughness')};
+window.__getRegenBonus=function(){return bonusMul('regen')};
+
+// Apply toughness once at start (and again periodically — cheap)
+const _baseMaxHp=player.maxHp||100;
+function applyMaxHp(){player.maxHp=Math.round(_baseMaxHp*window.__getMaxHpBonus())}
+setInterval(applyMaxHp,2000);applyMaxHp();
+
+// HP regen tick
+setInterval(()=>{if(player.hp<player.maxHp){player.hp=Math.min(player.maxHp,player.hp+0.4+window.__getRegenBonus());}},1000);
+
+// Show skill-tree button hint
+log('💎 Skill Tree unlocked — press T to spend skill points (currently '+skillPoints+')','#aa66ff');
+
+// ---- 4. ROAMING BOSS AI (patrol + aggro player) ---------------------
+function updateRoamingBosses(dt){
+for(const rb of roamingBosses){
+if(!rb.mesh)continue;
+// Float crown
+rb.crown.rotation.z+=0.04;rb.crown.position.y=13+Math.sin(time*2)*0.4;
+// Check player distance
+const dx=player.x-rb.mesh.position.x,dz=player.z-rb.mesh.position.z;
+const dist=Math.hypot(dx,dz);
+if(dist<rb.radius*0.6){
+// Aggro - move toward player
+const a=Math.atan2(dz,dx);
+rb.mesh.position.x+=Math.cos(a)*0.08;rb.mesh.position.z+=Math.sin(a)*0.08;
+rb.mesh.rotation.y=-a-Math.PI/2;
+// Attack when close
+if(dist<8&&rb.attackCD<=0){
+rb.attackCD=90;
+const playerDef=window.__getDefenseBonus();
+const dmg=Math.round(rb.dmg*(1-playerDef));
+player.hp=Math.max(0,player.hp-dmg);
+log('★ '+rb.name+' strikes you for '+dmg+'!','#ff4422');
+if(typeof hitFX==='function')hitFX(player.x,player.y+3,player.z,rb.col);
+}
+} else {
+// Patrol in radius
+rb.patrolAngle+=0.005;
+const tx=rb.home.x+Math.cos(rb.patrolAngle)*rb.radius*0.5;
+const tz=rb.home.z+Math.sin(rb.patrolAngle)*rb.radius*0.5;
+const a=Math.atan2(tz-rb.mesh.position.z,tx-rb.mesh.position.x);
+rb.mesh.position.x+=Math.cos(a)*0.04;rb.mesh.position.z+=Math.sin(a)*0.04;
+rb.mesh.rotation.y=-a-Math.PI/2;
+}
+// Snap to terrain
+rb.mesh.position.y=meshTerrainH(rb.mesh.position.x,rb.mesh.position.z);
+rb.attackCD=Math.max(0,rb.attackCD-1);
+}}
+
+// ---- 5. DRIVABLE CAR ------------------------------------------------
+let carMesh=null,inCar=false,carV=0,carYaw=0;
+function buildCar(){
+const g=new THREE.Group();
+const bodyMat=new MS({color:0xcc2222,roughness:.4,metalness:.5});
+const cabMat=new MS({color:0x222222,roughness:.6});
+const wheelMat=new MS({color:0x111111,roughness:.95});
+// Chassis
+const chassis=new THREE.Mesh(new THREE.BoxGeometry(5,1.6,2.4),bodyMat);chassis.position.y=1.4;chassis.castShadow=true;g.add(chassis);
+// Cabin
+const cab=new THREE.Mesh(new THREE.BoxGeometry(2.6,1.4,2.2),bodyMat);cab.position.set(-.3,2.8,0);cab.castShadow=true;g.add(cab);
+// Windshield
+const ws=new THREE.Mesh(new THREE.PlaneGeometry(2,1.2),cabMat);ws.position.set(1.0,2.8,0);ws.rotation.y=Math.PI/2;ws.rotation.x=-.3;g.add(ws);
+// Lights
+const fl1=new THREE.Mesh(new THREE.CircleGeometry(.25,8),new THREE.MeshBasicMaterial({color:0xffffaa}));fl1.position.set(2.55,1.6,-.7);fl1.rotation.y=-Math.PI/2;g.add(fl1);
+const fl2=fl1.clone();fl2.position.z=.7;g.add(fl2);
+// Wheels
+const wheels=[];
+for(const [wx,wz] of [[-1.6,-1.4],[-1.6,1.4],[1.6,-1.4],[1.6,1.4]]){
+const wh=new THREE.Mesh(new THREE.CylinderGeometry(.8,.8,.5,12),wheelMat);
+wh.position.set(wx,.8,wz);wh.rotation.x=Math.PI/2;wh.castShadow=true;
+g.add(wh);wheels.push(wh);
+}
+g.userData={wheels:wheels};
+g.position.set(80,meshTerrainH(80,30)+.5,30);
+scene.add(g);
+return g;
+}
+setTimeout(()=>{carMesh=buildCar();log('🚗 A car is parked near Lumbridge (V to enter when nearby)','#ffcc44')},6500);
+function tryEnterCar(){
+if(!carMesh)return;
+if(inCar){
+inCar=false;
+// Step out beside car
+player.x=carMesh.position.x+3;player.z=carMesh.position.z;
+log('🚗 Exited car','#888');
+return;
+}
+const dx=player.x-carMesh.position.x,dz=player.z-carMesh.position.z;
+if(Math.hypot(dx,dz)<6){inCar=true;carYaw=carMesh.rotation.y;carV=0;log('🚗 Driving! WASD steers, Space brakes, V exits','#ffcc44');}
+}
+document.addEventListener('keydown',e=>{
+if(!gameStarted)return;
+const tag=(document.activeElement&&document.activeElement.tagName)||'';
+if(tag==='INPUT'||tag==='TEXTAREA')return;
+if(e.key&&e.key.toLowerCase()==='v'){e.preventDefault();tryEnterCar();}
+});
+function updateCar(dt){
+if(!carMesh)return;
+if(inCar){
+const accel=keys['KeyW']?0.06:keys['KeyS']?-0.04:0;
+carV+=accel;
+if(keys['Space'])carV*=0.92;
+else carV*=0.99;// drag
+carV=Math.max(-0.6,Math.min(1.2,carV));
+const steer=keys['KeyA']?0.025:keys['KeyD']?-0.025:0;
+carYaw+=steer*(Math.abs(carV)>0.05?1:0);
+carMesh.rotation.y=carYaw;
+carMesh.position.x+=Math.cos(carYaw)*carV;
+carMesh.position.z+=-Math.sin(carYaw)*carV;
+carMesh.position.y=meshTerrainH(carMesh.position.x,carMesh.position.z)+.5;
+// Player follows car
+player.x=carMesh.position.x;player.z=carMesh.position.z;player.y=carMesh.position.y+2;
+// Wheel spin
+for(const wh of carMesh.userData.wheels)wh.rotation.z+=carV*0.5;
+} else {
+// keep on terrain
+carMesh.position.y=meshTerrainH(carMesh.position.x,carMesh.position.z)+.5;
+}}
+
+// ---- 6. RIFLE / GUN -------------------------------------------------
+let gunEquipped=false;
+const gunMesh=(function(){
+const g=new THREE.Group();
+const stockMat=new MS({color:0x4a3020,roughness:.7});
+const barrelMat=new MS({color:0x222222,roughness:.5,metalness:.8});
+const stock=new THREE.Mesh(new THREE.BoxGeometry(1.4,.4,.3),stockMat);stock.position.set(-.6,0,0);g.add(stock);
+const barrel=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,2,8),barrelMat);barrel.position.set(.8,0,0);barrel.rotation.z=Math.PI/2;g.add(barrel);
+const sight=new THREE.Mesh(new THREE.BoxGeometry(.2,.15,.1),barrelMat);sight.position.set(.3,.2,0);g.add(sight);
+g.visible=false;
+return g;
+})();
+scene.add(gunMesh);
+function toggleGun(){
+gunEquipped=!gunEquipped;
+gunMesh.visible=gunEquipped;
+log(gunEquipped?'🔫 Rifle equipped (F to fire)':'🔫 Rifle holstered','#ffcc44');
+}
+function fireGun(){
+if(!gunEquipped)return;
+const dir={x:Math.cos(player.yaw||0),z:-Math.sin(player.yaw||0)};
+// Find closest enemy or boss in line
+let best=null,bestDist=80;
+for(const e of enemies){
+const dx=e.mesh.position.x-player.x,dz=e.mesh.position.z-player.z;
+const d=Math.hypot(dx,dz);if(d>bestDist)continue;
+const an=Math.atan2(-dz,dx);
+const playerAn=player.yaw||0;
+let diff=Math.abs(an-playerAn);while(diff>Math.PI)diff=Math.abs(diff-Math.PI*2);
+if(diff<.3){if(d<bestDist){bestDist=d;best=e}}
+}
+for(const rb of roamingBosses){
+const dx=rb.mesh.position.x-player.x,dz=rb.mesh.position.z-player.z;
+const d=Math.hypot(dx,dz);if(d>bestDist)continue;
+const an=Math.atan2(-dz,dx);const playerAn=player.yaw||0;
+let diff=Math.abs(an-playerAn);while(diff>Math.PI)diff=Math.abs(diff-Math.PI*2);
+if(diff<.3){if(d<bestDist){bestDist=d;best={__isBoss:true,rb:rb}}}
+}
+// Muzzle flash
+if(typeof hitFX==='function')hitFX(player.x+dir.x*2,player.y+2,player.z+dir.z*2,0xffcc00);
+log('🔫 BANG!','#ffcc44');
+const dmg=Math.round(60*window.__getCombatBonus(null,!!inDungeon,best&&best.__isBoss?best.rb.key:null));
+if(best){
+if(best.__isBoss){damageRoamingBoss(best.rb,dmg);log('Hit '+best.rb.name+' for '+dmg+'!','#ffaa00')}
+else{best.hp-=dmg;log('Hit '+best.type+' for '+dmg+'!','#ffaa00');if(typeof hitFX==='function')hitFX(best.mesh.position.x,best.mesh.position.y+2,best.mesh.position.z,0xff8800)}
+}}
+document.addEventListener('keydown',e=>{
+if(!gameStarted)return;
+const tag=(document.activeElement&&document.activeElement.tagName)||'';
+if(tag==='INPUT'||tag==='TEXTAREA')return;
+if(e.key&&e.key.toLowerCase()==='g'){e.preventDefault();toggleGun()}
+if(e.key&&e.key.toLowerCase()==='f'){e.preventDefault();fireGun()}
+});
+function updateGun(){
+if(!gunEquipped)return;
+// Place gun in front of player
+gunMesh.position.set(player.x+0.8,player.y+1.4,player.z);
+gunMesh.rotation.y=-(player.yaw||0);
+}
+
+// ---- 7. NEW TOWNS + BUILDINGS ---------------------------------------
+const NEW_TOWNS=[
+{name:'Stormwind',x:3000,z:0,col:0xeebb55,wow:true,buildings:['mansion','chapel','forge','tavern','shop'],npc:{name:'King Wrynn',tier:'master',col:0xeebb55}},
+{name:'Ironforge',x:-3500,z:-1800,col:0xaa6622,wow:true,buildings:['forge','mansion','tavern','shop'],npc:{name:'Magni Bronzebeard',tier:'master',col:0xaa6622}},
+{name:'Darnassus',x:-4200,z:2400,col:0x88cc88,wow:true,buildings:['chapel','mansion','tower'],npc:{name:'Tyrande Whisperwind',tier:'master',col:0x88cc88}},
+{name:'Orgrimmar',x:2400,z:-1200,col:0x884422,wow:true,buildings:['forge','mansion','tavern'],npc:{name:'Thrall',tier:'legendary',col:0x884422}},
+{name:'Undercity',x:1600,z:2200,col:0x445544,wow:true,buildings:['mansion','chapel','tower'],npc:{name:'Sylvanas Windrunner',tier:'legendary',col:0x445544}},
+{name:'Bree',x:-1800,z:1500,col:0x886655,buildings:['tavern','shop','house'],npc:{name:'Barliman Butterbur',tier:'apprentice',col:0x886655}},
+{name:'Riften',x:1800,z:-3400,col:0x665544,buildings:['mansion','shop','tavern'],npc:{name:'Mjoll the Lioness',tier:'veteran',col:0x665544}},
+{name:'Novigrad',x:-2600,z:600,col:0x998866,buildings:['mansion','shop','forge','chapel'],npc:{name:'Triss Merigold',tier:'veteran',col:0x998866}}
+];
+function spawnNewTown(t){
+// Place a few enterables clustered around town center
+let bi=0;for(const b of t.buildings){
+const ang=(bi/t.buildings.length)*Math.PI*2;
+const r=22+bi*4;
+const bx=t.x+Math.cos(ang)*r,bz=t.z+Math.sin(ang)*r;
+try{makeEnterable(bx,bz,b,t.name+' '+b.charAt(0).toUpperCase()+b.slice(1))}catch(e){}
+bi++;
+}
+// Town plaza marker (decorative stone)
+try{
+const plaza=new THREE.Mesh(new THREE.CylinderGeometry(12,12,.6,16),new MS({color:t.col,roughness:.7}));
+plaza.position.set(t.x,meshTerrainH(t.x,t.z)+.3,t.z);plaza.receiveShadow=true;scene.add(plaza);
+// Banner pole
+const pole=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,12,8),new MS({color:0x4a3020}));
+pole.position.set(t.x,meshTerrainH(t.x,t.z)+6,t.z);scene.add(pole);
+const flag=new THREE.Mesh(new THREE.PlaneGeometry(4,2),new MS({color:t.col,side:THREE.DoubleSide}));
+flag.position.set(t.x+2,meshTerrainH(t.x,t.z)+10,t.z);scene.add(flag);
+// Town sign label
+const lblC=document.createElement('canvas');lblC.width=512;lblC.height=64;
+const ctx=lblC.getContext('2d');ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(0,0,512,64);
+ctx.font='bold 32px serif';ctx.textAlign='center';ctx.fillStyle='#ffd700';ctx.fillText('⚜ '+t.name+' ⚜',256,44);
+const tex=new THREE.CanvasTexture(lblC);
+const lblMat=new THREE.SpriteMaterial({map:tex,transparent:true});
+const label=new THREE.Sprite(lblMat);label.scale.set(24,3,1);label.position.set(t.x,meshTerrainH(t.x,t.z)+15,t.z);scene.add(label);
+}catch(e){console.warn('town plaza failed',e)}
+// Quest NPC
+try{
+const npc=buildExtraQuestNPC?null:null;// buildExtraQuestNPC is in v5 closure — cant reach
+}catch(e){}
+// teleports
+try{if(teleports&&teleports.push)teleports.push({name:t.name,x:t.x,z:t.z,unlocked:true})}catch(e){}
+}
+// buildExtraQuestNPC is scoped inside v5 IIFE; replicate a thin version here:
+function buildTownNPC(t){
+const h=meshTerrainH(t.x+8,t.z+8);
+const g=new THREE.Group();
+const body=new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.4,5,8),new THREE.MeshStandardMaterial({color:t.npc.col,roughness:.7}));
+body.position.y=2.5;body.castShadow=true;g.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(1,8,8),new THREE.MeshStandardMaterial({color:0xccaa88}));
+head.position.y=5.5;g.add(head);
+const markG=new THREE.Group();markG.position.y=7.5;
+const mb=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.55,6),new THREE.MeshStandardMaterial({color:0xffd700,emissive:0xffaa00,emissiveIntensity:2}));markG.add(mb);
+g.add(markG);g.position.set(t.x+8,h,t.z+8);scene.add(g);
+return {mesh:g,x:t.x+8,z:t.z+8,marker:markG,name:t.npc.name,tier:t.npc.tier};
+}
+const townNPCs=[];
+setTimeout(()=>{
+for(const t of NEW_TOWNS){spawnNewTown(t);townNPCs.push(buildTownNPC(t))}
+log('🏰 '+NEW_TOWNS.length+' new towns founded across the realms','#ffaa44');
+},6800);
+
+function updateTownMarkers(dt){
+for(const n of townNPCs){if(n.marker){n.marker.rotation.y+=0.02;n.marker.position.y=7.5+Math.sin(time*2+n.x*.01)*0.3;}
+// Talk hint
+const dx=player.x-n.x,dz=player.z-n.z;
+if(Math.hypot(dx,dz)<7 && (keys['KeyE']||(gpButtons&&gpButtons.x))){
+const ex=document.getElementById('town-npc-dialog');if(ex)return;
+const d=document.createElement('div');d.id='town-npc-dialog';
+d.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(20,15,10,.96);border:3px solid #c8a96e;border-radius:12px;padding:18px;z-index:1000;min-width:320px;color:#ddd;font-family:serif;';
+d.innerHTML='<div style="color:#ffd700;font-size:17px;font-weight:bold;text-align:center;">'+n.name+'</div>'
++'<div style="color:#ccaa88;font-size:12px;margin:10px 0;text-align:center;">Welcome to our town. Press E to talk or visit our buildings nearby.</div>'
++'<button onclick="this.parentElement.remove()" style="width:100%;padding:8px;background:#332244;color:#ccaaff;border:2px solid #6644aa;border-radius:6px;cursor:pointer;">Close</button>';
+document.body.appendChild(d);
+setTimeout(()=>{const x=document.getElementById('town-npc-dialog');if(x)x.remove()},5000);
+}}}
+
+// ---- 8. PER-FRAME HOOK ----------------------------------------------
+const _v6Orig=window.requestAnimationFrame;
+let _v6Last=0;
+window.requestAnimationFrame=function(cb){
+return _v6Orig.call(window,function(t){
+const dt=(t-_v6Last)/16;_v6Last=t;
+try{updateRoamingBosses(dt)}catch(e){}
+try{updateCar(dt)}catch(e){}
+try{updateGun()}catch(e){}
+try{updateTownMarkers(dt)}catch(e){}
+cb(t);
+});
+};
+
+// ---- 9. HUD: hotkey hint ---------------------------------------------
+setTimeout(()=>{
+const c=document.getElementById('controls');
+if(c){c.innerHTML+=' &middot; <b style="color:#aa66ff">T</b> Tree &middot; <b style="color:#ffcc44">V</b> Car &middot; <b style="color:#ffcc44">G</b> Gun &middot; <b style="color:#ffcc44">F</b> Fire';}
+},8000);
+
+log('=== v6 Expansion loaded: '+Object.keys(WOW_MOBS).length+' WoW mobs · '+WORLD_BOSSES.length+' world bosses · skill tree · car · rifle · '+NEW_TOWNS.length+' new towns ===','#ffcc44');
+})();
+// =====================================================================
+
+// =====================================================================
+// ===  v7 EXPANSION  (WoW items, spells, iconic bosses, more towns) ===
+// =====================================================================
+(function v7Expansion(){
+// ---- 1. WoW LEGENDARY ITEM CATALOG ----------------------------------
+// Format: [name, slot, atk, def, str, rarity, desc]
+// Rarity used: 'legendary' (existing system) and 'mythic' (treated visually as orange/gold)
+const WOW_ITEMS=[
+// === FAMOUS LEGENDARY WEAPONS ===
+['Thunderfury, Blessed Blade of the Windseeker','Weapon',95,8,70,'mythic','Chance on hit: blast target with lightning for 300 nature damage'],
+['Sulfuras, Hand of Ragnaros','Weapon',98,4,90,'mythic','2H mace. Chance on hit: hurl fiery ball, 240 fire damage AoE'],
+['Atiesh, Greatstaff of the Guardian','Weapon',88,6,40,'mythic','Increases damage and healing by 20%'],
+['Shadowmourne','Weapon',102,8,82,'mythic','2H axe. Soul shards build with each strike'],
+['Thoridal, the Stars Fury','Weapon',85,2,70,'mythic','Ranged bow that does not require ammunition'],
+['Valanyr, Hammer of Ancient Kings','Weapon',92,12,55,'mythic','1H mace. Healing creates absorption shield'],
+['Warglaive of Azzinoth (Main)','Weapon',86,6,68,'mythic','Twin set with off-hand. +50 attack with both equipped'],
+['Warglaive of Azzinoth (Off)','Weapon',80,8,62,'mythic','Twin set with main hand'],
+['Dragonwrath, Tarecgosas Rest','Weapon',90,6,30,'mythic','Staff. Chance: summon a copy of yourself to cast'],
+['Fangs of the Father (Golad)','Weapon',75,4,65,'mythic','Dagger pair. Bleed effects stack'],
+['Fangs of the Father (Tiriosh)','Weapon',73,4,67,'mythic','Dagger pair. Strikes apply Shadowmoon poison'],
+['Quel\'Serrar','Weapon',82,10,55,'legendary','Sword of the Sentinels. Bonus: +30 stamina'],
+['Quel\'Delar, Might of the Faithful','Weapon',80,6,58,'legendary','One-handed sword of Quel\'Thalas'],
+['Apolyon, the Soul-Render','Weapon',96,5,75,'mythic','2H axe. Chance on hit: 500 shadow damage'],
+['Sheilun, Staff of the Mists','Weapon',86,8,28,'mythic','Staff of Chi-Ji. Healing spells are 15% stronger'],
+['Tirion\'s Lightbringer (Ashbringer)','Weapon',104,8,85,'mythic','The Ashbringer. +20% damage to undead'],
+['Doomhammer','Weapon',88,6,75,'legendary','Thrall\'s legacy. Earthen Power totem on strike'],
+['Gorehowl','Weapon',90,4,80,'legendary','Axe of the Warchief. Bonus stamina +25'],
+['Frostmourne','Weapon',100,8,80,'mythic','The runeblade. Drains soul on kill'],
+['The Skullflame Shield','Offhand',5,55,5,'legendary','Chance on block: 35 shadow damage AoE'],
+['Skull of Impending Doom','Trinket',0,0,15,'rare','+5% speed, exposes self briefly'],
+['Hand of Justice','Trinket',5,5,5,'epic','+2% chance to score an extra attack'],
+['Force of Will','Trinket',8,8,0,'epic','+25 spell power, +1% crit'],
+['Eye of Sulfuras','Trinket',0,0,0,'rare','Used to craft Sulfuras with Aliarath'],
+['Aldori Legacy Defender','Offhand',5,72,8,'legendary','Shield of the Wrynn lineage'],
+['Bulwark of Azzinoth','Offhand',6,80,5,'mythic','Shield of Illidan. -3% damage taken'],
+['Twinblades of the Deceiver','Weapon',92,5,72,'mythic','Demon Hunter artifact pair'],
+['Doomhammer of Greythorne','Weapon',85,5,70,'legendary','Shaman 1H mace'],
+['Kingslayers','Weapon',78,4,65,'legendary','Rogue daggers, +Energy regen'],
+['Aldor Defender','Offhand',6,68,5,'epic','Naaru-blessed shield'],
+['Greatstaff of the Magus','Weapon',75,4,28,'epic','+45 spell power'],
+['Stormherald','Weapon',82,5,68,'legendary','2H mace, chance to stun'],
+['Crul\'shorukh, Edge of Chaos','Weapon',95,5,75,'mythic','BWL 1H axe of pure chaos'],
+['Vis\'kag the Bloodletter','Weapon',80,4,62,'legendary','Onyxia drop. Chance on hit: massive bleed'],
+['Bloodfang Hood','Helm',2,42,15,'epic','T2 Rogue. +Critical strike'],
+['Bloodfang Pants','Legs',2,55,18,'epic','T2 Rogue'],
+['Bloodfang Spaulders','Shoulder',2,38,12,'epic','T2 Rogue'],
+['Bloodfang Chestpiece','Armor',2,62,22,'epic','T2 Rogue'],
+['Bloodfang Belt','Belt',2,32,10,'epic','T2 Rogue'],
+['Bloodfang Gloves','Hand',2,30,10,'epic','T2 Rogue'],
+['Bloodfang Boots','Boots',2,30,12,'epic','T2 Rogue'],
+['Bloodfang Bracers','Bracer',2,25,8,'epic','T2 Rogue'],
+['Stormrage Cover','Helm',0,38,12,'epic','T2 Druid'],
+['Stormrage Chestguard','Armor',0,55,18,'epic','T2 Druid'],
+['Stormrage Pauldrons','Shoulder',0,35,10,'epic','T2 Druid'],
+['Stormrage Legguards','Legs',0,48,15,'epic','T2 Druid'],
+['Stormrage Belt','Belt',0,28,8,'epic','T2 Druid'],
+['Stormrage Boots','Boots',0,28,10,'epic','T2 Druid'],
+['Stormrage Bracers','Bracer',0,22,7,'epic','T2 Druid'],
+['Stormrage Handguards','Hand',0,27,10,'epic','T2 Druid'],
+['Netherwind Crown','Helm',0,35,8,'epic','T2 Mage'],
+['Netherwind Robe','Armor',0,52,10,'epic','T2 Mage'],
+['Netherwind Mantle','Shoulder',0,32,8,'epic','T2 Mage'],
+['Netherwind Pants','Legs',0,48,10,'epic','T2 Mage'],
+['Netherwind Belt','Belt',0,25,5,'epic','T2 Mage'],
+['Netherwind Gloves','Hand',0,25,5,'epic','T2 Mage'],
+['Netherwind Boots','Boots',0,28,8,'epic','T2 Mage'],
+['Netherwind Bindings','Bracer',0,20,5,'epic','T2 Mage'],
+['Helm of Wrath','Helm',0,48,15,'epic','T2 Warrior'],
+['Breastplate of Wrath','Armor',0,72,22,'epic','T2 Warrior'],
+['Pauldrons of Wrath','Shoulder',0,42,15,'epic','T2 Warrior'],
+['Legplates of Wrath','Legs',0,65,18,'epic','T2 Warrior'],
+['Belt of Wrath','Belt',0,38,12,'epic','T2 Warrior'],
+['Gauntlets of Wrath','Hand',0,38,12,'epic','T2 Warrior'],
+['Sabatons of Wrath','Boots',0,38,12,'epic','T2 Warrior'],
+['Bracers of Wrath','Bracer',0,30,8,'epic','T2 Warrior'],
+['Helm of Ten Storms','Helm',0,45,18,'epic','T2 Shaman'],
+['Epaulets of Ten Storms','Shoulder',0,38,15,'epic','T2 Shaman'],
+['Breastplate of Ten Storms','Armor',0,70,22,'epic','T2 Shaman'],
+['Legplates of Ten Storms','Legs',0,62,20,'epic','T2 Shaman'],
+['Belt of Ten Storms','Belt',0,32,12,'epic','T2 Shaman'],
+['Gauntlets of Ten Storms','Hand',0,32,12,'epic','T2 Shaman'],
+['Greaves of Ten Storms','Boots',0,32,12,'epic','T2 Shaman'],
+['Bracers of Ten Storms','Bracer',0,28,10,'epic','T2 Shaman'],
+['Judgement Crown','Helm',0,46,12,'epic','T2 Paladin'],
+['Judgement Spaulders','Shoulder',0,40,12,'epic','T2 Paladin'],
+['Judgement Breastplate','Armor',0,70,18,'epic','T2 Paladin'],
+['Judgement Legplates','Legs',0,62,16,'epic','T2 Paladin'],
+['Judgement Belt','Belt',0,34,10,'epic','T2 Paladin'],
+['Judgement Gauntlets','Hand',0,34,10,'epic','T2 Paladin'],
+['Judgement Sabatons','Boots',0,34,10,'epic','T2 Paladin'],
+['Judgement Bindings','Bracer',0,26,8,'epic','T2 Paladin'],
+['Nemesis Skullcap','Helm',0,40,10,'epic','T2 Warlock'],
+['Nemesis Bracers','Bracer',0,22,6,'epic','T2 Warlock'],
+['Nemesis Robes','Armor',0,55,14,'epic','T2 Warlock'],
+['Nemesis Spaulders','Shoulder',0,32,8,'epic','T2 Warlock'],
+['Nemesis Leggings','Legs',0,48,12,'epic','T2 Warlock'],
+['Nemesis Belt','Belt',0,25,7,'epic','T2 Warlock'],
+['Nemesis Gloves','Hand',0,25,7,'epic','T2 Warlock'],
+['Nemesis Boots','Boots',0,28,8,'epic','T2 Warlock'],
+['Vestments of Prophecy','Armor',0,52,10,'epic','T1 Priest'],
+['Crown of Transcendence','Helm',0,42,12,'epic','T2 Priest'],
+['Transcendence Mantle','Shoulder',0,30,10,'epic','T2 Priest'],
+['Cenarion Helm','Helm',0,38,12,'epic','T1 Druid'],
+['Mantle of Wisdom','Shoulder',0,30,8,'epic','T1 Mage'],
+['Gloves of Spell Mastery','Hand',0,22,4,'epic','T1 Mage'],
+['Onyxia Tooth Pendant','Necklace',2,8,8,'epic','Drop from Onyxia'],
+['Ony Scale Cloak','Cloak',0,18,8,'epic','+10% fire resist'],
+['Necklace of Calisea','Necklace',3,5,5,'epic','+10 stamina, +5 spirit'],
+['Ring of the Gathering Storm','Ring',2,5,8,'epic','+12 attack power'],
+['Don Julios Band','Ring',5,2,4,'epic','+8 attack power, +1% crit'],
+['Mark of the Champion','Trinket',8,8,0,'epic','+150 attack power vs Undead'],
+['Tear of Tilloa','Trinket',0,8,0,'epic','+200 healing, +6 spirit'],
+['Hourglass of the Unraveller','Trinket',10,0,5,'epic','Proc: +330 attack power 10s'],
+['Drake Fang Talisman','Trinket',10,5,5,'epic','+56 attack power'],
+['Talisman of Ephemeral Power','Trinket',0,2,0,'epic','+175 spell power 15s'],
+['Zandalarian Hero Charm','Trinket',5,5,5,'epic','Stackable spell-cost reduction'],
+['Carrot on a Stick','Trinket',0,0,0,'rare','+3% mount speed'],
+['Insignia of the Alliance','Trinket',3,3,3,'epic','PvP trinket, removes effects'],
+['Insignia of the Horde','Trinket',3,3,3,'epic','PvP trinket, removes effects'],
+['Devilsaur Eye','Trinket',8,0,4,'epic','+2% to-hit, ranged AP'],
+['Hand of Edward the Odd','Weapon',62,4,45,'legendary','Hidden potential 1H mace'],
+['Teebus Blazing Longsword','Weapon',55,3,40,'epic','+15 fire damage on hit'],
+['Krol Blade','Weapon',75,5,55,'epic','1H sword, +1% crit'],
+['Maladath, Runed Blade of the Black Flight','Weapon',77,4,58,'epic','BWL drop'],
+['Hand of Rag','Weapon',88,4,72,'legendary','Sulfuras variant'],
+['Mograine\'s Might','Weapon',70,4,55,'epic','Mograine\'s 1H sword'],
+['Spinal Reaper','Weapon',96,3,80,'epic','2H axe, Naxxramas'],
+['Whitemanes Chapeau','Helm',0,30,5,'epic','Scarlet armor'],
+['Hammer of the Naaru','Weapon',82,5,65,'legendary','TBC Karazhan 1H'],
+['Stormpike Battle-Bow','Weapon',62,3,50,'epic','PvP ranged'],
+['Mighty Cloak of Honor','Cloak',0,22,6,'epic','PvP cloak'],
+['Naxxramas Greaves','Boots',0,42,14,'epic','Naxxramas drops'],
+['Frost-Burning Blade','Weapon',75,4,58,'epic','+25 frost damage on hit'],
+['Stockade Shanker','Weapon',32,2,25,'rare','Low-tier rogue dagger'],
+['Crystal Spire of Karabor','Weapon',95,5,38,'mythic','BT staff, Illidan loot'],
+['Tigole Bitties Mantle','Shoulder',0,28,8,'epic','Joke item, cloth'],
+['Heart of Pwnage','Trinket',5,0,5,'epic','+150 melee crit'],
+['Ashes of Al\'ar','Trinket',0,0,0,'mythic','Mount: phoenix of Kael\'thas'],
+['Reins of the Stormwind Tiger','Trinket',0,0,0,'epic','Mount: white tiger'],
+['Cloak of Flames','Cloak',0,18,5,'epic','+5 fire resist, melee damage'],
+['Dragon Eye Headband','Helm',0,32,8,'epic','Cloth helm'],
+['Idol of the Moon','Trinket',2,2,2,'epic','+15 spell power druid'],
+['Libram of Hope','Trinket',2,2,2,'epic','Paladin proc'],
+['Totem of Wrath','Trinket',3,2,3,'epic','Shaman totem'],
+['Wand of Biting Cold','Weapon',38,1,18,'epic','Frost ranged wand'],
+['Wand of Eternal Light','Weapon',42,1,22,'epic','Holy ranged wand'],
+['Death\'s Verdict','Trinket',6,0,8,'epic','Stackable agility proc'],
+['Black Bow of the Betrayer','Weapon',82,2,70,'legendary','Illidan bow'],
+['Stranglethorn Bow','Weapon',55,2,40,'rare','Crafted bow'],
+['Gronnstalker\'s Rifle','Weapon',75,3,55,'epic','Tier ranged'],
+['Ranger Bow of the Wild','Weapon',58,2,45,'rare','Hunter bow'],
+['Polearm of the Sentinel','Weapon',76,5,60,'epic','Druid 2H'],
+['Halberd of Smiting','Weapon',82,5,65,'epic','+1% disarm'],
+['Hammer of Naaru','Weapon',74,4,58,'epic','Holy 1H mace'],
+['Mace of the Unforgiven','Weapon',68,3,55,'epic','Shadow 1H mace'],
+['Shield of Impenetrable Darkness','Offhand',5,65,8,'epic','BWL shield'],
+['Aegis of Stormwind','Offhand',5,70,8,'legendary','Stormwind defender'],
+['Truefaith Vestments','Armor',0,55,12,'epic','Priest healer chest'],
+['Cape of the Black Baron','Cloak',0,22,6,'epic','Strong PvP cloak'],
+['Frostsaber Belt','Belt',0,30,8,'epic','+5 frost resist'],
+['Doomguard Bracers','Bracer',0,25,8,'epic','Demonic bracers']
+];
+
+// Register items into base game itemDB (each is a unique stat template)
+// We treat WoW_ITEMS as a CATALOG and grant them as actual unique inventory items on drop
+const WOW_ITEM_MAP={};for(const it of WOW_ITEMS){WOW_ITEM_MAP[it[0]]={atk:it[2],def:it[3],str:it[4],slot:it[1],rarity:it[5],desc:it[6]}}
+
+function grantWoWItem(name){
+const t=WOW_ITEM_MAP[name];if(!t)return null;
+let item;
+if(typeof createUniqueItem==='function'&&t.slot){
+item=createUniqueItem(name,t.atk,t.def,t.str,t.slot,t.rarity);
+}else{
+item={name:name,uid:'wow'+Math.floor(Math.random()*1e9),atk:t.atk,def:t.def,str:t.str,slot:t.slot,rarity:t.rarity};
+if(typeof itemDB==='object'&&itemDB!==null)itemDB[item.uid]=item;
+}
+if(inventory.length<28){inventory.push({name:item.name,uid:item.uid});if(typeof updateInvUI==='function')updateInvUI()}
+return item;
+}
+window.__grantWoWItem=grantWoWItem;
+window.__rollWoWLegendary=function(){
+// Roll: 60% epic, 30% legendary, 10% mythic
+const pool={epic:[],legendary:[],mythic:[]};
+for(const it of WOW_ITEMS){if(pool[it[5]])pool[it[5]].push(it[0])}
+const r=Math.random();
+const tier=r<.6?'epic':(r<.9?'legendary':'mythic');
+const arr=pool[tier].length?pool[tier]:WOW_ITEMS.map(x=>x[0]);
+return arr[Math.floor(Math.random()*arr.length)];
+};
+
+// ---- 2. SPELLBOOK ---------------------------------------------------
+// Each spell: {key, name, school, cost, cd, dmg, heal, desc, targeted}
+const SPELLS=[
+{k:'fireball',n:'Fireball',sch:'Fire',cost:35,cd:1.5,dmg:120,r:35,desc:'Hurls a fiery ball at the target, dealing fire damage and applying a burn.'},
+{k:'pyroblast',n:'Pyroblast',sch:'Fire',cost:70,cd:4,dmg:280,r:35,desc:'Slow-cast massive fire damage that ignites for 6s.'},
+{k:'frostbolt',n:'Frostbolt',sch:'Frost',cost:30,cd:1.2,dmg:90,r:35,desc:'A bolt of frost. Slows target.'},
+{k:'icelance',n:'Ice Lance',sch:'Frost',cost:15,cd:0.5,dmg:60,r:35,desc:'Quick frost. Triples damage to frozen targets.'},
+{k:'frostnova',n:'Frost Nova',sch:'Frost',cost:40,cd:18,dmg:40,r:10,aoe:true,desc:'Freezes enemies in place around you.'},
+{k:'arcanemissiles',n:'Arcane Missiles',sch:'Arcane',cost:50,cd:3,dmg:160,r:35,desc:'Channels 5 arcane missiles at target.'},
+{k:'polymorph',n:'Polymorph',sch:'Arcane',cost:40,cd:8,dmg:0,r:30,desc:'Transforms target into a sheep for 8s.'},
+{k:'blizzard',n:'Blizzard',sch:'Frost',cost:80,cd:8,dmg:200,r:30,aoe:true,desc:'Calls a blizzard that hits all enemies in 12yd area.'},
+{k:'shadowbolt',n:'Shadow Bolt',sch:'Shadow',cost:30,cd:1.5,dmg:110,r:35,desc:'A bolt of corrupting shadow.'},
+{k:'corruption',n:'Corruption',sch:'Shadow',cost:25,cd:2,dmg:90,r:30,desc:'DoT — 90 dmg over 12s.'},
+{k:'curseagony',n:'Curse of Agony',sch:'Shadow',cost:30,cd:2,dmg:75,r:30,desc:'Ramping shadow damage over 24s.'},
+{k:'drainlife',n:'Drain Life',sch:'Shadow',cost:40,cd:5,dmg:140,r:25,heal:60,desc:'Drains life from target.'},
+{k:'hellfire',n:'Hellfire',sch:'Fire',cost:90,cd:15,dmg:220,r:14,aoe:true,desc:'Self-channel burning everything (and you) in 14yd.'},
+{k:'soulfire',n:'Soul Fire',sch:'Fire',cost:60,cd:6,dmg:240,r:35,desc:'Slow heavy fire damage.'},
+{k:'holylight',n:'Holy Light',sch:'Holy',cost:40,cd:2,dmg:0,r:25,heal:180,desc:'A flash of holy light, healing target.'},
+{k:'flashheal',n:'Flash of Light',sch:'Holy',cost:25,cd:1.5,dmg:0,r:25,heal:90,desc:'Quick smaller heal.'},
+{k:'layonhands',n:'Lay on Hands',sch:'Holy',cost:200,cd:120,dmg:0,r:5,heal:9999,desc:'Restore target to full health. Long CD.'},
+{k:'hammerwrath',n:'Hammer of Wrath',sch:'Holy',cost:35,cd:6,dmg:180,r:30,desc:'Throws a holy hammer at low-HP enemy.'},
+{k:'avengingwrath',n:'Avenging Wrath',sch:'Holy',cost:0,cd:120,dmg:0,r:0,buff:true,desc:'30% damage/healing for 20s.'},
+{k:'mortalstrike',n:'Mortal Strike',sch:'Physical',cost:20,cd:6,dmg:150,r:5,desc:'Heavy strike that reduces target healing for 5s.'},
+{k:'whirlwind',n:'Whirlwind',sch:'Physical',cost:25,cd:10,dmg:140,r:8,aoe:true,desc:'Spin and hit all enemies in 8yd.'},
+{k:'bladestorm',n:'Bladestorm',sch:'Physical',cost:0,cd:90,dmg:400,r:8,aoe:true,desc:'Immune, channel hitting all in range for 6s.'},
+{k:'charge',n:'Charge',sch:'Physical',cost:0,cd:15,dmg:50,r:25,desc:'Charge 25yd to target, stunning briefly.'},
+{k:'heroicleap',n:'Heroic Leap',sch:'Physical',cost:0,cd:45,dmg:80,r:40,aoe:true,desc:'Leap to a location, AoE damage on impact.'},
+{k:'lightningbolt',n:'Lightning Bolt',sch:'Nature',cost:30,cd:1.5,dmg:100,r:30,desc:'Calls down a bolt of lightning.'},
+{k:'chainlightning',n:'Chain Lightning',sch:'Nature',cost:55,cd:6,dmg:140,r:30,aoe:true,desc:'Lightning chains to 3 nearby targets.'},
+{k:'bloodlust',n:'Bloodlust / Heroism',sch:'Nature',cost:0,cd:300,dmg:0,r:0,buff:true,desc:'+30% haste 40s. Long CD.'},
+{k:'wrath',n:'Wrath',sch:'Nature',cost:25,cd:1.5,dmg:90,r:30,desc:'Nature damage projectile.'},
+{k:'starfire',n:'Starfire',sch:'Arcane',cost:50,cd:3,dmg:200,r:30,desc:'Slow-cast nature/arcane damage.'},
+{k:'starfall',n:'Starfall',sch:'Arcane',cost:0,cd:90,dmg:240,r:30,aoe:true,desc:'Rain of stars for 10s.'},
+{k:'moonfire',n:'Moonfire',sch:'Arcane',cost:25,cd:0.5,dmg:60,r:30,desc:'Quick arcane damage + DoT.'},
+{k:'rejuvenation',n:'Rejuvenation',sch:'Nature',cost:30,cd:1,dmg:0,r:25,heal:140,desc:'HoT — heals over 15s.'},
+{k:'healingtouch',n:'Healing Touch',sch:'Nature',cost:45,cd:2,dmg:0,r:25,heal:220,desc:'Big single-target heal.'},
+{k:'mindblast',n:'Mind Blast',sch:'Shadow',cost:35,cd:5,dmg:160,r:30,desc:'Telekinetic shadow blast.'},
+{k:'mindflay',n:'Mind Flay',sch:'Shadow',cost:25,cd:0,dmg:120,r:20,desc:'Channel shadow damage and slow.'},
+{k:'powerwordshield',n:'Power Word: Shield',sch:'Holy',cost:40,cd:5,dmg:0,r:25,buff:true,desc:'Absorbs damage for 30s.'},
+{k:'shadowstep',n:'Shadowstep',sch:'Shadow',cost:0,cd:24,dmg:0,r:25,buff:true,desc:'Teleport behind target.'},
+{k:'backstab',n:'Backstab',sch:'Physical',cost:15,cd:0,dmg:130,r:5,desc:'Heavy stab from behind.'},
+{k:'eviscerate',n:'Eviscerate',sch:'Physical',cost:0,cd:0,dmg:220,r:5,desc:'Finishing move, scales with combo points.'},
+{k:'aimedshot',n:'Aimed Shot',sch:'Physical',cost:30,cd:8,dmg:240,r:40,desc:'Slow-aim devastating shot.'},
+{k:'multishot',n:'Multi-Shot',sch:'Physical',cost:25,cd:6,dmg:100,r:30,aoe:true,desc:'Fires arrows at 3 targets.'},
+{k:'huntersmark',n:'Hunter\'s Mark',sch:'Physical',cost:0,cd:0,dmg:0,r:50,buff:true,desc:'Increases target damage taken by 5%.'}
+];
+const SPELL_INDEX={};for(const s of SPELLS)SPELL_INDEX[s.k]=s;
+const spellCD={};
+
+function findTargetEnemy(maxRange){
+let best=null,bestD=maxRange;
+for(const e of enemies){
+const dx=e.mesh.position.x-player.x,dz=e.mesh.position.z-player.z;
+const d=Math.hypot(dx,dz);if(d<bestD){bestD=d;best=e}}
+return best;
+}
+function castSpell(k){
+const s=SPELL_INDEX[k];if(!s)return;
+const now=performance.now()/1000;
+if((spellCD[k]||0)>now){log(s.n+' is on cooldown.','#888');return}
+// Mana check (use player.mana / poison if exists)
+if(typeof player.mana==='number'&&player.mana<s.cost){log('Not enough mana.','#88f');return}
+if(typeof player.mana==='number')player.mana-=s.cost;
+spellCD[k]=now+s.cd;
+const bonus=window.__getCombatBonus?window.__getCombatBonus(null,!!inDungeon,null):1.0;
+// Heal
+if(s.heal){
+player.hp=Math.min(player.maxHp,player.hp+s.heal);
+log('+'+s.heal+' heal — '+s.n,'#0f8');
+return;
+}
+if(s.buff){
+log(s.n+' cast — buff active','#ff8');
+// Visual aura
+if(typeof hitFX==='function')hitFX(player.x,player.y+3,player.z,0xffdd44);
+return;
+}
+// Damage
+if(s.aoe){
+let count=0;
+for(const e of enemies){
+const dx=e.mesh.position.x-player.x,dz=e.mesh.position.z-player.z;
+const d=Math.hypot(dx,dz);
+if(d<=s.r){
+const dmg=Math.round(s.dmg*bonus);
+e.hp-=dmg;count++;
+if(typeof hitFX==='function')hitFX(e.mesh.position.x,e.mesh.position.y+2,e.mesh.position.z,schoolColor(s.sch));
+}}
+log(s.n+' hit '+count+' enemies','#fa4');
+}else{
+const target=findTargetEnemy(s.r);
+if(!target){log(s.n+' — no target in range','#888');return}
+const dmg=Math.round(s.dmg*bonus);
+target.hp-=dmg;
+if(typeof hitFX==='function')hitFX(target.mesh.position.x,target.mesh.position.y+2,target.mesh.position.z,schoolColor(s.sch));
+log(s.n+' hit '+target.type+' for '+dmg,'#fa4');
+}
+}
+window.__castSpell=castSpell;
+
+function schoolColor(s){return s==='Fire'?0xff5a10:s==='Frost'?0x44aaff:s==='Shadow'?0x8855aa:s==='Holy'?0xffd700:s==='Nature'?0x55cc44:s==='Arcane'?0xcc66ff:0xffffff}
+
+function openSpellbook(){
+if(document.getElementById('spellbook-dialog'))return;
+const d=document.createElement('div');d.id='spellbook-dialog';
+d.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,rgba(15,8,5,.97),rgba(8,4,2,.99));border:3px solid #c8a96e;border-radius:14px;padding:18px;z-index:1500;width:780px;max-width:95vw;max-height:88vh;overflow-y:auto;color:#ddd;font-family:serif;box-shadow:0 0 40px rgba(200,169,110,.5);';
+let html='<div style="text-align:center;margin-bottom:12px;color:#ffd700;font-size:22px;font-weight:bold;letter-spacing:2px;">📖 SPELLBOOK 📖</div>';
+html+='<div style="color:#cc9966;font-size:12px;text-align:center;margin-bottom:10px;">Click a spell to cast at your target. Press B to close.</div>';
+html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">';
+for(const s of SPELLS){
+const sc=schoolColor(s.sch);const hex='#'+sc.toString(16).padStart(6,'0');
+html+='<div onclick="window.__castSpell(\''+s.k+'\')" style="background:rgba(30,20,15,.7);border:2px solid '+hex+';border-radius:6px;padding:8px;cursor:pointer;transition:transform .1s;" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'\'">';
+html+='<div style="color:'+hex+';font-weight:bold;">'+s.n+'</div>';
+html+='<div style="font-size:10px;color:#ccc;margin-top:3px;">'+s.desc+'</div>';
+html+='<div style="font-size:10px;margin-top:4px;display:flex;justify-content:space-between;color:#aa9;"><span>'+s.sch+'</span><span>Mana '+s.cost+'</span></div>';
+html+='</div>';
+}
+html+='</div><button onclick="document.getElementById(\'spellbook-dialog\').remove()" style="width:100%;margin-top:12px;padding:10px;background:#332244;color:#ccaaff;border:2px solid #6644aa;border-radius:6px;cursor:pointer;">Close [B]</button>';
+d.innerHTML=html;document.body.appendChild(d);
+}
+document.addEventListener('keydown',e=>{
+if(!gameStarted)return;
+const tag=(document.activeElement&&document.activeElement.tagName)||'';
+if(tag==='INPUT'||tag==='TEXTAREA')return;
+if(e.key&&e.key.toLowerCase()==='b'){e.preventDefault();const ex=document.getElementById('spellbook-dialog');if(ex){ex.remove();return}openSpellbook();}
+});
+
+// Add mana to player if missing
+if(typeof player.mana!=='number'){player.mana=100;player.maxMana=100;setInterval(()=>{player.mana=Math.min(player.maxMana,player.mana+2)},1000)}
+
+// ---- 3. ICONIC WoW BOSSES WITH CUSTOM MESHES ------------------------
+// These are added on top of v6 world bosses with distinctive 3D models.
+const iconicBosses=[];
+
+function buildOnyxiaMesh(){
+const g=new THREE.Group();
+const scale=2.4;
+const bodyMat=new MS({color:0x2a4a2a,roughness:.5,metalness:.3,emissive:0x1a2a1a,emissiveIntensity:.2});
+const bellyMat=new MS({color:0xaaaa44,roughness:.4});
+// Massive body
+const body=new THREE.Mesh(new THREE.SphereGeometry(scale*1.6,14,10),bodyMat);body.position.y=scale*2;body.scale.set(1,.7,1.8);body.castShadow=true;g.add(body);
+// Belly
+const belly=new THREE.Mesh(new THREE.SphereGeometry(scale*1.3,12,8),bellyMat);belly.position.set(0,scale*1.4,scale*.6);belly.scale.set(.9,.4,1.4);g.add(belly);
+// Head
+const head=new THREE.Mesh(new THREE.ConeGeometry(scale*.9,scale*2,8),bodyMat);head.position.set(0,scale*2.4,scale*3.2);head.rotation.x=Math.PI/2;head.castShadow=true;g.add(head);
+// Jaw
+const jaw=new THREE.Mesh(new THREE.BoxGeometry(scale*1,scale*.5,scale*1.6),bodyMat);jaw.position.set(0,scale*2.1,scale*3.8);g.add(jaw);
+// Eyes
+for(const sx of [-.5,.5]){const eye=new THREE.Mesh(new THREE.SphereGeometry(scale*.15,6,6),new THREE.MeshBasicMaterial({color:0xff4422}));eye.position.set(sx*scale,scale*2.8,scale*3.5);g.add(eye)}
+// Horns
+for(const sx of [-.7,.7]){const horn=new THREE.Mesh(new THREE.ConeGeometry(scale*.2,scale*1.5,6),bodyMat);horn.position.set(sx*scale,scale*3.3,scale*2.4);horn.rotation.x=-.5;g.add(horn)}
+// Wings — wide flat
+const wingMat=new MS({color:0x1a3a1a,roughness:.4,side:THREE.DoubleSide});
+for(const ws of [-1,1]){
+const wing=new THREE.Mesh(new THREE.PlaneGeometry(scale*6,scale*4),wingMat);
+wing.position.set(ws*scale*2.4,scale*3.5,0);wing.rotation.set(.3,ws*.5,ws*-.4);wing.castShadow=true;g.add(wing);
+// Wing spines
+for(let i=0;i<4;i++){const sp=new THREE.Mesh(new THREE.CylinderGeometry(scale*.08,scale*.04,scale*2.5,4),bodyMat);
+sp.position.set(ws*scale*(1.4+i*.7),scale*3.5,scale*(i*.4));sp.rotation.z=ws*Math.PI*.3;g.add(sp)}
+}
+// Tail
+const tail=new THREE.Mesh(new THREE.ConeGeometry(scale*.5,scale*5,6),bodyMat);tail.position.set(0,scale*1.8,scale*-3);tail.rotation.x=-Math.PI/2;g.add(tail);
+// Legs (4)
+const legMat=new MS({color:0x224422,roughness:.6});
+for(const lx of [-1,1]){for(const lz of [-1,1]){
+const leg=new THREE.Mesh(new THREE.CylinderGeometry(scale*.4,scale*.3,scale*1.5,6),legMat);
+leg.position.set(lx*scale*1.2,scale*.6,lz*scale*1.5);g.add(leg);
+}}
+return g;
+}
+
+function buildRagnarosMesh(){
+const g=new THREE.Group();
+const scale=2.6;
+const lavaMat=new MS({color:0xff5a10,roughness:.4,emissive:0xff3010,emissiveIntensity:1.5});
+const dimMat=new MS({color:0x882200,roughness:.7,emissive:0x441100,emissiveIntensity:.4});
+// Body (giant emerging from lava — torso only)
+const torso=new THREE.Mesh(new THREE.CylinderGeometry(scale*1.8,scale*2.2,scale*4.5,10),lavaMat);torso.position.y=scale*3;torso.castShadow=true;g.add(torso);
+// Head
+const head=new THREE.Mesh(new THREE.SphereGeometry(scale*1.2,12,10),dimMat);head.position.y=scale*6;g.add(head);
+// Fire mohawk
+for(let i=0;i<6;i++){const fl=new THREE.Mesh(new THREE.ConeGeometry(scale*.3,scale*1.8,4),lavaMat);fl.position.set(0,scale*7+i*.4,scale*-.4+i*.15);fl.rotation.x=.3;g.add(fl)}
+// Eyes
+for(const sx of [-.4,.4]){const eye=new THREE.Mesh(new THREE.SphereGeometry(scale*.18,6,6),new THREE.MeshBasicMaterial({color:0xffff00}));eye.position.set(sx*scale,scale*6.1,scale*1.1);g.add(eye)}
+// Arms holding hammer
+const arm=new THREE.Mesh(new THREE.CylinderGeometry(scale*.5,scale*.6,scale*3,6),lavaMat);arm.position.set(scale*1.5,scale*4,scale*1.2);arm.rotation.z=-.4;g.add(arm);
+// Sulfuras hammer
+const hAxis=new THREE.Mesh(new THREE.CylinderGeometry(scale*.15,scale*.15,scale*4,8),new MS({color:0x553322}));hAxis.position.set(scale*2.6,scale*5,scale*2.4);hAxis.rotation.z=-.3;g.add(hAxis);
+const hHead=new THREE.Mesh(new THREE.BoxGeometry(scale*1.4,scale*1.4,scale*1.2),lavaMat);hHead.position.set(scale*3.4,scale*6.6,scale*3);g.add(hHead);
+// Aura — orange light + particles
+const light=new THREE.PointLight(0xff4400,5,60);light.position.y=scale*4;g.add(light);
+return g;
+}
+
+function buildIllidanMesh(){
+const g=new THREE.Group();
+const scale=1.4;
+const skinMat=new MS({color:0x5a3a8a,roughness:.6,emissive:0x2a1a4a,emissiveIntensity:.4});
+const armorMat=new MS({color:0x3a1a4a,roughness:.6,metalness:.4,emissive:0x442266,emissiveIntensity:.3});
+// Body
+const torso=new THREE.Mesh(new THREE.CylinderGeometry(scale*1.0,scale*1.3,scale*4,8),skinMat);torso.position.y=scale*3.5;torso.castShadow=true;g.add(torso);
+// Pauldrons
+for(const s of [-1,1]){const pa=new THREE.Mesh(new THREE.ConeGeometry(scale*.9,scale*1.2,6),armorMat);pa.position.set(s*scale*1.3,scale*5,0);pa.rotation.x=Math.PI;g.add(pa);
+const sp=new THREE.Mesh(new THREE.ConeGeometry(scale*.2,scale*1,4),armorMat);sp.position.set(s*scale*1.3,scale*5.6,scale*-.2);g.add(sp)}
+// Head with horns
+const head=new THREE.Mesh(new THREE.SphereGeometry(scale*.8,10,10),skinMat);head.position.y=scale*6;g.add(head);
+// Blindfold
+const bf=new THREE.Mesh(new THREE.BoxGeometry(scale*1.6,scale*.3,scale*.1),new MS({color:0x333333}));bf.position.set(0,scale*6.1,scale*.6);g.add(bf);
+// Glowing eyes through blindfold
+for(const ex of [-.3,.3]){const e=new THREE.Mesh(new THREE.SphereGeometry(scale*.1,6,6),new THREE.MeshBasicMaterial({color:0x44ff44}));e.position.set(ex*scale,scale*6.1,scale*.65);g.add(e)}
+// Horns
+for(const sx of [-1,1]){const h=new THREE.Mesh(new THREE.ConeGeometry(scale*.2,scale*1.4,4),new MS({color:0x222222}));h.position.set(sx*scale*.5,scale*7,0);h.rotation.z=sx*-.3;g.add(h)}
+// Wings (demonic)
+const wingMat=new MS({color:0x442266,roughness:.6,side:THREE.DoubleSide});
+for(const ws of [-1,1]){
+const wing=new THREE.Mesh(new THREE.PlaneGeometry(scale*3.5,scale*4),wingMat);
+wing.position.set(ws*scale*2,scale*5,scale*-.3);wing.rotation.set(.2,ws*.6,ws*-.5);wing.castShadow=true;g.add(wing);
+}
+// Twin warglaives
+for(const s of [-1,1]){
+const gl=new THREE.Mesh(new THREE.ConeGeometry(scale*.3,scale*2.4,4),new MS({color:0x88ff88,emissive:0x44aa44,emissiveIntensity:1}));
+gl.position.set(s*scale*1.8,scale*3.5,scale*.8);gl.rotation.set(.2,0,s*-.4);g.add(gl);
+}
+const aura=new THREE.PointLight(0x44ff44,3,30);aura.position.y=scale*4;g.add(aura);
+return g;
+}
+
+function buildDeathwingMesh(){
+const m=buildOnyxiaMesh();// Use same dragon shape...
+// Re-color
+m.traverse(o=>{if(o.material){o.material=o.material.clone();if(o.material.color)o.material.color.setHex(0x6a1a1a);if(o.material.emissive)o.material.emissive.setHex(0x441010)}});
+m.scale.multiplyScalar(1.4);// Bigger
+// Add red light
+const lt=new THREE.PointLight(0xff2200,4,40);m.add(lt);
+return m;
+}
+
+function buildArthasMesh(){
+const g=new THREE.Group();
+const scale=1.5;
+const armorMat=new MS({color:0xc0c0d0,roughness:.4,metalness:.7});
+const robe=new MS({color:0x1a1a3a,roughness:.7});
+// Body / robe
+const torso=new THREE.Mesh(new THREE.CylinderGeometry(scale*1.2,scale*1.5,scale*4.5,8),robe);torso.position.y=scale*3.5;torso.castShadow=true;g.add(torso);
+// Plate armor over torso
+const plate=new THREE.Mesh(new THREE.CylinderGeometry(scale*1.3,scale*1.4,scale*2.5,8),armorMat);plate.position.y=scale*4.2;g.add(plate);
+// Skull helmet
+const helm=new THREE.Mesh(new THREE.SphereGeometry(scale*.8,10,10),armorMat);helm.position.y=scale*6.3;g.add(helm);
+// Crown spikes
+for(let i=0;i<5;i++){const a=(i/5-.4)*Math.PI;const sp=new THREE.Mesh(new THREE.ConeGeometry(scale*.18,scale*1.2,4),armorMat);sp.position.set(Math.cos(a)*scale*.7,scale*7.2,Math.sin(a)*scale*.7);sp.rotation.x=-.1;g.add(sp)}
+// Glowing eyes
+for(const sx of [-.3,.3]){const e=new THREE.Mesh(new THREE.SphereGeometry(scale*.12,6,6),new THREE.MeshBasicMaterial({color:0x88ccff}));e.position.set(sx*scale,scale*6.3,scale*.7);g.add(e)}
+// Frostmourne (huge blade)
+const fmBlade=new THREE.Mesh(new THREE.BoxGeometry(scale*.4,scale*5,scale*.15),new MS({color:0x88ccff,emissive:0x4488cc,emissiveIntensity:.8}));
+fmBlade.position.set(scale*1.5,scale*4,scale*.7);fmBlade.rotation.z=-.2;g.add(fmBlade);
+const fmHilt=new THREE.Mesh(new THREE.BoxGeometry(scale*.5,scale*.4,scale*.3),new MS({color:0x222244}));
+fmHilt.position.set(scale*1.3,scale*1.5,scale*.7);g.add(fmHilt);
+// Frost aura
+const aura=new THREE.PointLight(0x88ccff,3,28);aura.position.y=scale*4;g.add(aura);
+return g;
+}
+
+function buildHoggerMesh(){
+const g=new THREE.Group();
+const scale=1.2;
+const furMat=new MS({color:0x886633,roughness:.85});
+const darkFur=new MS({color:0x553322,roughness:.9});
+// Hunched body
+const torso=new THREE.Mesh(new THREE.SphereGeometry(scale*1.4,10,8),furMat);torso.position.y=scale*2;torso.scale.set(1,.9,1.2);torso.castShadow=true;g.add(torso);
+// Head with snout
+const head=new THREE.Mesh(new THREE.SphereGeometry(scale*.9,10,10),darkFur);head.position.set(0,scale*3.2,scale*.4);g.add(head);
+const snout=new THREE.Mesh(new THREE.ConeGeometry(scale*.4,scale*.8,6),darkFur);snout.position.set(0,scale*3.1,scale*1.2);snout.rotation.x=Math.PI/2;g.add(snout);
+// Eyes
+for(const sx of [-.25,.25]){const e=new THREE.Mesh(new THREE.SphereGeometry(scale*.13,6,6),new THREE.MeshBasicMaterial({color:0xffaa00}));e.position.set(sx*scale,scale*3.4,scale*.9);g.add(e)}
+// Ears
+for(const sx of [-1,1]){const ear=new THREE.Mesh(new THREE.ConeGeometry(scale*.2,scale*.5,4),darkFur);ear.position.set(sx*scale*.5,scale*3.9,scale*.2);g.add(ear)}
+// Big axe
+const axeShaft=new THREE.Mesh(new THREE.CylinderGeometry(scale*.1,scale*.1,scale*3.2,6),new MS({color:0x4a3a20}));
+axeShaft.position.set(scale*1.4,scale*2.2,scale*.4);axeShaft.rotation.z=-.5;g.add(axeShaft);
+const axeBlade=new THREE.Mesh(new THREE.ConeGeometry(scale*.6,scale*1,3),new MS({color:0xaaaaaa,metalness:.7}));
+axeBlade.position.set(scale*2.6,scale*3.6,scale*.4);axeBlade.rotation.z=-.3;g.add(axeBlade);
+return g;
+}
+
+const ICONIC_BOSSES=[
+{key:'onyxia_w',name:'Onyxia, Brood Mother of Black Dragonflight',hp:2400,x:2400,z:-2400,radius:180,dmg:75,build:buildOnyxiaMesh,col:0x2a4a2a,boss_drops:['Thunderfury, Blessed Blade of the Windseeker','Sulfuras, Hand of Ragnaros','Vis\'kag the Bloodletter','Ony Scale Cloak','Onyxia Tooth Pendant']},
+{key:'ragnaros_w',name:'Ragnaros, the Firelord',hp:2800,x:1800,z:2200,radius:160,dmg:85,build:buildRagnarosMesh,col:0xff5a10,boss_drops:['Sulfuras, Hand of Ragnaros','Eye of Sulfuras','Crul\'shorukh, Edge of Chaos','Hand of Rag']},
+{key:'illidan_w',name:'Illidan Stormrage, the Betrayer',hp:3000,x:-4500,z:1800,radius:170,dmg:90,build:buildIllidanMesh,col:0x6a4aaa,boss_drops:['Warglaive of Azzinoth (Main)','Warglaive of Azzinoth (Off)','Bulwark of Azzinoth','Crystal Spire of Karabor','Black Bow of the Betrayer']},
+{key:'deathwing_w',name:'Deathwing, the Destroyer',hp:4200,x:3400,z:-2800,radius:220,dmg:110,build:buildDeathwingMesh,col:0x8a1a1a,boss_drops:['Dragonwrath, Tarecgosas Rest','Fangs of the Father (Golad)','Fangs of the Father (Tiriosh)','Doomhammer']},
+{key:'arthas_w',name:'Arthas Menethil, the Lich King',hp:3500,x:-2400,z:-4200,radius:200,dmg:100,build:buildArthasMesh,col:0x88ccff,boss_drops:['Frostmourne','Shadowmourne','Valanyr, Hammer of Ancient Kings','Apolyon, the Soul-Render']},
+{key:'hogger_w',name:'Hogger',hp:600,x:-260,z:80,radius:80,dmg:35,build:buildHoggerMesh,col:0x886633,boss_drops:['Krol Blade','Mograine\'s Might','Stockade Shanker']}
+];
+
+function spawnIconicBoss(b){
+const mesh=b.build();
+mesh.position.set(b.x,meshTerrainH(b.x,b.z),b.z);
+scene.add(mesh);
+// Name banner
+const lblC=document.createElement('canvas');lblC.width=768;lblC.height=72;
+const ctx=lblC.getContext('2d');ctx.fillStyle='rgba(0,0,0,.65)';ctx.fillRect(0,0,768,72);
+ctx.font='bold 30px serif';ctx.textAlign='center';
+ctx.fillStyle='#ff8800';ctx.fillText('★ '+b.name+' ★',384,46);
+const tex=new THREE.CanvasTexture(lblC);
+const lblMat=new THREE.SpriteMaterial({map:tex,transparent:true});
+const label=new THREE.Sprite(lblMat);label.scale.set(28,3,1);label.position.y=18;mesh.add(label);
+const ib={mesh:mesh,name:b.name,key:b.key,hp:b.hp,maxHp:b.hp,
+home:{x:b.x,z:b.z},radius:b.radius,dmg:b.dmg,col:b.col,boss_drops:b.boss_drops,
+patrolAngle:Math.random()*Math.PI*2,attackCD:0};
+iconicBosses.push(ib);
+return ib;
+}
+function damageIconicBoss(ib,dmg){
+ib.hp-=dmg;
+if(ib.hp<=0){
+log('★★★ '+ib.name+' DEFEATED! ★★★','#ff8800');
+// Drop guaranteed legendary plus rolls
+for(const it of ib.boss_drops){if(Math.random()<.4)grantWoWItem(it)}
+// Plus a guaranteed top drop
+if(ib.boss_drops.length){grantWoWItem(ib.boss_drops[0])}
+// Plus a random legendary
+grantWoWItem(window.__rollWoWLegendary());
+// Massive gold
+const gold=3000+Math.floor(Math.random()*2000);
+if(inventory.length<28)inventory.push({name:'Gold Coins x'+gold,uid:null});
+if(typeof addSkillPoints==='function')addSkillPoints(5);
+skills.Attack.xp+=1000;skills.Strength.xp+=1000;skills.Defence.xp+=1000;skills.Hitpoints.xp+=800;
+updateInvUI();updateXpBar();
+scene.remove(ib.mesh);
+const idx=iconicBosses.indexOf(ib);if(idx>=0)iconicBosses.splice(idx,1);
+// Respawn after 10 min
+setTimeout(()=>{const seed=ICONIC_BOSSES.find(x=>x.key===ib.key);if(seed)spawnIconicBoss(seed)},600000);
+}
+}
+window.__damageIconicBoss=damageIconicBoss;
+
+setTimeout(()=>{
+for(const b of ICONIC_BOSSES)spawnIconicBoss(b);
+log('★ '+ICONIC_BOSSES.length+' iconic WoW bosses spawned with custom 3D models ★','#ff8800');
+},8500);
+
+function updateIconicBosses(dt){
+for(const ib of iconicBosses){
+if(!ib.mesh)continue;
+const dx=player.x-ib.mesh.position.x,dz=player.z-ib.mesh.position.z;
+const dist=Math.hypot(dx,dz);
+if(dist<ib.radius*0.6){
+const a=Math.atan2(dz,dx);
+ib.mesh.position.x+=Math.cos(a)*0.1;ib.mesh.position.z+=Math.sin(a)*0.1;
+ib.mesh.rotation.y=-a-Math.PI/2;
+if(dist<12&&ib.attackCD<=0){
+ib.attackCD=80;
+const def=window.__getDefenseBonus?window.__getDefenseBonus():0;
+const dmg=Math.round(ib.dmg*(1-def));
+player.hp=Math.max(0,player.hp-dmg);
+log('★ '+ib.name+' strikes you for '+dmg+'!','#ff4422');
+if(typeof hitFX==='function')hitFX(player.x,player.y+3,player.z,ib.col);
+}
+}else{
+ib.patrolAngle+=0.004;
+const tx=ib.home.x+Math.cos(ib.patrolAngle)*ib.radius*0.4;
+const tz=ib.home.z+Math.sin(ib.patrolAngle)*ib.radius*0.4;
+const a=Math.atan2(tz-ib.mesh.position.z,tx-ib.mesh.position.x);
+ib.mesh.position.x+=Math.cos(a)*0.06;ib.mesh.position.z+=Math.sin(a)*0.06;
+ib.mesh.rotation.y=-a-Math.PI/2;
+}
+// Keep dragons flying low above ground; Hogger walks
+const offset=(ib.key==='onyxia_w'||ib.key==='deathwing_w')?12:0;
+ib.mesh.position.y=meshTerrainH(ib.mesh.position.x,ib.mesh.position.z)+offset;
+ib.attackCD=Math.max(0,ib.attackCD-1);
+}}
+
+// ---- 4. MORE TOWNS / CITIES (RNG-spread) ----------------------------
+const MORE_TOWNS=[
+{name:'Goldshire',x:2700,z:-300,col:0xddbb55},
+{name:'Sentinel Hill',x:-1400,z:2800,col:0xaa8866},
+{name:'Hillsbrad Foothills',x:1100,z:1900,col:0x88aa66},
+{name:'Tarren Mill',x:1200,z:2100,col:0x554444},
+{name:'Brill',x:1500,z:2400,col:0x444466},
+{name:'Tirisfal Crossroads',x:1700,z:2700,col:0x445544},
+{name:'Ashenvale Crossroads',x:-3600,z:2700,col:0x4a8a4a},
+{name:'Crossroads (Barrens)',x:2700,z:-1700,col:0xaa6633},
+{name:'Booty Bay',x:1800,z:3400,col:0xcc8844},
+{name:'Stranglethorn Outpost',x:2200,z:3000,col:0x88aa44},
+{name:'Gadgetzan',x:3300,z:600,col:0xccaa66},
+{name:'Theramore Isle',x:3600,z:-600,col:0x88aaee},
+{name:'Astranaar',x:-3900,z:2200,col:0x66aa66},
+{name:'Auberdine',x:-4400,z:2800,col:0x5588aa},
+{name:'Shattrath',x:-4200,z:-2400,col:0xaaaaff},
+{name:'Dalaran',x:-2000,z:-3200,col:0x6688ff}
+];
+function spawnSmallTown(t){
+try{
+// Cluster a couple of buildings
+const types=['shop','tavern','house','forge','chapel'];
+for(let i=0;i<3;i++){const ang=i/3*Math.PI*2;const r=18+i*4;const bx=t.x+Math.cos(ang)*r,bz=t.z+Math.sin(ang)*r;
+const tp=types[Math.floor(Math.random()*types.length)];
+makeEnterable(bx,bz,tp,t.name+' '+tp);}
+// Plaza
+const plaza=new THREE.Mesh(new THREE.CylinderGeometry(10,10,.5,12),new MS({color:t.col,roughness:.7}));
+plaza.position.set(t.x,meshTerrainH(t.x,t.z)+.25,t.z);scene.add(plaza);
+// Banner
+const pole=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,10,6),new MS({color:0x4a3020}));
+pole.position.set(t.x,meshTerrainH(t.x,t.z)+5,t.z);scene.add(pole);
+const flag=new THREE.Mesh(new THREE.PlaneGeometry(3.5,1.8),new MS({color:t.col,side:THREE.DoubleSide}));
+flag.position.set(t.x+1.6,meshTerrainH(t.x,t.z)+8,t.z);scene.add(flag);
+// Town sign sprite
+const lblC=document.createElement('canvas');lblC.width=512;lblC.height=64;
+const ctx=lblC.getContext('2d');ctx.fillStyle='rgba(0,0,0,.65)';ctx.fillRect(0,0,512,64);
+ctx.font='bold 28px serif';ctx.textAlign='center';ctx.fillStyle='#ffd700';ctx.fillText(t.name,256,42);
+const tex=new THREE.CanvasTexture(lblC);
+const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+sp.scale.set(20,2.5,1);sp.position.set(t.x,meshTerrainH(t.x,t.z)+12,t.z);scene.add(sp);
+// Teleport entry
+if(typeof teleports!=='undefined'&&teleports.push)teleports.push({name:t.name,x:t.x,z:t.z,unlocked:true});
+}catch(e){console.warn('spawn town failed',e)}
+}
+setTimeout(()=>{
+for(const t of MORE_TOWNS)spawnSmallTown(t);
+log('🏰 '+MORE_TOWNS.length+' additional WoW-style settlements established','#ffaa44');
+},7500);
+
+// ---- 5. MINIMAP: ACCURATE MARKERS -----------------------------------
+// Wrap existing drawMinimap to add town/dungeon/boss icons.
+const _origDrawMinimap=drawMinimap;
+drawMinimap=function(){
+_origDrawMinimap();
+try{
+const scale=.12,cx=125,cy=84;
+// Towns (gold square)
+const allTowns=[...MORE_TOWNS.map(t=>({x:t.x,z:t.z,name:t.name}))];
+if(typeof NEW_TOWNS!=='undefined')for(const t of NEW_TOWNS)allTowns.push({x:t.x,z:t.z,name:t.name});
+mmCtx.fillStyle='#ffdd44';
+for(const t of allTowns){
+if(Math.abs(t.x-player.x)>1100||Math.abs(t.z-player.z)>800)continue;
+const x=(t.x-player.x)*scale+cx,z=(t.z-player.z)*scale+cy;
+if(x>2&&x<243&&z>2&&z<166){mmCtx.fillRect(x-2,z-2,4,4);mmCtx.strokeStyle='#000';mmCtx.strokeRect(x-2,z-2,4,4)}
+}
+// Dungeons (purple diamond)
+if(typeof dungeons!=='undefined'){mmCtx.fillStyle='#cc55ff';
+for(const d of dungeons){
+if(Math.abs(d.x-player.x)>1100||Math.abs(d.z-player.z)>800)continue;
+const x=(d.x-player.x)*scale+cx,z=(d.z-player.z)*scale+cy;
+if(x>2&&x<243&&z>2&&z<166){mmCtx.beginPath();mmCtx.moveTo(x,z-3);mmCtx.lineTo(x+3,z);mmCtx.lineTo(x,z+3);mmCtx.lineTo(x-3,z);mmCtx.closePath();mmCtx.fill();mmCtx.strokeStyle='#000';mmCtx.stroke()}
+}}
+// Iconic bosses (red star)
+mmCtx.fillStyle='#ff3333';
+for(const ib of iconicBosses){
+if(!ib.mesh)continue;
+const bx=ib.mesh.position.x,bz=ib.mesh.position.z;
+if(Math.abs(bx-player.x)>1100||Math.abs(bz-player.z)>800)continue;
+const x=(bx-player.x)*scale+cx,z=(bz-player.z)*scale+cy;
+if(x>2&&x<243&&z>2&&z<166){mmCtx.beginPath();mmCtx.arc(x,z,4,0,Math.PI*2);mmCtx.fill();mmCtx.strokeStyle='#fff';mmCtx.stroke()}
+}
+}catch(e){}
+};
+
+// ---- 6. WORLD-BOSS / DUNGEON-CHEST DROPS USE WoW ITEMS --------------
+// Wrap spawnLoot: when a high-HP enemy dies, grant a WoW item drop too.
+const _v7SpawnLoot=spawnLoot;
+spawnLoot=function(x,z,e){
+const r=_v7SpawnLoot(x,z,e);
+try{
+// HP-based loot tier
+const hp=(e&&e.maxHp)||0;
+let chance=0,tier=null;
+if(hp>=2000){chance=1.0;tier='mythic'}     // World boss = guaranteed mythic
+else if(hp>=800){chance=.30;tier='legendary'} // Mid boss
+else if(hp>=300){chance=.10;tier='epic'}     // Elite
+if(chance>0 && Math.random()<chance){
+// Pick from WOW_ITEMS at desired tier
+const pool=WOW_ITEMS.filter(it=>it[5]===tier);
+if(pool.length){const name=pool[Math.floor(Math.random()*pool.length)][0];grantWoWItem(name);
+log('★ Legendary drop: '+name+'!','#ff8800');}
+}
+}catch(err){}
+return r;
+};
+
+// ---- 7. SPELL/CONTROL HUD HINT --------------------------------------
+setTimeout(()=>{
+const c=document.getElementById('controls');
+if(c){c.innerHTML+=' &middot; <b style="color:#cc66ff">B</b> Spellbook';}
+},9000);
+
+log('=== v7 Expansion loaded: '+WOW_ITEMS.length+' WoW items · '+SPELLS.length+' spells · '+ICONIC_BOSSES.length+' iconic bosses · '+MORE_TOWNS.length+' new settlements · accurate minimap ===','#ff8844');
+
+// Expose handles for v8 reuse
+window.__v7={grantWoWItem:grantWoWItem,iconicBosses:iconicBosses,damageIconicBoss:damageIconicBoss};
+
+// ---- 8. PER-FRAME HOOK FOR ICONIC BOSSES ----------------------------
+const _v7Orig=window.requestAnimationFrame;
+let _v7Last=0;
+window.requestAnimationFrame=function(cb){
+return _v7Orig.call(window,function(t){
+const dt=(t-_v7Last)/16;_v7Last=t;
+try{updateIconicBosses(dt)}catch(e){}
+cb(t);
+});
+};
+
+})();
+// =====================================================================
+
+// =====================================================================
+// ===  v8 EXPANSION  (Dark Souls mobs, items, castles, boss meshes, ===
+// ===                 entry-fix, slot-shaped loot drops)             ==
+// =====================================================================
+(function v8Expansion(){
+// ---- 1. DARK SOULS MONSTERS -----------------------------------------
+const DS_MOBS={
+hollow_soldier:{hp:55,col:0x6a5a40},hollow_warrior:{hp:80,col:0x5a4a30},
+hollow_archer:{hp:50,col:0x5a4a3a},hollow_mage:{hp:60,col:0x6a4a6a},
+undead_dog:{hp:35,col:0x4a3a2a},undead_male:{hp:30,col:0x6a5a40},
+undead_female:{hp:30,col:0x7a6050},undead_assassin:{hp:110,col:0x3a3a3a},
+black_knight_sword:{hp:340,col:0x1a1a1a,boss:false},
+black_knight_axe:{hp:340,col:0x1a1a1a,boss:false},
+black_knight_halberd:{hp:340,col:0x1a1a1a,boss:false},
+black_knight_greatsword:{hp:380,col:0x1a1a1a,boss:false},
+silver_knight_sword:{hp:200,col:0xc8c8d0,boss:false},
+silver_knight_spear:{hp:200,col:0xc8c8d0,boss:false},
+silver_knight_bow:{hp:180,col:0xc8c8d0,boss:false},
+giant_skeleton:{hp:300,col:0xccc8a8},
+skeleton_bell:{hp:65,col:0xbbb8a0},
+bonewheel:{hp:90,col:0xa0988a},
+mass_of_souls_ds:{hp:160,col:0x4a3a5a},
+berenike_knight:{hp:250,col:0x4a4a3a},
+balder_knight:{hp:140,col:0x8a8a9a},
+mimic_ds:{hp:280,col:0x7a4a2a},
+basilisk_ds:{hp:80,col:0x6a8a6a},
+channeler:{hp:150,col:0x5a4a8a},
+bell_gargoyle:{hp:550,col:0x3a3a3a,boss:true},
+asylum_demon:{hp:650,col:0x6a3a2a,boss:true},
+capra_demon:{hp:520,col:0x5a3030,boss:true},
+taurus_demon:{hp:600,col:0x4a3030,boss:true},
+stray_demon:{hp:700,col:0x4a3a2a,boss:true},
+artorias_ds:{hp:1200,col:0x2a2a3a,boss:true},
+ornstein_ds:{hp:1100,col:0xccaa44,boss:true},
+smough_ds:{hp:1300,col:0xccc8b0,boss:true},
+sif_ds:{hp:1000,col:0x6a5a4a,boss:true},
+manus_ds:{hp:1500,col:0x2a1a2a,boss:true},
+gwyn_ds:{hp:1800,col:0xffaa44,boss:true},
+four_kings_ds:{hp:1400,col:0x3a2a4a,boss:true},
+crystal_lizard_ds:{hp:50,col:0xa0c8ff},
+crystal_golem_ds:{hp:300,col:0x88a8d0},
+pus_of_man:{hp:200,col:0x2a1a1a},
+vagrant:{hp:120,col:0xa08866},
+hydra_ds:{hp:900,col:0x4a6a3a,boss:true},
+ghost_ds:{hp:140,col:0xaabbcc},
+pisaca:{hp:180,col:0x2a3a3a},
+sanctuary_guardian:{hp:850,col:0xaa7733,boss:true},
+mushroom_man:{hp:90,col:0xaa6655},
+snow_rat:{hp:25,col:0xaaaabb},
+firekeeper_corrupt:{hp:200,col:0x553333},
+gaping_dragon:{hp:1100,col:0x4a3a4a,boss:true},
+chaos_witch_quelaag:{hp:1050,col:0xaa3322,boss:true},
+seath_the_scaleless:{hp:1600,col:0xeeeedd,boss:true},
+nito_grave_lord:{hp:1700,col:0x3a3a4a,boss:true},
+priscilla:{hp:1200,col:0xeeeeff,boss:true},
+ceaseless_discharge:{hp:1400,col:0xff5520,boss:true},
+moonlight_butterfly:{hp:400,col:0xddeeff,boss:true},
+iron_golem_ds:{hp:1100,col:0x6a6a7a,boss:true},
+dragon_slayer_ornstein:{hp:1200,col:0xeebb44,boss:true},
+executioner_smough:{hp:1400,col:0xccc8a0,boss:true}
+};
+for(const k in DS_MOBS){if(eHP[k]==null)eHP[k]=DS_MOBS[k].hp;if(eCol[k]==null)eCol[k]=DS_MOBS[k].col;
+if(!questRewards[k]){const hp=DS_MOBS[k].hp;questRewards[k]={xp:Math.max(30,Math.round(hp*0.7)),gold:Math.max(50,Math.round(hp*2.2))}}}
+
+// ---- 2. DARK SOULS ITEM CATALOG -------------------------------------
+const DS_ITEMS=[
+// Weapons
+['Estus Flask','Trinket',0,0,0,'legendary','Heals 250 HP when used. Refills at bonfires.'],
+['Estus Flask +5','Trinket',0,0,0,'mythic','Heals 400 HP. Upgraded.'],
+['Drake Sword','Weapon',62,3,48,'legendary','Greatsword of the Hellkite Drake'],
+['Black Knight Sword','Weapon',82,6,62,'legendary','+20% damage to demons'],
+['Black Knight Halberd','Weapon',86,5,65,'legendary','+20% damage to demons'],
+['Black Knight Axe','Weapon',84,5,64,'legendary','+20% damage to demons'],
+['Black Knight Greatsword','Weapon',92,6,72,'legendary','+20% damage to demons'],
+['Moonlight Greatsword','Weapon',75,4,30,'mythic','Greatsword of Seath. Scales with INT.'],
+['Greatsword of Artorias','Weapon',95,6,72,'mythic','Wielded by Knight Artorias'],
+['Cursed Greatsword of Artorias','Weapon',92,4,68,'mythic','Cursed variant. Hits ghosts.'],
+['Smough\'s Hammer','Weapon',110,4,90,'mythic','2H hammer of Ornstein\'s partner'],
+['Ornstein\'s Spear (Dragonslayer Spear)','Weapon',95,6,68,'mythic','Lightning-imbued spear'],
+['Silver Knight Spear','Weapon',72,4,55,'legendary','Spear of Anor Londo\'s guards'],
+['Silver Knight Sword','Weapon',70,4,52,'legendary','Straight sword of Anor Londo'],
+['Avelyn','Weapon',55,2,40,'legendary','Triple-shot crossbow'],
+['Iaito','Weapon',68,3,52,'epic','Katana of swift draw'],
+['Uchigatana','Weapon',72,3,54,'epic','Bleed-inducing katana'],
+['Chaos Blade','Weapon',82,2,60,'legendary','Katana that bleeds wielder'],
+['Astora\'s Straight Sword','Weapon',58,4,42,'epic','Sword of Astora knights'],
+['Quelaag\'s Furysword','Weapon',78,3,58,'legendary','Forged from Quelaag\'s soul'],
+['Painting Guardian Sword','Weapon',55,2,40,'epic','Curved sword of painted world'],
+['Crystal Halberd','Weapon',80,4,60,'legendary','Halberd of crystal cave'],
+['Demon\'s Greataxe','Weapon',100,4,80,'legendary','Heavy greataxe of demons'],
+['Zweihander','Weapon',90,3,72,'epic','Massive two-handed sword'],
+['Black Bow of Pharis','Weapon',58,2,40,'legendary','Long-range archery bow'],
+['Composite Bow','Weapon',48,1,32,'rare','Standard bow'],
+['Gough\'s Greatbow','Weapon',75,3,55,'legendary','Greatbow of the Dragonslayer'],
+['Ricard\'s Rapier','Weapon',62,2,42,'epic','Quick-thrusting noble rapier'],
+['Velka\'s Rapier','Weapon',65,2,40,'epic','Channels dark magic'],
+['Dark Hand','Weapon',55,4,38,'legendary','Steals souls and weapons'],
+['Demon Spear','Weapon',70,3,52,'epic','Spear of capra demons'],
+['Dragon Bone Smasher','Weapon',88,4,72,'legendary','Sif\'s greatsword'],
+['Server','Weapon',92,3,72,'epic','Curved Servant\'s blade'],
+['Murakumo','Weapon',82,3,65,'epic','Heavy curved greatsword'],
+['Black Knight Shield','Offhand',5,72,8,'legendary','+30% lightning resist'],
+['Silver Knight Shield','Offhand',4,68,6,'epic','Silver-emblazoned kite shield'],
+['Crystal Ring Shield','Offhand',5,60,12,'epic','Has casting ability'],
+['Sanctus','Offhand',3,55,4,'legendary','Healing aura when held'],
+['Greatshield of Artorias','Offhand',6,82,12,'mythic','Cursed greatshield'],
+['Havel\'s Greatshield','Offhand',8,95,15,'mythic','Indomitable stone shield'],
+['Effigy Shield','Offhand',4,65,5,'epic','Channeler shield'],
+// Armor sets
+['Elite Knight Helm','Helm',2,28,5,'epic','Helm of cursed undead knight'],
+['Elite Knight Armor','Armor',2,52,10,'epic','Chestplate of Elite Knight'],
+['Elite Knight Gauntlets','Hand',2,22,5,'epic','Gauntlets of Elite Knight'],
+['Elite Knight Leggings','Legs',2,42,8,'epic','Leggings of Elite Knight'],
+['Black Knight Helm','Helm',3,40,8,'legendary','Demonic black helm'],
+['Black Knight Armor','Armor',3,68,15,'legendary','Black plate of fallen knights'],
+['Black Knight Gauntlets','Hand',3,32,8,'legendary','Spiked gauntlets'],
+['Black Knight Leggings','Legs',3,55,12,'legendary','Black plate legs'],
+['Silver Knight Helm','Helm',2,38,6,'epic','Crested silver helm'],
+['Silver Knight Armor','Armor',2,62,12,'epic','Plate of Anor Londo'],
+['Silver Knight Gauntlets','Hand',2,30,7,'epic','Silver gauntlets'],
+['Silver Knight Leggings','Legs',2,50,10,'epic','Silver plate legs'],
+['Havel\'s Helm','Helm',5,55,18,'mythic','Helm of immovable Havel'],
+['Havel\'s Armor','Armor',5,98,28,'mythic','Stone armor of Havel'],
+['Havel\'s Gauntlets','Hand',5,42,15,'mythic','Stone gauntlets'],
+['Havel\'s Leggings','Legs',5,82,22,'mythic','Stone leggings'],
+['Smough\'s Helm','Helm',4,52,16,'mythic','Heavy ornate helm'],
+['Smough\'s Armor','Armor',4,92,22,'mythic','Massive plate armor'],
+['Smough\'s Gauntlets','Hand',4,40,12,'mythic','Heavy gauntlets'],
+['Smough\'s Leggings','Legs',4,78,18,'mythic','Massive leg plates'],
+['Ornstein\'s Helm','Helm',5,48,16,'mythic','Lion-crested gold helm'],
+['Ornstein\'s Armor','Armor',5,88,22,'mythic','Gold plate of Anor Londo'],
+['Ornstein\'s Gauntlets','Hand',5,38,14,'mythic','Gold gauntlets'],
+['Ornstein\'s Leggings','Legs',5,72,18,'mythic','Gold leggings'],
+['Artorias Helm','Helm',5,50,15,'mythic','Helm of the Wolf Knight'],
+['Artorias Armor','Armor',5,85,20,'mythic','Tarnished armor of Artorias'],
+['Artorias Gauntlets','Hand',5,38,13,'mythic','Wolf-decorated gauntlets'],
+['Artorias Leggings','Legs',5,72,16,'mythic','Wolf Knight leg armor'],
+['Dark Hood','Helm',1,18,3,'epic','Hood of the Darkwraith'],
+['Dark Armor','Armor',1,38,7,'epic','Lightweight dark robes'],
+['Dark Gauntlets','Hand',1,16,3,'epic','Dark cloth gauntlets'],
+['Dark Leggings','Legs',1,30,5,'epic','Dark cloth leggings'],
+['Wanderer Hood','Helm',1,12,2,'rare','Light cloth hood'],
+['Wanderer Coat','Armor',1,22,4,'rare','Wandering coat'],
+['Pyromancer Hood','Helm',1,15,3,'rare','Hood of pyromancer'],
+['Pyromancer Robe','Armor',1,28,5,'rare','Embers-touched robe'],
+['Cleric Helm','Helm',1,20,4,'rare','Helm of the cleric'],
+['Cleric Armor','Armor',1,35,6,'rare','Cleric chestplate'],
+['Pharis Hat','Helm',2,22,4,'epic','Hat of black archer'],
+['Catarina (Onion) Helm','Helm',3,40,10,'legendary','Onion-shaped helm'],
+['Catarina (Onion) Armor','Armor',3,68,16,'legendary','Onion knight armor'],
+// Rings
+['Havel\'s Ring','Ring',2,8,5,'legendary','+50% equip load'],
+['Ring of Favor and Protection','Ring',3,5,5,'legendary','+20% HP, stamina, equip load'],
+['Cloranthy Ring','Ring',0,2,2,'epic','Faster stamina regen'],
+['Hornet Ring','Ring',5,0,2,'epic','+50% critical damage'],
+['Wolf Ring','Ring',0,5,3,'epic','+40 poise'],
+['Cat Covenant Ring','Ring',0,3,2,'rare','Forest Hunter covenant'],
+['Calamity Ring','Ring',0,-5,0,'legendary','Doubles damage taken (NG+ challenge)'],
+['Bellowing Dragoncrest Ring','Ring',0,2,8,'epic','+20% spell damage'],
+['Dusk Crown Ring','Ring',0,-3,8,'epic','+50% spell uses, -50% HP'],
+['Witch\'s Ring','Ring',1,2,5,'epic','Speak to Quelana'],
+['Ring of Steel Protection','Ring',0,8,0,'epic','+50 physical resist'],
+['Slumbering Dragoncrest Ring','Ring',0,1,3,'epic','Silent footsteps'],
+['Old Witch\'s Ring','Ring',1,2,4,'epic','Speak to Quelaag\'s sister'],
+['Tiny Being\'s Ring','Ring',1,1,1,'rare','+50 HP'],
+['Lloyd\'s Talisman','Trinket',1,1,1,'rare','Holy talisman'],
+['Velka\'s Talisman','Trinket',1,1,3,'epic','Channels Velka\'s wisdom'],
+// Misc / Catalysts
+['Sorcerer\'s Catalyst','Weapon',55,1,42,'rare','Sorcery catalyst'],
+['Tin Crystallization Catalyst','Weapon',75,1,55,'legendary','Crystal catalyst, breaks on use'],
+['Logan\'s Catalyst','Weapon',72,1,52,'epic','High int catalyst'],
+['Manus Catalyst','Weapon',78,1,55,'legendary','Catalyst forged from Manus'],
+['Pyromancy Flame','Weapon',62,1,48,'epic','Pyromancer\'s flame'],
+['Pyromancy Flame +15','Weapon',95,1,75,'mythic','Fully ascended flame'],
+['Soul of Gwyn','Trinket',0,0,0,'mythic','Soul of the Lord of Sunlight'],
+['Soul of Artorias','Trinket',0,0,0,'mythic','Soul of the Abysswalker'],
+['Soul of Ornstein','Trinket',0,0,0,'mythic','Soul of the Dragonslayer'],
+['Soul of Smough','Trinket',0,0,0,'mythic','Soul of the Executioner'],
+['Soul of Manus','Trinket',0,0,0,'mythic','Father of the Abyss soul'],
+['Soul of Sif','Trinket',0,0,0,'mythic','Soul of the Great Grey Wolf'],
+['White Sign Soapstone','Trinket',0,0,0,'rare','Summon white phantoms'],
+['Black Separation Crystal','Trinket',0,0,0,'rare','Banish unwanted summons']
+];
+const DS_ITEM_MAP={};for(const it of DS_ITEMS){DS_ITEM_MAP[it[0]]={atk:it[2],def:it[3],str:it[4],slot:it[1],rarity:it[5],desc:it[6]}}
+function grantDSItem(name){
+const t=DS_ITEM_MAP[name];if(!t)return null;
+let item;
+if(typeof createUniqueItem==='function'&&t.slot){item=createUniqueItem(name,t.atk,t.def,t.str,t.slot,t.rarity)}
+else{item={name:name,uid:'ds'+Math.floor(Math.random()*1e9),atk:t.atk,def:t.def,str:t.str,slot:t.slot,rarity:t.rarity};if(typeof itemDB==='object'&&itemDB!==null)itemDB[item.uid]=item}
+if(inventory.length<28){inventory.push({name:item.name,uid:item.uid});if(typeof updateInvUI==='function')updateInvUI()}
+return item;
+}
+window.__grantDSItem=grantDSItem;
+window.__rollDSItem=function(){
+const r=Math.random();const tier=r<.6?'epic':(r<.9?'legendary':'mythic');
+const pool=DS_ITEMS.filter(it=>it[5]===tier);
+const arr=pool.length?pool:DS_ITEMS;
+return arr[Math.floor(Math.random()*arr.length)][0];
+};
+
+// ---- 3. CUSTOM 3D MESHES FOR DS BOSSES ------------------------------
+function buildBlackKnight(scaleParam){
+const g=new THREE.Group();
+const scale=scaleParam||1.4;
+const armorMat=new MS({color:0x1a1a1a,roughness:.55,metalness:.7,emissive:0x100808,emissiveIntensity:.2});
+const trim=new MS({color:0x44331a,roughness:.6,metalness:.5});
+// Body
+const torso=new THREE.Mesh(new THREE.CylinderGeometry(scale*1.0,scale*1.3,scale*4,8),armorMat);torso.position.y=scale*3.5;torso.castShadow=true;g.add(torso);
+// Heavy plate chest
+const chest=new THREE.Mesh(new THREE.BoxGeometry(scale*2.4,scale*2.8,scale*.6),armorMat);chest.position.set(0,scale*4,scale*.9);g.add(chest);
+// Skirt of plate
+const skirt=new THREE.Mesh(new THREE.ConeGeometry(scale*1.6,scale*2,8),armorMat);skirt.position.y=scale*2;skirt.rotation.x=Math.PI;g.add(skirt);
+// Pauldrons
+for(const s of [-1,1]){const pa=new THREE.Mesh(new THREE.SphereGeometry(scale*.9,8,8),armorMat);pa.position.set(s*scale*1.5,scale*5,0);pa.castShadow=true;g.add(pa);
+// Pauldron spikes
+const sp=new THREE.Mesh(new THREE.ConeGeometry(scale*.25,scale*.8,4),armorMat);sp.position.set(s*scale*1.5,scale*5.7,0);g.add(sp);}
+// Horned helm
+const helm=new THREE.Mesh(new THREE.CylinderGeometry(scale*.7,scale*.85,scale*1.4,8),armorMat);helm.position.y=scale*6.3;g.add(helm);
+const helmTop=new THREE.Mesh(new THREE.SphereGeometry(scale*.75,10,10),armorMat);helmTop.position.y=scale*7;g.add(helmTop);
+// Eye slit (glow)
+const slit=new THREE.Mesh(new THREE.BoxGeometry(scale*1.0,scale*.15,scale*.1),new THREE.MeshBasicMaterial({color:0xff5500}));slit.position.set(0,scale*6.4,scale*.6);g.add(slit);
+// Massive horns
+for(const sx of [-1,1]){const horn=new THREE.Mesh(new THREE.ConeGeometry(scale*.18,scale*1.6,5),armorMat);horn.position.set(sx*scale*.6,scale*7.2,0);horn.rotation.z=sx*-.6;g.add(horn)}
+// Crest plume
+const plume=new THREE.Mesh(new THREE.ConeGeometry(scale*.15,scale*1.2,4),trim);plume.position.y=scale*7.5;g.add(plume);
+// Legs
+for(const sx of [-1,1]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(scale*.4,scale*.45,scale*2.4,6),armorMat);leg.position.set(sx*scale*.5,scale*1.2,0);g.add(leg);
+// Greaves trim
+const gr=new THREE.Mesh(new THREE.CylinderGeometry(scale*.42,scale*.42,scale*.3,6),trim);gr.position.set(sx*scale*.5,scale*.15,0);g.add(gr)}
+// Greatsword
+const blade=new THREE.Mesh(new THREE.BoxGeometry(scale*.35,scale*5,scale*.12),new MS({color:0xc0c0c0,roughness:.3,metalness:.85}));
+blade.position.set(scale*1.8,scale*4.5,scale*.6);blade.rotation.z=-.3;g.add(blade);
+const hilt=new THREE.Mesh(new THREE.BoxGeometry(scale*1.2,scale*.3,scale*.15),armorMat);hilt.position.set(scale*1.5,scale*2.4,scale*.6);g.add(hilt);
+const pommel=new THREE.Mesh(new THREE.SphereGeometry(scale*.18,8,8),trim);pommel.position.set(scale*1.45,scale*2.05,scale*.6);g.add(pommel);
+return g;
+}
+
+function buildArtoriasMesh(){
+const g=buildBlackKnight(1.6);
+// Recolor to navy/blue-grey
+g.traverse(o=>{if(o.material&&o.material.color){o.material=o.material.clone();const c=o.material.color.getHex();if(c===0x1a1a1a){o.material.color.setHex(0x2a2a3a);o.material.emissive&&o.material.emissive.setHex(0x101020)}}});
+// Add cape
+const cape=new THREE.Mesh(new THREE.PlaneGeometry(2.5*1.6,3.5*1.6),new MS({color:0x1a1a3a,side:THREE.DoubleSide,roughness:.8}));
+cape.position.set(0,1.6*4,1.6*-.8);cape.castShadow=true;g.add(cape);
+// Glowing blue eyes (replace eye slit color)
+g.traverse(o=>{if(o.material&&o.material.color&&o.material.color.getHex()===0xff5500){o.material.color.setHex(0x4488ff)}});
+return g;
+}
+
+function buildOrnsteinMesh(){
+const g=new THREE.Group();
+const scale=1.5;
+const goldMat=new MS({color:0xeeaa22,roughness:.4,metalness:.7,emissive:0x664400,emissiveIntensity:.3});
+// Body — slim and tall
+const torso=new THREE.Mesh(new THREE.CylinderGeometry(scale*.9,scale*1.1,scale*4.2,8),goldMat);torso.position.y=scale*3.5;torso.castShadow=true;g.add(torso);
+// Chest plate
+const chest=new THREE.Mesh(new THREE.BoxGeometry(scale*2,scale*2.5,scale*.55),goldMat);chest.position.set(0,scale*4.2,scale*.85);g.add(chest);
+// Lion-head shoulder pieces
+for(const s of [-1,1]){const sh=new THREE.Mesh(new THREE.SphereGeometry(scale*.8,10,10),goldMat);sh.position.set(s*scale*1.4,scale*5.2,0);g.add(sh);
+// Lion mane spikes
+for(let i=0;i<5;i++){const a=i/5*Math.PI;const sp=new THREE.Mesh(new THREE.ConeGeometry(scale*.15,scale*.6,4),goldMat);sp.position.set(s*scale*1.4+Math.cos(a)*.5*scale,scale*5.6,Math.sin(a)*.5*scale);g.add(sp)}}
+// Lion-crested helm
+const helm=new THREE.Mesh(new THREE.CylinderGeometry(scale*.6,scale*.75,scale*1.2,8),goldMat);helm.position.y=scale*6.2;g.add(helm);
+// Lion mane around helm
+for(let i=0;i<10;i++){const a=i/10*Math.PI*2;const sp=new THREE.Mesh(new THREE.ConeGeometry(scale*.15,scale*.5,4),goldMat);sp.position.set(Math.cos(a)*scale*.7,scale*6.4,Math.sin(a)*scale*.7);sp.rotation.z=Math.cos(a)*.5;sp.rotation.x=Math.sin(a)*.5;g.add(sp)}
+// Crown points
+for(let i=0;i<4;i++){const a=(i/4-.25)*Math.PI;const sp=new THREE.Mesh(new THREE.ConeGeometry(scale*.12,scale*.7,4),goldMat);sp.position.set(Math.cos(a)*scale*.4,scale*7.1,Math.sin(a)*scale*.4);g.add(sp)}
+// Glowing yellow eyes
+for(const sx of [-.2,.2]){const e=new THREE.Mesh(new THREE.SphereGeometry(scale*.1,6,6),new THREE.MeshBasicMaterial({color:0xffff44}));e.position.set(sx*scale,scale*6.3,scale*.55);g.add(e)}
+// Legs
+for(const sx of [-1,1]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(scale*.35,scale*.4,scale*2.2,6),goldMat);leg.position.set(sx*scale*.45,scale*1.1,0);g.add(leg)}
+// Dragonslayer Spear
+const shaft=new THREE.Mesh(new THREE.CylinderGeometry(scale*.1,scale*.1,scale*7,6),new MS({color:0x554420,roughness:.7}));
+shaft.position.set(scale*1.6,scale*4,scale*.5);shaft.rotation.z=-.15;g.add(shaft);
+// Spear tip (glowing lightning)
+const tip=new THREE.Mesh(new THREE.ConeGeometry(scale*.18,scale*1.2,6),new MS({color:0xffffaa,emissive:0xffdd44,emissiveIntensity:1.5}));
+tip.position.set(scale*2.4,scale*7.3,scale*.5);g.add(tip);
+return g;
+}
+
+function buildSmoughMesh(){
+const g=new THREE.Group();
+const scale=1.7;
+const ivoryMat=new MS({color:0xeeddaa,roughness:.55,metalness:.5,emissive:0x442200,emissiveIntensity:.2});
+const dark=new MS({color:0x665544,roughness:.6});
+// Massive bloated body
+const torso=new THREE.Mesh(new THREE.SphereGeometry(scale*2.2,12,10),ivoryMat);torso.position.y=scale*3;torso.scale.set(1,1.1,1);torso.castShadow=true;g.add(torso);
+// Belly plate
+const belly=new THREE.Mesh(new THREE.SphereGeometry(scale*1.6,10,8),ivoryMat);belly.position.set(0,scale*2.2,scale*1);belly.scale.set(1,.7,1.2);g.add(belly);
+// Head (small relative to body)
+const head=new THREE.Mesh(new THREE.SphereGeometry(scale*.7,10,10),ivoryMat);head.position.y=scale*5.5;g.add(head);
+// Tiny helm
+const helm=new THREE.Mesh(new THREE.CylinderGeometry(scale*.6,scale*.65,scale*.8,8),ivoryMat);helm.position.y=scale*6.2;g.add(helm);
+// Crest
+const crest=new THREE.Mesh(new THREE.ConeGeometry(scale*.3,scale*1,4),dark);crest.position.y=scale*6.9;g.add(crest);
+// Tiny mask eyes
+for(const sx of [-.18,.18]){const e=new THREE.Mesh(new THREE.SphereGeometry(scale*.08,4,4),new THREE.MeshBasicMaterial({color:0x222222}));e.position.set(sx*scale,scale*5.6,scale*.55);g.add(e)}
+// Huge shoulders
+for(const s of [-1,1]){const sh=new THREE.Mesh(new THREE.SphereGeometry(scale*1.1,10,10),ivoryMat);sh.position.set(s*scale*1.9,scale*4.5,0);g.add(sh)}
+// Skirt
+const skirt=new THREE.Mesh(new THREE.ConeGeometry(scale*2.5,scale*2.5,10),ivoryMat);skirt.position.y=scale*1.2;skirt.rotation.x=Math.PI;g.add(skirt);
+// Big hammer (Smough's Great Hammer)
+const hShaft=new THREE.Mesh(new THREE.CylinderGeometry(scale*.18,scale*.18,scale*5,8),dark);hShaft.position.set(scale*2.5,scale*4,scale*.3);hShaft.rotation.z=-.2;g.add(hShaft);
+const hHead=new THREE.Mesh(new THREE.BoxGeometry(scale*1.8,scale*1.6,scale*1.4),ivoryMat);hHead.position.set(scale*3.6,scale*6.3,scale*.3);g.add(hHead);
+// Hammer spikes
+for(const dx of [-.7,.7]){for(const dz of [-.6,.6]){const sp=new THREE.Mesh(new THREE.ConeGeometry(scale*.2,scale*.8,4),dark);sp.position.set(scale*3.6+dx*scale,scale*7.2,scale*.3+dz*scale);g.add(sp)}}
+return g;
+}
+
+function buildSifMesh(){
+const g=new THREE.Group();
+const scale=1.8;
+const furMat=new MS({color:0x6a5a48,roughness:.95});
+const darkFur=new MS({color:0x3a3020,roughness:.95});
+// Wolf body
+const body=new THREE.Mesh(new THREE.CylinderGeometry(scale*1.4,scale*1.6,scale*3.5,10),furMat);body.position.set(0,scale*2.4,0);body.rotation.x=Math.PI/2;body.castShadow=true;g.add(body);
+// Head
+const head=new THREE.Mesh(new THREE.BoxGeometry(scale*1.6,scale*1.2,scale*1.8),darkFur);head.position.set(0,scale*2.6,scale*2.4);g.add(head);
+// Snout
+const snout=new THREE.Mesh(new THREE.BoxGeometry(scale*.8,scale*.7,scale*1.2),darkFur);snout.position.set(0,scale*2.4,scale*3.4);g.add(snout);
+// Eyes
+for(const sx of [-.4,.4]){const e=new THREE.Mesh(new THREE.SphereGeometry(scale*.15,6,6),new THREE.MeshBasicMaterial({color:0xffaa44}));e.position.set(sx*scale,scale*2.9,scale*2.9);g.add(e)}
+// Ears (pointy)
+for(const sx of [-1,1]){const ear=new THREE.Mesh(new THREE.ConeGeometry(scale*.3,scale*.9,4),darkFur);ear.position.set(sx*scale*.6,scale*3.5,scale*1.9);g.add(ear)}
+// 4 legs
+for(const lx of [-1,1]){for(const lz of [-1.2,1.2]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(scale*.35,scale*.4,scale*2,6),furMat);leg.position.set(lx*scale*.9,scale*1.1,lz*scale);g.add(leg)}}
+// Tail
+const tail=new THREE.Mesh(new THREE.ConeGeometry(scale*.4,scale*3,6),furMat);tail.position.set(0,scale*2.6,scale*-2.5);tail.rotation.x=Math.PI/2;g.add(tail);
+// Greatsword in mouth (Greatsword of Artorias)
+const blade=new THREE.Mesh(new THREE.BoxGeometry(scale*.3,scale*4.5,scale*.1),new MS({color:0x99aacc,roughness:.4,metalness:.8,emissive:0x223344,emissiveIntensity:.3}));
+blade.position.set(0,scale*2.4,scale*5.5);blade.rotation.x=Math.PI/2;g.add(blade);
+const hilt=new THREE.Mesh(new THREE.BoxGeometry(scale*.9,scale*.3,scale*.18),new MS({color:0x333344}));
+hilt.position.set(0,scale*2.4,scale*3.8);g.add(hilt);
+return g;
+}
+
+function buildAsylumDemonMesh(){
+const g=new THREE.Group();
+const scale=2.2;
+const skinMat=new MS({color:0x6a4a2a,roughness:.7,emissive:0x221008,emissiveIntensity:.2});
+// Massive bulbous body
+const body=new THREE.Mesh(new THREE.SphereGeometry(scale*2.4,14,12),skinMat);body.position.y=scale*2.5;body.scale.set(1,.85,1);body.castShadow=true;g.add(body);
+// Head (small bull-like)
+const head=new THREE.Mesh(new THREE.SphereGeometry(scale*.9,10,10),skinMat);head.position.set(0,scale*4.5,scale*1.4);g.add(head);
+// Horns
+for(const sx of [-1,1]){const horn=new THREE.Mesh(new THREE.ConeGeometry(scale*.2,scale*1.4,5),new MS({color:0x4a3020,roughness:.6}));
+horn.position.set(sx*scale*.6,scale*5,scale*1.4);horn.rotation.z=sx*-.4;g.add(horn)}
+// Glowing eyes
+for(const sx of [-.3,.3]){const e=new THREE.Mesh(new THREE.SphereGeometry(scale*.13,6,6),new THREE.MeshBasicMaterial({color:0xff3300}));e.position.set(sx*scale,scale*4.6,scale*2);g.add(e)}
+// Small wings (vestigial)
+const wingMat=new MS({color:0x4a2a1a,side:THREE.DoubleSide});
+for(const ws of [-1,1]){const wing=new THREE.Mesh(new THREE.PlaneGeometry(scale*2.5,scale*1.8),wingMat);wing.position.set(ws*scale*2,scale*3.8,scale*-1);wing.rotation.set(.4,ws*.5,ws*-.3);g.add(wing)}
+// Arms
+for(const sx of [-1,1]){const arm=new THREE.Mesh(new THREE.CylinderGeometry(scale*.4,scale*.5,scale*2.5,6),skinMat);arm.position.set(sx*scale*2,scale*2.5,scale*.5);arm.rotation.z=sx*-.4;g.add(arm)}
+// Massive hammer
+const hShaft=new THREE.Mesh(new THREE.CylinderGeometry(scale*.18,scale*.18,scale*5,8),new MS({color:0x554420}));hShaft.position.set(scale*2.5,scale*3,scale*1.5);hShaft.rotation.z=-.3;g.add(hShaft);
+const hHead=new THREE.Mesh(new THREE.BoxGeometry(scale*2.2,scale*2,scale*1.8),new MS({color:0x554420,roughness:.7}));
+hHead.position.set(scale*3.8,scale*5.5,scale*1.5);g.add(hHead);
+// Legs (short and stubby)
+for(const sx of [-1,1]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(scale*.5,scale*.6,scale*1.5,6),skinMat);leg.position.set(sx*scale*.7,scale*.75,0);g.add(leg)}
+return g;
+}
+
+function buildGwynMesh(){
+const g=new THREE.Group();
+const scale=1.5;
+const fireMat=new MS({color:0xffaa44,roughness:.4,emissive:0xff6600,emissiveIntensity:.8});
+const robe=new MS({color:0x553322,roughness:.7,emissive:0x331100,emissiveIntensity:.3});
+// Body
+const torso=new THREE.Mesh(new THREE.CylinderGeometry(scale*1.0,scale*1.4,scale*4,8),robe);torso.position.y=scale*3.5;torso.castShadow=true;g.add(torso);
+// Crown
+const crown=new THREE.Mesh(new THREE.CylinderGeometry(scale*.7,scale*.7,scale*.4,10),fireMat);crown.position.y=scale*6.2;g.add(crown);
+// Crown points
+for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const sp=new THREE.Mesh(new THREE.ConeGeometry(scale*.12,scale*.5,4),fireMat);sp.position.set(Math.cos(a)*scale*.7,scale*6.7,Math.sin(a)*scale*.7);g.add(sp)}
+// Head/face
+const head=new THREE.Mesh(new THREE.SphereGeometry(scale*.7,10,10),new MS({color:0xddcc99,roughness:.6}));head.position.y=scale*5.8;g.add(head);
+// Long beard (cylinder)
+const beard=new THREE.Mesh(new THREE.ConeGeometry(scale*.5,scale*2,6),new MS({color:0xeeeeaa,roughness:.7}));beard.position.set(0,scale*4.5,scale*.3);beard.rotation.x=Math.PI;g.add(beard);
+// Glowing eyes
+for(const sx of [-.2,.2]){const e=new THREE.Mesh(new THREE.SphereGeometry(scale*.08,6,6),new THREE.MeshBasicMaterial({color:0xff8800}));e.position.set(sx*scale,scale*5.9,scale*.55);g.add(e)}
+// Sunlight sword (longsword glowing)
+const blade=new THREE.Mesh(new THREE.BoxGeometry(scale*.25,scale*4.5,scale*.1),new MS({color:0xffeeaa,emissive:0xffaa00,emissiveIntensity:1.2}));blade.position.set(scale*1.4,scale*4.5,scale*.4);blade.rotation.z=-.2;g.add(blade);
+const hilt=new THREE.Mesh(new THREE.BoxGeometry(scale*.8,scale*.3,scale*.15),fireMat);hilt.position.set(scale*1.1,scale*2.5,scale*.4);g.add(hilt);
+// Aura
+const aura=new THREE.PointLight(0xffaa33,4,40);aura.position.y=scale*4;g.add(aura);
+return g;
+}
+
+const DS_BOSSES=[
+{key:'black_knight_w',name:'Black Knight',hp:1500,x:-1700,z:-2700,radius:120,dmg:70,build:()=>buildBlackKnight(1.4),col:0x1a1a1a,boss_drops:['Black Knight Sword','Black Knight Greatsword','Black Knight Helm','Black Knight Armor']},
+{key:'artorias_w',name:'Knight Artorias the Abysswalker',hp:2400,x:-3700,z:-450,radius:150,dmg:88,build:buildArtoriasMesh,col:0x2a2a3a,boss_drops:['Greatsword of Artorias','Cursed Greatsword of Artorias','Artorias Armor','Wolf Ring','Soul of Artorias']},
+{key:'ornstein_w',name:'Dragonslayer Ornstein',hp:2200,x:-1500,z:-1900,radius:140,dmg:82,build:buildOrnsteinMesh,col:0xeeaa22,boss_drops:['Ornstein\'s Spear (Dragonslayer Spear)','Ornstein\'s Armor','Ornstein\'s Helm','Soul of Ornstein']},
+{key:'smough_w',name:'Executioner Smough',hp:2600,x:-1450,z:-1880,radius:140,dmg:95,build:buildSmoughMesh,col:0xeeddaa,boss_drops:['Smough\'s Hammer','Smough\'s Armor','Smough\'s Helm','Soul of Smough']},
+{key:'sif_w',name:'Sif, the Great Grey Wolf',hp:2000,x:-3600,z:-400,radius:130,dmg:80,build:buildSifMesh,col:0x6a5a48,boss_drops:['Greatsword of Artorias','Dragon Bone Smasher','Soul of Sif','Wolf Ring']},
+{key:'asylum_w',name:'The Asylum Demon',hp:1800,x:300,z:-2800,radius:130,dmg:85,build:buildAsylumDemonMesh,col:0x6a4a2a,boss_drops:['Demon\'s Greataxe','Smough\'s Hammer']},
+{key:'gwyn_w',name:'Gwyn, Lord of Cinder',hp:3800,x:-3800,z:-4500,radius:200,dmg:120,build:buildGwynMesh,col:0xffaa44,boss_drops:['Soul of Gwyn','Greatsword of Artorias','Estus Flask +5']}
+];
+
+const dsBosses=[];
+function spawnDSBoss(b){
+const mesh=b.build();
+mesh.position.set(b.x,meshTerrainH(b.x,b.z),b.z);
+scene.add(mesh);
+// Name banner
+const lblC=document.createElement('canvas');lblC.width=768;lblC.height=72;
+const ctx=lblC.getContext('2d');ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(0,0,768,72);
+ctx.font='bold 28px serif';ctx.textAlign='center';ctx.fillStyle='#dd5544';ctx.fillText('☠ '+b.name+' ☠',384,46);
+const tex=new THREE.CanvasTexture(lblC);
+const lbl=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+lbl.scale.set(28,3,1);lbl.position.y=18;mesh.add(lbl);
+const ib={mesh:mesh,name:b.name,key:b.key,hp:b.hp,maxHp:b.hp,home:{x:b.x,z:b.z},radius:b.radius,dmg:b.dmg,col:b.col,boss_drops:b.boss_drops,patrolAngle:Math.random()*Math.PI*2,attackCD:0};
+dsBosses.push(ib);
+return ib;
+}
+function damageDSBoss(ib,dmg){
+ib.hp-=dmg;
+if(ib.hp<=0){
+log('☠ '+ib.name+' has fallen! Soul claimed.','#dd5544');
+for(const it of ib.boss_drops){if(Math.random()<.5)grantDSItem(it)}
+if(ib.boss_drops.length)grantDSItem(ib.boss_drops[0]);
+grantDSItem(window.__rollDSItem());
+const gold=2500+Math.floor(Math.random()*1500);
+if(inventory.length<28)inventory.push({name:'Gold Coins x'+gold,uid:null});
+if(typeof addSkillPoints==='function')addSkillPoints(4);
+skills.Attack.xp+=800;skills.Strength.xp+=800;skills.Defence.xp+=800;skills.Hitpoints.xp+=600;
+updateInvUI();updateXpBar();
+scene.remove(ib.mesh);
+const idx=dsBosses.indexOf(ib);if(idx>=0)dsBosses.splice(idx,1);
+setTimeout(()=>{const seed=DS_BOSSES.find(x=>x.key===ib.key);if(seed)spawnDSBoss(seed)},600000);
+}
+}
+window.__damageDSBoss=damageDSBoss;
+setTimeout(()=>{for(const b of DS_BOSSES)spawnDSBoss(b);log('☠ '+DS_BOSSES.length+' Dark Souls bosses now stalk the world ☠','#dd5544')},9000);
+
+function updateDSBosses(dt){
+for(const ib of dsBosses){
+if(!ib.mesh)continue;
+const dx=player.x-ib.mesh.position.x,dz=player.z-ib.mesh.position.z;
+const dist=Math.hypot(dx,dz);
+if(dist<ib.radius*0.6){
+const a=Math.atan2(dz,dx);
+ib.mesh.position.x+=Math.cos(a)*0.09;ib.mesh.position.z+=Math.sin(a)*0.09;
+ib.mesh.rotation.y=-a-Math.PI/2;
+if(dist<11&&ib.attackCD<=0){
+ib.attackCD=80;
+const def=window.__getDefenseBonus?window.__getDefenseBonus():0;
+const dmg=Math.round(ib.dmg*(1-def));
+player.hp=Math.max(0,player.hp-dmg);
+log('☠ '+ib.name+' strikes for '+dmg+'!','#dd5544');
+if(typeof hitFX==='function')hitFX(player.x,player.y+3,player.z,ib.col);
+}
+} else {
+ib.patrolAngle+=0.004;
+const tx=ib.home.x+Math.cos(ib.patrolAngle)*ib.radius*0.4;
+const tz=ib.home.z+Math.sin(ib.patrolAngle)*ib.radius*0.4;
+const a=Math.atan2(tz-ib.mesh.position.z,tx-ib.mesh.position.x);
+ib.mesh.position.x+=Math.cos(a)*0.05;ib.mesh.position.z+=Math.sin(a)*0.05;
+ib.mesh.rotation.y=-a-Math.PI/2;
+}
+ib.mesh.position.y=meshTerrainH(ib.mesh.position.x,ib.mesh.position.z);
+ib.attackCD=Math.max(0,ib.attackCD-1);
+}}
+
+// ---- 4. DARK SOULS CASTLES / LANDMARKS ------------------------------
+function buildAnorLondoCastle(x,z){
+const g=new THREE.Group();
+const stone=new MS({color:0xc0a060,roughness:.6,metalness:.3,emissive:0x442200,emissiveIntensity:.15});
+const gold=new MS({color:0xeebb44,roughness:.4,metalness:.7,emissive:0x553300,emissiveIntensity:.3});
+// Main hall
+const hall=new THREE.Mesh(new THREE.BoxGeometry(60,40,40),stone);hall.position.y=20;hall.castShadow=true;g.add(hall);
+// Two tall spires
+for(const sx of [-25,25]){
+const tower=new THREE.Mesh(new THREE.CylinderGeometry(6,8,55,12),stone);tower.position.set(sx,27.5,0);tower.castShadow=true;g.add(tower);
+const cap=new THREE.Mesh(new THREE.ConeGeometry(8,15,12),gold);cap.position.set(sx,62.5,0);g.add(cap);
+}
+// Gate arch
+const arch=new THREE.Mesh(new THREE.BoxGeometry(14,18,4),stone);arch.position.set(0,9,20);g.add(arch);
+const gate=new THREE.Mesh(new THREE.PlaneGeometry(8,12),new MS({color:0x4a3a1a}));gate.position.set(0,6,22.1);g.add(gate);
+// Glowing windows
+for(let i=0;i<5;i++){const w=new THREE.Mesh(new THREE.BoxGeometry(3,5,.5),new THREE.MeshBasicMaterial({color:0xffd770}));
+w.position.set(-20+i*10,25,20.1);g.add(w);}
+// Aura light
+const ll=new THREE.PointLight(0xffcc55,3,160);ll.position.set(0,40,0);g.add(ll);
+// Name sign
+addNameSign(g,'Anor Londo',0,75,0,'#ffd700');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);
+return g;
+}
+function buildSensFortress(x,z){
+const g=new THREE.Group();
+const stone=new MS({color:0x6a5a4a,roughness:.7,emissive:0x1a1208,emissiveIntensity:.1});
+// Tall narrow keep
+const base=new THREE.Mesh(new THREE.BoxGeometry(40,50,40),stone);base.position.y=25;base.castShadow=true;g.add(base);
+// Top crown
+const top=new THREE.Mesh(new THREE.BoxGeometry(48,8,48),stone);top.position.y=54;g.add(top);
+// Crenellations
+for(let i=0;i<8;i++){for(let j=0;j<8;j++){if(i===0||i===7||j===0||j===7){const cr=new THREE.Mesh(new THREE.BoxGeometry(4,4,4),stone);cr.position.set(-21+i*6,60,-21+j*6);g.add(cr)}}}
+// Snake banner (mostly visual)
+const pole=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,20,6),stone);pole.position.set(0,68,0);g.add(pole);
+const flag=new THREE.Mesh(new THREE.PlaneGeometry(6,3),new MS({color:0x447755,side:THREE.DoubleSide}));flag.position.set(3,73,0);g.add(flag);
+addNameSign(g,'Sen\'s Fortress',0,82,0,'#aaccaa');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);
+return g;
+}
+function buildFirelinkShrine(x,z){
+const g=new THREE.Group();
+const stone=new MS({color:0x556055,roughness:.85});
+// Ruined gazebo
+for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const pillar=new THREE.Mesh(new THREE.CylinderGeometry(.8,1,12,6),stone);pillar.position.set(Math.cos(a)*8,6,Math.sin(a)*8);g.add(pillar);}
+// Roof (broken)
+const roof=new THREE.Mesh(new THREE.ConeGeometry(11,4,6),stone);roof.position.y=14;g.add(roof);
+// Bonfire (sword in ash mound)
+const ash=new THREE.Mesh(new THREE.CylinderGeometry(2,2.5,1.5,8),new MS({color:0x554433,roughness:.95}));ash.position.y=.75;g.add(ash);
+const sword=new THREE.Mesh(new THREE.BoxGeometry(.18,4,.06),new MS({color:0xaaaaaa,metalness:.7}));sword.position.y=3;g.add(sword);
+// Flames (multiple cones)
+for(let i=0;i<6;i++){const fl=new THREE.Mesh(new THREE.ConeGeometry(.6,1.6+Math.random()*.6,4),new MS({color:0xff6622,emissive:0xff4400,emissiveIntensity:1.5}));fl.position.set((Math.random()-.5)*1.5,1.6+Math.random(),(Math.random()-.5)*1.5);g.add(fl);}
+const bonfireLight=new THREE.PointLight(0xff7733,3,50);bonfireLight.position.y=4;g.add(bonfireLight);
+addNameSign(g,'Firelink Shrine',0,18,0,'#ff8844');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);
+return g;
+}
+function buildSimpleKeep(x,z,name,col,h,sign){
+const g=new THREE.Group();
+const stone=new MS({color:col,roughness:.75,emissive:(col>>2)&0x3f3f3f,emissiveIntensity:.1});
+const base=new THREE.Mesh(new THREE.BoxGeometry(30,h,30),stone);base.position.y=h/2;base.castShadow=true;g.add(base);
+// Corner towers
+for(const sx of [-1,1]){for(const sz of [-1,1]){const t=new THREE.Mesh(new THREE.CylinderGeometry(4,4.5,h+8,8),stone);t.position.set(sx*16,(h+8)/2,sz*16);t.castShadow=true;g.add(t);const c=new THREE.Mesh(new THREE.ConeGeometry(5,6,8),stone);c.position.set(sx*16,h+11,sz*16);g.add(c)}}
+addNameSign(g,name,0,h+22,0,sign||'#ddccaa');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);
+return g;
+}
+function addNameSign(g,text,x,y,z,color){
+const lblC=document.createElement('canvas');lblC.width=768;lblC.height=72;
+const ctx=lblC.getContext('2d');ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(0,0,768,72);
+ctx.font='bold 30px serif';ctx.textAlign='center';ctx.fillStyle=color||'#ddccaa';ctx.fillText('🏰 '+text+' 🏰',384,46);
+const tex=new THREE.CanvasTexture(lblC);
+const lbl=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+lbl.scale.set(40,4,1);lbl.position.set(x,y,z);g.add(lbl);
+}
+function buildBrokenBridge(x,z){
+const g=new THREE.Group();
+const stone=new MS({color:0x556665,roughness:.9});
+for(let i=0;i<5;i++){const s=new THREE.Mesh(new THREE.BoxGeometry(10,2,16),stone);s.position.set(i*15-30,3+(i%2?-1.5:0),0);s.rotation.z=(i%2?-.15:.1);g.add(s)}
+addNameSign(g,'New Londo Ruins',0,12,0,'#88aabb');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);
+return g;
+}
+function buildSingleTree(x,z){
+const g=new THREE.Group();
+// Massive ancient tree (Ash Lake)
+const trunk=new THREE.Mesh(new THREE.CylinderGeometry(3,5,40,8),new MS({color:0x5a4030,roughness:.95}));trunk.position.y=20;trunk.castShadow=true;g.add(trunk);
+const canopy=new THREE.Mesh(new THREE.SphereGeometry(18,12,10),new MS({color:0x3a5a3a,roughness:.95}));canopy.position.y=44;canopy.castShadow=true;g.add(canopy);
+addNameSign(g,'Archtree (Ash Lake)',0,68,0,'#88aa66');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);
+return g;
+}
+function buildLavaSpire(x,z){
+const g=new THREE.Group();
+const lava=new MS({color:0xff4422,emissive:0xff3300,emissiveIntensity:1.2,roughness:.5});
+const stone=new MS({color:0x3a2010,roughness:.85});
+const base=new THREE.Mesh(new THREE.ConeGeometry(15,30,8),stone);base.position.y=15;base.castShadow=true;g.add(base);
+const top=new THREE.Mesh(new THREE.SphereGeometry(5,10,10),lava);top.position.y=33;g.add(top);
+const light=new THREE.PointLight(0xff5520,4,120);light.position.y=33;g.add(light);
+addNameSign(g,'Lost Izalith',0,48,0,'#ff7733');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);
+return g;
+}
+
+const DS_LANDMARKS=[
+{n:'Anor Londo',x:-3800,z:-1200,build:buildAnorLondoCastle},
+{n:'Sens Fortress',x:-3000,z:-300,build:buildSensFortress},
+{n:'Firelink Shrine',x:-200,z:-1500,build:buildFirelinkShrine},
+{n:'New Londo Ruins',x:-1500,z:-2200,build:buildBrokenBridge},
+{n:'Lost Izalith',x:-2500,z:-3800,build:buildLavaSpire},
+{n:'Ash Lake',x:-4200,z:-3500,build:buildSingleTree},
+{n:'Undead Burg',x:-500,z:-1100,build:(x,z)=>buildSimpleKeep(x,z,'Undead Burg',0x6a5a4a,35,'#aa9988')},
+{n:'Undead Parish',x:-700,z:-1300,build:(x,z)=>buildSimpleKeep(x,z,'Undead Parish',0x807060,40,'#ccbb99')},
+{n:'Painted World',x:-2400,z:1400,build:(x,z)=>buildSimpleKeep(x,z,'Painted World of Ariamis',0xaaa8c8,50,'#aabbdd')},
+{n:'Dukes Archives',x:-4400,z:-2800,build:(x,z)=>buildSimpleKeep(x,z,'The Duke\'s Archives',0x554466,65,'#aaaadd')},
+{n:'Catacombs',x:-1000,z:-3400,build:(x,z)=>buildSimpleKeep(x,z,'The Catacombs',0x3a3a3a,30,'#888888')},
+{n:'Tomb of the Giants',x:-1200,z:-4400,build:(x,z)=>buildSimpleKeep(x,z,'Tomb of the Giants',0x2a2a2a,25,'#666666')}
+];
+const dsLandmarks=[];
+setTimeout(()=>{
+for(const lm of DS_LANDMARKS){const g=lm.build(lm.x,lm.z);dsLandmarks.push({x:lm.x,z:lm.z,name:lm.n,mesh:g});
+// Make these enterable too — registers door + entry trigger
+try{makeEnterable(lm.x,lm.z+25,'castle',lm.n)}catch(e){}}
+log('🏰 '+DS_LANDMARKS.length+' Dark Souls landmarks built across the world','#dd9988');
+},9500);
+
+// ---- 5. ENTRY FIX: visible [E] PROMPT + reliable trigger ------------
+// We make a floating "[E] Enter" sprite over each enterable building's
+// center that becomes prominent when player is in range. Also a fallback
+// keydown handler that bypasses any blocked code paths.
+const entryPromptSprites=[];
+function buildEntryPrompt(b){
+const lblC=document.createElement('canvas');lblC.width=256;lblC.height=64;
+const ctx=lblC.getContext('2d');
+function redraw(active){
+ctx.clearRect(0,0,256,64);
+ctx.fillStyle=active?'rgba(60,40,20,.92)':'rgba(20,15,10,.6)';
+ctx.fillRect(0,0,256,64);
+ctx.strokeStyle=active?'#ffdd66':'#aa8844';ctx.lineWidth=3;ctx.strokeRect(2,2,252,60);
+ctx.font='bold 22px serif';ctx.textAlign='center';
+ctx.fillStyle=active?'#ffd700':'#aa8855';
+ctx.fillText('[E] Enter',128,28);
+ctx.font='12px serif';ctx.fillStyle=active?'#ffeeaa':'#998866';
+ctx.fillText(b.name.length>30?b.name.slice(0,28)+'…':b.name,128,52);
+}
+redraw(false);
+const tex=new THREE.CanvasTexture(lblC);tex.needsUpdate=true;
+const mat=new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:true});
+const sp=new THREE.Sprite(mat);sp.scale.set(14,3.5,1);
+sp.position.set(b.x,(b.y||meshTerrainH(b.x,b.z))+7,b.z);scene.add(sp);
+return {sp,tex,canvas:lblC,redraw:redraw};
+}
+function rebuildEntryPrompts(){
+// Clear old
+for(const ep of entryPromptSprites){scene.remove(ep.sp)}
+entryPromptSprites.length=0;
+for(const b of enterableBuildings){entryPromptSprites.push({...buildEntryPrompt(b),b:b})}
+}
+setTimeout(rebuildEntryPrompts,10000);// after all towns/landmarks placed
+
+// Periodically rebuild in case new buildings added later
+setInterval(()=>{if(entryPromptSprites.length!==enterableBuildings.length)rebuildEntryPrompts()},5000);
+
+let _lastEntryState=null;
+function updateEntryPrompts(){
+let nearest=null,bestD=1e9;
+for(let i=0;i<entryPromptSprites.length;i++){const ep=entryPromptSprites[i];if(!ep||!ep.b)continue;
+const dx=player.x-ep.b.x,dz=player.z-ep.b.z;const d=Math.hypot(dx,dz);
+if(d<bestD){bestD=d;nearest=ep}
+const active=d<(ep.b.r||20);
+if(active!==ep._activeState){ep._activeState=active;ep.redraw(active);ep.tex.needsUpdate=true;
+ep.sp.scale.set(active?16:12,active?4:3,1)}
+ep.sp.position.y=(ep.b.y||meshTerrainH(ep.b.x,ep.b.z))+7+(active?Math.sin(performance.now()/250)*.4:0);
+}
+return nearest;
+}
+
+// Fallback E keydown — direct enter (works even if checkInteractions skipped)
+let _entryKeyBusy=false;
+document.addEventListener('keydown',function(e){
+if(!gameStarted)return;
+if(e.key.toLowerCase()!=='e')return;
+const tag=(document.activeElement&&document.activeElement.tagName)||'';if(tag==='INPUT'||tag==='TEXTAREA')return;
+// If a dialog is open, don't intercept
+if(document.getElementById('extra-quest-dialog')||document.getElementById('quest-dialog')||document.getElementById('spellbook-dialog')||document.getElementById('skill-tree-dialog')||document.getElementById('town-npc-dialog'))return;
+if(_entryKeyBusy)return;_entryKeyBusy=true;setTimeout(()=>{_entryKeyBusy=false},250);
+if(insideBuilding){
+// Try exit
+try{exitBuilding();return}catch(err){}
+}
+// Find nearest enterable
+let best=null,bestD=999;
+for(const b of enterableBuildings){const dx=player.x-b.x,dz=player.z-b.z;const d=Math.hypot(dx,dz);
+if(d<(b.r||20) && d<bestD){bestD=d;best=b}}
+if(best){try{enterBuilding(best);log('Entered '+best.name,'#0f8')}catch(err){console.warn('enter failed',err);log('Could not enter '+best.name,'#f88')}}
+});
+
+// ---- 6. SLOT-SHAPED LOOT MESH GRAPHICS ------------------------------
+// Wrap spawnLoot: after the orb is added, attach a small 3D shape that
+// represents the item's slot so dropped items "look like what they are".
+function addSlotGraphic(orbGroup,slot,col){
+const g=new THREE.Group();
+const tint=new MS({color:col||0xffd700,roughness:.4,metalness:.6,emissive:col||0x553300,emissiveIntensity:.45});
+const dark=new MS({color:0x222222,roughness:.7});
+let made=false;
+if(slot==='Weapon'){
+const blade=new THREE.Mesh(new THREE.BoxGeometry(.12,1.6,.04),tint);blade.position.y=.8;g.add(blade);
+const guard=new THREE.Mesh(new THREE.BoxGeometry(.6,.1,.05),dark);guard.position.y=-.05;g.add(guard);
+const hilt=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,.3,6),dark);hilt.position.y=-.25;g.add(hilt);
+made=true;
+}else if(slot==='Offhand'||slot==='Shield'){
+const sh=new THREE.Mesh(new THREE.CylinderGeometry(.6,.7,.1,8),tint);sh.rotation.x=Math.PI/2;g.add(sh);
+const boss=new THREE.Mesh(new THREE.SphereGeometry(.15,8,8),dark);boss.position.z=.06;g.add(boss);
+made=true;
+}else if(slot==='Helm'){
+const dome=new THREE.Mesh(new THREE.SphereGeometry(.5,10,8,0,Math.PI*2,0,Math.PI/2),tint);g.add(dome);
+const slit=new THREE.Mesh(new THREE.BoxGeometry(.6,.1,.05),dark);slit.position.set(0,.1,.45);g.add(slit);
+made=true;
+}else if(slot==='Armor'){
+const torso=new THREE.Mesh(new THREE.BoxGeometry(.9,1.1,.4),tint);g.add(torso);
+const pec=new THREE.Mesh(new THREE.BoxGeometry(.8,.1,.42),dark);pec.position.y=.2;g.add(pec);
+made=true;
+}else if(slot==='Legs'){
+const lg=new THREE.Mesh(new THREE.BoxGeometry(.5,1,.35),tint);g.add(lg);
+const belt=new THREE.Mesh(new THREE.BoxGeometry(.55,.12,.4),dark);belt.position.y=.4;g.add(belt);
+made=true;
+}else if(slot==='Boots'){
+for(const sx of [-1,1]){const b=new THREE.Mesh(new THREE.BoxGeometry(.3,.35,.55),tint);b.position.x=sx*.2;g.add(b)}
+made=true;
+}else if(slot==='Hand'||slot==='Hands'){
+for(const sx of [-1,1]){const gv=new THREE.Mesh(new THREE.BoxGeometry(.3,.4,.25),tint);gv.position.x=sx*.25;g.add(gv)}
+made=true;
+}else if(slot==='Bracer'||slot==='Bracers'){
+for(const sx of [-1,1]){const br=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.3,8),tint);br.position.x=sx*.3;g.add(br)}
+made=true;
+}else if(slot==='Belt'){
+const b=new THREE.Mesh(new THREE.TorusGeometry(.4,.08,6,12),tint);b.rotation.x=Math.PI/2;g.add(b);
+const buckle=new THREE.Mesh(new THREE.BoxGeometry(.18,.18,.12),dark);buckle.position.set(0,0,.4);g.add(buckle);
+made=true;
+}else if(slot==='Ring'){
+const r=new THREE.Mesh(new THREE.TorusGeometry(.22,.05,6,16),tint);r.rotation.x=Math.PI/2;g.add(r);
+const gem=new THREE.Mesh(new THREE.OctahedronGeometry(.08),new THREE.MeshBasicMaterial({color:0xff4488}));gem.position.y=.2;g.add(gem);
+made=true;
+}else if(slot==='Necklace'||slot==='Amulet'){
+const ch=new THREE.Mesh(new THREE.TorusGeometry(.35,.04,6,16),new MS({color:0xddaa44,metalness:.8}));ch.rotation.x=Math.PI/2;g.add(ch);
+const pend=new THREE.Mesh(new THREE.OctahedronGeometry(.18),tint);pend.position.y=-.35;g.add(pend);
+made=true;
+}else if(slot==='Cloak'){
+const cl=new THREE.Mesh(new THREE.PlaneGeometry(.8,1.2),new MS({color:col||0x553300,side:THREE.DoubleSide}));g.add(cl);made=true;
+}else if(slot==='Trinket'){
+const c=new THREE.Mesh(new THREE.OctahedronGeometry(.4),new MS({color:col||0xddaa44,emissive:col||0x554400,emissiveIntensity:.5}));g.add(c);made=true;
+}
+if(!made){const o=new THREE.Mesh(new THREE.OctahedronGeometry(.3),tint);g.add(o)}
+g.position.y=1.2;
+g.userData.rotateMe=true;
+orbGroup.add(g);
+return g;
+}
+
+const _v8SpawnLoot=spawnLoot;
+spawnLoot=function(x,z,e){
+const before=lootArr.length;
+const r=_v8SpawnLoot(x,z,e);
+// Decorate newly-added loot meshes
+for(let i=before;i<lootArr.length;i++){
+const m=lootArr[i];if(!m)continue;
+const gear=m.userData&&m.userData.gear;
+if(gear&&gear.slot){
+// Color by rarity
+let col=0xddcc88;
+const rar=gear.rarity||'common';
+if(rar==='legendary')col=0xff8800;
+else if(rar==='mythic')col=0xff44aa;
+else if(rar==='epic')col=0xaa66ff;
+else if(rar==='rare')col=0x4488ff;
+try{addSlotGraphic(m,gear.slot,col)}catch(err){}
+}
+}
+return r;
+};
+
+// Spin the slot graphics for visibility
+function updateLootGraphics(dt){
+for(const m of lootArr){if(!m)continue;m.children.forEach(c=>{if(c.userData&&c.userData.rotateMe){c.rotation.y+=0.04}})}
+}
+
+// ---- 7. PER-FRAME HOOK ----------------------------------------------
+const _v8Orig=window.requestAnimationFrame;
+let _v8Last=0;
+window.requestAnimationFrame=function(cb){
+return _v8Orig.call(window,function(t){
+const dt=(t-_v8Last)/16;_v8Last=t;
+try{updateDSBosses(dt)}catch(e){}
+try{updateEntryPrompts()}catch(e){}
+try{updateLootGraphics(dt)}catch(e){}
+cb(t);
+});
+};
+
+log('=== v8 Expansion loaded: '+Object.keys(DS_MOBS).length+' DS mobs · '+DS_ITEMS.length+' DS items · '+DS_BOSSES.length+' DS bosses · '+DS_LANDMARKS.length+' landmarks · entry-fix · slot-shaped loot ===','#dd5544');
+
+// Expose helpers so v9 can reuse them without duplication
+window.__v8={addNameSign:addNameSign,buildSimpleKeep:buildSimpleKeep,grantDSItem:grantDSItem,dsBosses:dsBosses,damageDSBoss:damageDSBoss,rebuildEntryPrompts:rebuildEntryPrompts};
+})();
+// =====================================================================
+
+// =====================================================================
+// ===  v9 EXPANSION  (Skyrim + Oblivion cities, gear, mobs, spells, ===
+// ===                 mastery perk trees)                            ==
+// =====================================================================
+(function v9Expansion(){
+const addNameSign=window.__v8&&window.__v8.addNameSign;
+// Fallback name sign builder
+function makeSign(text,color){
+const lblC=document.createElement('canvas');lblC.width=768;lblC.height=72;
+const ctx=lblC.getContext('2d');ctx.fillStyle='rgba(0,0,0,.72)';ctx.fillRect(0,0,768,72);
+ctx.font='bold 30px serif';ctx.textAlign='center';ctx.fillStyle=color||'#eeeeaa';ctx.fillText('⚔ '+text+' ⚔',384,46);
+const tex=new THREE.CanvasTexture(lblC);
+const lbl=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+lbl.scale.set(40,4,1);
+return lbl;
+}
+
+// ---- 1. SKYRIM + OBLIVION MONSTERS ----------------------------------
+const ES_MOBS={
+// Skyrim
+draugr:{hp:80,col:0x4a3a2a},draugr_wight:{hp:140,col:0x3a3020},draugr_overlord:{hp:240,col:0x4a3030},draugr_deathlord:{hp:380,col:0x2a1a1a,boss:true},
+skeever:{hp:25,col:0x8a6a4a},sabre_cat:{hp:140,col:0xaa8855},snow_sabre:{hp:160,col:0xccccdd},
+wolf_skyrim:{hp:55,col:0x666655},ice_wolf:{hp:75,col:0xaabbcc},
+frost_troll:{hp:240,col:0xccccdd},cave_troll_skyrim:{hp:200,col:0x6a5a4a},
+frost_atronach:{hp:200,col:0x88bbee,boss:false},
+fire_atronach_skyrim:{hp:140,col:0xff5520,boss:false},
+storm_atronach:{hp:180,col:0xa8d0ff,boss:false},
+dremora_caitiff:{hp:160,col:0x8a3030},dremora_kynval:{hp:280,col:0x6a2020},dremora_valkynaz:{hp:480,col:0x4a1010,boss:true},
+dragon_skyrim:{hp:1400,col:0x6a8a3a,boss:true},
+elder_dragon_sky:{hp:1800,col:0x4a6a3a,boss:true},
+ancient_dragon_sky:{hp:2200,col:0x3a3a3a,boss:true},
+revered_dragon_sky:{hp:2400,col:0xddcc66,boss:true},
+legendary_dragon_sky:{hp:2800,col:0xaa3030,boss:true},
+mirmulnir:{hp:1500,col:0x3a6a3a,boss:true},
+sahrotaar:{hp:1700,col:0x4a3a8a,boss:true},
+alduin:{hp:5500,col:0x1a1a1a,boss:true},
+miraak:{hp:4200,col:0x2a3a6a,boss:true},
+werewolf:{hp:300,col:0x553322},vampire_thrall:{hp:120,col:0x442233},vampire_lord:{hp:550,col:0x2a1a3a,boss:true},
+bandit:{hp:60,col:0x6a5a3a},bandit_outlaw:{hp:90,col:0x5a4a30},bandit_thug:{hp:120,col:0x4a4030},bandit_marauder:{hp:180,col:0x3a3a3a},bandit_chief:{hp:300,col:0x2a2a2a,boss:false},
+forsworn:{hp:80,col:0x553322},forsworn_briarheart:{hp:280,col:0x6a2020,boss:false},
+falmer:{hp:130,col:0x8a8866},falmer_warmonger:{hp:280,col:0x6a6644,boss:false},
+chaurus:{hp:140,col:0x2a3030},chaurus_reaper:{hp:300,col:0x1a2020,boss:false},chaurus_hunter:{hp:220,col:0x2a4040},
+frostbite_spider:{hp:90,col:0x3a4030},frost_spider_giant:{hp:280,col:0x4a5040,boss:false},
+spriggan:{hp:160,col:0x4a6a3a},spriggan_matriarch:{hp:350,col:0x5a8a3a,boss:false},
+hagraven:{hp:240,col:0x553a55,boss:false},
+dragon_priest:{hp:850,col:0x8a8a8a,boss:true},
+nahkriin:{hp:1000,col:0x4a4a3a,boss:true},
+volsung:{hp:1100,col:0x6a4a3a,boss:true},
+morokei:{hp:1200,col:0x8a8a4a,boss:true},
+otar:{hp:1100,col:0xaa6620,boss:true},
+ash_spawn:{hp:120,col:0x554433},lurker:{hp:340,col:0x335544,boss:false},lurker_vindicator:{hp:520,col:0x224433,boss:true},
+seeker:{hp:280,col:0x4a3a6a,boss:false},karstaag:{hp:2400,col:0xddccdd,boss:true},
+// Oblivion
+daedroth:{hp:280,col:0x553a1a},daedroth_lord:{hp:480,col:0x4a3020,boss:true},
+scamp:{hp:55,col:0xaa6a3a},scamp_lord:{hp:140,col:0x884422,boss:false},
+clannfear:{hp:180,col:0x553333,boss:false},
+spider_daedra:{hp:300,col:0x4a3a4a,boss:false},
+xivilai:{hp:520,col:0x2a3a4a,boss:true},
+storm_atronach_obl:{hp:220,col:0x8aaaff,boss:false},
+flame_atronach_obl:{hp:180,col:0xff5520,boss:false},
+goblin_obl:{hp:55,col:0x556633},goblin_shaman:{hp:120,col:0x4a5a30},goblin_warchief:{hp:280,col:0x3a4a20,boss:true},
+willothewisp:{hp:60,col:0xaaffdd,boss:false},
+land_dreugh:{hp:150,col:0x4a6a4a,boss:false},
+slaughterfish:{hp:45,col:0x4488aa},
+ogre_obl:{hp:330,col:0x6a5a3a,boss:false},
+minotaur_obl:{hp:280,col:0x7a4a30,boss:false},
+minotaur_lord:{hp:450,col:0x5a3020,boss:true},
+lich_obl:{hp:550,col:0xaaaadd,boss:true},
+wraith_obl:{hp:200,col:0xccccff,boss:false},
+skeleton_hero:{hp:160,col:0xeeeedd,boss:false},
+wood_elf_adv:{hp:130,col:0x6a8a4a},
+sheogorath:{hp:5800,col:0xcc44aa,boss:true},
+mehrunes_dagon:{hp:6500,col:0xaa2222,boss:true}
+};
+for(const k in ES_MOBS){if(eHP[k]==null)eHP[k]=ES_MOBS[k].hp;if(eCol[k]==null)eCol[k]=ES_MOBS[k].col;
+if(!questRewards[k]){const hp=ES_MOBS[k].hp;questRewards[k]={xp:Math.max(35,Math.round(hp*0.7)),gold:Math.max(60,Math.round(hp*2.2))}}}
+
+// ---- 2. SKYRIM + OBLIVION ITEMS -------------------------------------
+const ES_ITEMS=[
+// Daedric Artifacts
+['Mehrunes\' Razor','Weapon',82,3,55,'mythic','1.7% chance to instantly kill target'],
+['Mace of Molag Bal','Weapon',88,4,72,'mythic','Soul-traps and absorbs 25 magicka/stamina'],
+['Wabbajack','Weapon',55,2,30,'mythic','Random magical effect on each strike'],
+['Sanguine Rose','Weapon',60,2,40,'legendary','Summons a Dremora for 60 seconds'],
+['Volendrung','Weapon',95,5,80,'mythic','2H warhammer, absorbs 50 stamina'],
+['Dawnbreaker','Weapon',86,4,65,'mythic','1H sword, fire damage + explodes on undead'],
+['Ebony Blade','Weapon',92,4,72,'mythic','2H sword, absorbs health'],
+['Skull of Corruption','Weapon',78,2,52,'mythic','Staff, summons a dream-doppelganger'],
+['Spellbreaker','Offhand',5,88,12,'mythic','Shield, blocks spells in front'],
+['Masque of Clavicus Vile','Helm',3,45,8,'mythic','+10 Speech, +10% prices, regenerate magicka'],
+['Ring of Hircine','Ring',2,5,5,'mythic','Unlimited werewolf transformations'],
+['Savior\'s Hide','Armor',2,72,15,'mythic','Light armor, +15% magic resist'],
+['Ebony Mail','Armor',3,82,18,'mythic','+15 poison damage to nearby enemies'],
+['Goldbrand','Weapon',90,4,72,'mythic','Katana, persistent fire damage'],
+['Skeleton Key','Trinket',0,0,0,'mythic','Picks any lock (Daedric artifact)'],
+// Unique Skyrim weapons
+['Dragonbane','Weapon',75,3,55,'legendary','Katana, +40 shock damage to dragons'],
+['Bloodskal Blade','Weapon',82,4,65,'legendary','2H sword, launches energy blade on power attacks'],
+['Chillrend','Weapon',78,3,60,'legendary','1H sword, frost damage + paralyze chance'],
+['Nightingale Blade','Weapon',82,3,60,'legendary','Absorbs health + stamina'],
+['Nightingale Bow','Weapon',75,2,55,'legendary','Shock & frost damage'],
+['Auriel\'s Bow','Weapon',88,2,68,'mythic','Sun damage, instant kill on undead'],
+['Auriel\'s Shield','Offhand',5,82,12,'mythic','Stores power from blocked attacks'],
+['Auriel\'s Crown','Helm',2,38,8,'mythic','+50% all magicka regen'],
+['Miraak\'s Sword','Weapon',88,4,72,'mythic','Becomes tentacle on power attacks'],
+['Miraak\'s Staff','Weapon',90,3,65,'mythic','Tentacle staff, leech damage'],
+['Zephyr','Weapon',72,2,52,'legendary','Bow, 30% faster firing rate'],
+['Drainspell Bow','Weapon',68,2,50,'epic','Absorbs magicka'],
+['Drainheart Sword','Weapon',62,3,48,'epic','Absorbs health'],
+['Ghostblade','Weapon',55,2,40,'epic','Bypasses armor entirely'],
+['Bolar\'s Oathblade','Weapon',58,3,42,'epic','Fear effect'],
+['Eduj','Weapon',62,3,45,'epic','Frost damage 1H sword'],
+['Okin','Weapon',62,3,45,'epic','Frost damage war axe'],
+['Mehrunes Dagon\'s Razor','Weapon',82,3,55,'mythic','Variant of Razor'],
+// Skyrim armor sets
+['Daedric Helmet','Helm',5,60,15,'legendary','Daedric heavy armor'],
+['Daedric Armor','Armor',5,108,28,'legendary','Daedric chest piece'],
+['Daedric Gauntlets','Hand',5,42,12,'legendary','Daedric gauntlets'],
+['Daedric Boots','Boots',5,42,12,'legendary','Daedric sabatons'],
+['Daedric Shield','Offhand',4,82,15,'legendary','Daedric kite shield'],
+['Dragonplate Helmet','Helm',4,52,12,'legendary','Heavy dragon plate'],
+['Dragonplate Armor','Armor',4,98,22,'legendary','Dragon plate chest'],
+['Dragonplate Gauntlets','Hand',4,38,10,'legendary','Heavy dragon plate gauntlets'],
+['Dragonplate Boots','Boots',4,38,10,'legendary','Heavy dragon plate boots'],
+['Dragonplate Shield','Offhand',3,72,12,'legendary','Dragon plate shield'],
+['Dragonscale Helmet','Helm',3,44,8,'legendary','Light dragon scale'],
+['Dragonscale Armor','Armor',3,82,15,'legendary','Light dragon scale chest'],
+['Dragonscale Gauntlets','Hand',3,30,7,'legendary','Light dragon scale gauntlets'],
+['Dragonscale Boots','Boots',3,30,7,'legendary','Light dragon scale boots'],
+['Dragonscale Shield','Offhand',2,60,8,'legendary','Light dragon scale shield'],
+['Stahlrim Helmet','Helm',4,50,14,'legendary','Stalhrim heavy'],
+['Stahlrim Armor','Armor',4,95,22,'legendary','Stalhrim chest'],
+['Stahlrim Gauntlets','Hand',4,38,11,'legendary','Stalhrim gauntlets'],
+['Stahlrim Boots','Boots',4,38,11,'legendary','Stalhrim boots'],
+['Nightingale Hood','Helm',2,32,8,'legendary','Hood of the Nightingale'],
+['Nightingale Armor','Armor',2,55,12,'legendary','Nightingale chest'],
+['Nightingale Gauntlets','Hand',2,22,5,'legendary','Nightingale gauntlets'],
+['Nightingale Boots','Boots',2,22,5,'legendary','Nightingale boots'],
+['Volkihar Vampire Robe','Armor',2,52,11,'legendary','Volkihar regal robe'],
+['Cultist Mask','Helm',2,35,8,'epic','Miraak cultist mask'],
+['Cultist Robes','Armor',2,52,10,'epic','Miraak cultist robes'],
+// Shouts (treated as trinkets)
+['Shout: Unrelenting Force','Trinket',5,0,5,'legendary','FUS RO DAH — knockback'],
+['Shout: Fire Breath','Trinket',5,0,5,'legendary','YOL TOOR SHUL — fire breath'],
+['Shout: Frost Breath','Trinket',5,0,5,'legendary','FO KRAH DIIN — frost breath'],
+['Shout: Whirlwind Sprint','Trinket',0,0,8,'epic','WULD NAH KEST — dash forward'],
+['Shout: Storm Call','Trinket',8,0,8,'mythic','STRUN BAH QO — summon thunderstorm'],
+['Shout: Become Ethereal','Trinket',0,5,3,'legendary','FEIM ZII GRON — immune to damage'],
+['Shout: Dragonrend','Trinket',10,0,5,'mythic','JOOR ZAH FRUL — force dragons to land'],
+['Shout: Slow Time','Trinket',8,0,3,'mythic','TIID KLO UL — slows time'],
+['Shout: Marked for Death','Trinket',6,0,5,'epic','KRII LUN AUS — armor + health debuff'],
+['Shout: Soul Tear','Trinket',8,0,5,'mythic','RII VAAZ ZOL — rip soul, summon zombie'],
+['Shout: Aura Whisper','Trinket',0,3,0,'epic','LAAS YAH NIR — detect life'],
+['Shout: Throw Voice','Trinket',0,0,3,'epic','ZUL MEY GUT — distraction'],
+['Shout: Ice Form','Trinket',6,0,4,'legendary','IIZ SLEN NUS — freeze target'],
+['Shout: Disarm','Trinket',5,0,3,'epic','ZUN HAAL VIIK — disarm target'],
+['Shout: Elemental Fury','Trinket',6,0,5,'legendary','SU GRAH DUN — faster attacks'],
+// Oblivion artifacts
+['Umbra','Weapon',88,4,68,'mythic','Umbra Sword — soul-trapping'],
+['Mehrunes Razor (Oblivion)','Weapon',75,3,52,'legendary','Oblivion-era Razor'],
+['Goldbrand (Oblivion)','Weapon',85,4,68,'legendary','Variant of Goldbrand'],
+['Spell Breaker','Offhand',5,75,10,'legendary','Reflects spells'],
+['Imperial Dragon Cuirass','Armor',3,72,15,'legendary','Imperial Dragon armor chest'],
+['Imperial Dragon Helmet','Helm',3,38,8,'legendary','Imperial Dragon helmet'],
+['Madness Armor','Armor',4,82,16,'legendary','Sheogorath\'s gift'],
+['Amber Armor','Armor',3,72,12,'legendary','Madgod realm armor'],
+['Crown of the Septims','Helm',2,28,5,'legendary','Crown of Tamriel'],
+['Robe of the Apprentice','Armor',0,32,5,'epic','Mage robe'],
+['Robe of the Magister','Armor',0,52,8,'legendary','Master mage robe'],
+// Misc magical
+['Skull of Corruption (Oblivion)','Weapon',62,2,42,'legendary','Variant of Skull of Corruption'],
+['Mehrunes Razor +5','Weapon',95,3,68,'mythic','Maxed Razor'],
+['Spellbreaker (Daedric)','Offhand',5,95,15,'mythic','Maximal Spellbreaker'],
+['Ring of Khajiit','Ring',2,5,8,'legendary','Invisibility ring'],
+['Ring of Namira','Ring',1,4,5,'legendary','Cannibal feasting buff'],
+['Mehrunes Boots','Boots',3,42,10,'legendary','Daedric boots variant'],
+['Black Star (Azura)','Trinket',5,3,5,'mythic','Reusable black soul gem']
+];
+const ES_ITEM_MAP={};for(const it of ES_ITEMS){ES_ITEM_MAP[it[0]]={atk:it[2],def:it[3],str:it[4],slot:it[1],rarity:it[5],desc:it[6]}}
+function grantESItem(name){
+const t=ES_ITEM_MAP[name];if(!t)return null;
+let item;
+if(typeof createUniqueItem==='function'&&t.slot){item=createUniqueItem(name,t.atk,t.def,t.str,t.slot,t.rarity)}
+else{item={name:name,uid:'es'+Math.floor(Math.random()*1e9),atk:t.atk,def:t.def,str:t.str,slot:t.slot,rarity:t.rarity};if(typeof itemDB==='object'&&itemDB!==null)itemDB[item.uid]=item}
+if(inventory.length<28){inventory.push({name:item.name,uid:item.uid});if(typeof updateInvUI==='function')updateInvUI()}
+return item;
+}
+window.__grantESItem=grantESItem;
+window.__rollESItem=function(){
+const r=Math.random();const tier=r<.55?'epic':(r<.88?'legendary':'mythic');
+const pool=ES_ITEMS.filter(it=>it[5]===tier);
+return (pool.length?pool:ES_ITEMS)[Math.floor(Math.random()*(pool.length||ES_ITEMS.length))][0];
+};
+
+// ---- 3. SKYRIM-STYLE SPELLBOOK (N key) ------------------------------
+const ES_SPELLS=[
+// Destruction — Fire
+{k:'firebolt',n:'Firebolt',sch:'Destruction',cost:25,cd:1,dmg:80,r:35,d:'Hurl a bolt of fire.'},
+{k:'fireball_sk',n:'Fireball',sch:'Destruction',cost:55,cd:3,dmg:180,r:35,aoe:true,d:'Explodes for area damage.'},
+{k:'incinerate',n:'Incinerate',sch:'Destruction',cost:75,cd:4,dmg:240,r:35,d:'Heavy fire damage + burn.'},
+{k:'fire_storm_sk',n:'Fire Storm',sch:'Destruction',cost:160,cd:30,dmg:420,r:30,aoe:true,d:'Master fire spell — devastates a wide area.'},
+// Destruction — Frost
+{k:'ice_spike',n:'Ice Spike',sch:'Destruction',cost:30,cd:1.2,dmg:85,r:35,d:'Spike of ice, slows target.'},
+{k:'icy_spear',n:'Icy Spear',sch:'Destruction',cost:90,cd:5,dmg:280,r:35,d:'Massive ice spear.'},
+{k:'blizzard_sk',n:'Blizzard',sch:'Destruction',cost:180,cd:35,dmg:380,r:30,aoe:true,d:'Master blizzard storm.'},
+// Destruction — Shock
+{k:'shock_sk',n:'Sparks',sch:'Destruction',cost:25,cd:1,dmg:70,r:30,d:'Continuous arc of lightning.'},
+{k:'lightning_bolt_sk',n:'Lightning Bolt',sch:'Destruction',cost:55,cd:2,dmg:160,r:35,d:'Instant shock damage.'},
+{k:'thunderbolt',n:'Thunderbolt',sch:'Destruction',cost:85,cd:4,dmg:260,r:35,d:'Powerful shock projectile.'},
+{k:'chain_lightning_sk',n:'Chain Lightning',sch:'Destruction',cost:120,cd:6,dmg:200,r:30,aoe:true,d:'Lightning chains between targets.'},
+{k:'lightning_storm_sk',n:'Lightning Storm',sch:'Destruction',cost:240,cd:0,dmg:420,r:40,d:'Master shock channel.'},
+// Restoration
+{k:'healing_sk',n:'Healing',sch:'Restoration',cost:25,cd:.5,dmg:0,r:0,heal:50,d:'Heals you over time.'},
+{k:'healing_hands_sk',n:'Healing Hands',sch:'Restoration',cost:35,cd:1,dmg:0,r:8,heal:80,d:'Heal an ally.'},
+{k:'greater_healing_sk',n:'Greater Healing',sch:'Restoration',cost:65,cd:2,dmg:0,r:0,heal:180,d:'Significantly heals you.'},
+{k:'close_wounds_sk',n:'Close Wounds',sch:'Restoration',cost:90,cd:3,dmg:0,r:0,heal:300,d:'Closes serious wounds.'},
+{k:'grand_healing_sk',n:'Grand Healing',sch:'Restoration',cost:140,cd:8,dmg:0,r:15,heal:200,aoe:true,d:'Heals you and nearby allies.'},
+{k:'turn_undead_sk',n:'Turn Undead',sch:'Restoration',cost:50,cd:5,dmg:80,r:30,aoe:true,d:'Undead flee in fear.'},
+{k:'sun_fire',n:'Sun Fire',sch:'Restoration',cost:50,cd:2,dmg:130,r:30,d:'Sunlight damage to undead.'},
+{k:'stendarrs_aura',n:'Stendarr\'s Aura',sch:'Restoration',cost:80,cd:20,dmg:60,r:10,aoe:true,buff:true,d:'Daedra & undead burn nearby.'},
+// Alteration
+{k:'oakflesh',n:'Oakflesh',sch:'Alteration',cost:40,cd:30,dmg:0,r:0,buff:true,d:'+40 armor for 60s.'},
+{k:'stoneflesh',n:'Stoneflesh',sch:'Alteration',cost:80,cd:30,dmg:0,r:0,buff:true,d:'+60 armor for 60s.'},
+{k:'ironflesh',n:'Ironflesh',sch:'Alteration',cost:140,cd:30,dmg:0,r:0,buff:true,d:'+80 armor for 60s.'},
+{k:'ebonyflesh',n:'Ebonyflesh',sch:'Alteration',cost:200,cd:30,dmg:0,r:0,buff:true,d:'+100 armor for 60s.'},
+{k:'dragonhide',n:'Dragonhide',sch:'Alteration',cost:340,cd:90,dmg:0,r:0,buff:true,d:'80% physical damage resist 30s.'},
+{k:'detect_life',n:'Detect Life',sch:'Alteration',cost:20,cd:10,dmg:0,r:50,buff:true,d:'See living creatures in 30yd.'},
+{k:'paralyze',n:'Paralyze',sch:'Alteration',cost:160,cd:30,dmg:0,r:30,d:'Paralyzes target for 10s.'},
+{k:'mass_paralyze',n:'Mass Paralysis',sch:'Alteration',cost:280,cd:60,dmg:0,r:20,aoe:true,d:'Paralyzes all in range.'},
+// Illusion
+{k:'calm_sk',n:'Calm',sch:'Illusion',cost:30,cd:5,dmg:0,r:30,d:'Calms low-level enemy 30s.'},
+{k:'fury_sk',n:'Fury',sch:'Illusion',cost:50,cd:8,dmg:0,r:30,d:'Causes target to attack ally.'},
+{k:'frenzy_sk',n:'Frenzy',sch:'Illusion',cost:80,cd:12,dmg:0,r:30,aoe:true,d:'Mass frenzy.'},
+{k:'fear_sk',n:'Fear',sch:'Illusion',cost:40,cd:8,dmg:0,r:30,d:'Causes target to flee.'},
+{k:'hysteria_sk',n:'Hysteria',sch:'Illusion',cost:110,cd:30,dmg:0,r:30,aoe:true,d:'Higher level fear.'},
+{k:'invisibility_sk',n:'Invisibility',sch:'Illusion',cost:140,cd:60,dmg:0,r:0,buff:true,d:'Become invisible 30s.'},
+{k:'muffle_sk',n:'Muffle',sch:'Illusion',cost:80,cd:30,dmg:0,r:0,buff:true,d:'Silent movement.'},
+// Conjuration
+{k:'bound_sword',n:'Bound Sword',sch:'Conjuration',cost:50,cd:0,dmg:60,r:5,buff:true,d:'Summons a bound sword 120s.'},
+{k:'bound_bow',n:'Bound Bow',sch:'Conjuration',cost:80,cd:0,dmg:75,r:40,buff:true,d:'Summons a bound bow + arrows.'},
+{k:'conjure_flame',n:'Conjure Flame Atronach',sch:'Conjuration',cost:140,cd:30,dmg:0,r:0,buff:true,d:'Summons a flame atronach.'},
+{k:'conjure_frost',n:'Conjure Frost Atronach',sch:'Conjuration',cost:220,cd:30,dmg:0,r:0,buff:true,d:'Summons a frost atronach.'},
+{k:'conjure_storm',n:'Conjure Storm Atronach',sch:'Conjuration',cost:300,cd:45,dmg:0,r:0,buff:true,d:'Summons a storm atronach.'},
+{k:'soul_trap_sk',n:'Soul Trap',sch:'Conjuration',cost:40,cd:1,dmg:0,r:30,buff:true,d:'Captures soul of slain target.'},
+{k:'banish_daedra_sk',n:'Banish Daedra',sch:'Conjuration',cost:80,cd:8,dmg:200,r:25,d:'Sends Daedra back.'},
+// Shouts (no mana cost — long CD)
+{k:'sh_fus',n:'FUS RO DAH (Unrelenting Force)',sch:'Shout',cost:0,cd:30,dmg:140,r:25,aoe:true,d:'Force shout knockback.'},
+{k:'sh_yol',n:'YOL TOOR SHUL (Fire Breath)',sch:'Shout',cost:0,cd:30,dmg:240,r:25,aoe:true,d:'Cone of dragon fire.'},
+{k:'sh_fo',n:'FO KRAH DIIN (Frost Breath)',sch:'Shout',cost:0,cd:30,dmg:220,r:25,aoe:true,d:'Cone of dragon frost.'},
+{k:'sh_strun',n:'STRUN BAH QO (Storm Call)',sch:'Shout',cost:0,cd:300,dmg:600,r:60,aoe:true,d:'Summons a thunderstorm.'},
+{k:'sh_joor',n:'JOOR ZAH FRUL (Dragonrend)',sch:'Shout',cost:0,cd:60,dmg:180,r:30,d:'Forces dragon to land.'},
+{k:'sh_tiid',n:'TIID KLO UL (Slow Time)',sch:'Shout',cost:0,cd:90,dmg:0,r:0,buff:true,d:'Slows time for 12s.'},
+{k:'sh_feim',n:'FEIM ZII GRON (Ethereal)',sch:'Shout',cost:0,cd:90,dmg:0,r:0,buff:true,d:'Become invulnerable 8s.'},
+{k:'sh_krii',n:'KRII LUN AUS (Marked for Death)',sch:'Shout',cost:0,cd:30,dmg:160,r:30,d:'Target takes more damage.'},
+{k:'sh_rii',n:'RII VAAZ ZOL (Soul Tear)',sch:'Shout',cost:0,cd:60,dmg:300,r:30,d:'Steals soul of slain.'}
+];
+const ES_SPELL_INDEX={};for(const s of ES_SPELLS)ES_SPELL_INDEX[s.k]=s;
+const esCD={};
+
+function findTargetEnemy_es(maxRange){
+let best=null,bestD=maxRange;
+for(const e of enemies){
+const dx=e.mesh.position.x-player.x,dz=e.mesh.position.z-player.z;
+const d=Math.hypot(dx,dz);if(d<bestD){bestD=d;best=e}}
+return best;
+}
+function schoolColor_es(s){return s==='Destruction'?0xff5a20:s==='Restoration'?0xffd700:s==='Alteration'?0x77ccff:s==='Illusion'?0xcc77ff:s==='Conjuration'?0x8855cc:s==='Shout'?0xffaa44:0xffffff}
+function castESSpell(k){
+const s=ES_SPELL_INDEX[k];if(!s)return;
+const now=performance.now()/1000;
+if((esCD[k]||0)>now){log(s.n+' is on cooldown.','#888');return}
+if(typeof player.mana==='number'&&s.cost>0&&player.mana<s.cost){log('Not enough magicka.','#88f');return}
+if(typeof player.mana==='number'&&s.cost>0)player.mana-=s.cost;
+esCD[k]=now+s.cd;
+const bonus=window.__getCombatBonus?window.__getCombatBonus(null,!!inDungeon,null):1.0;
+const enchantBonus=window.__getEnchantBonus?window.__getEnchantBonus():1.0;
+if(s.heal){player.hp=Math.min(player.maxHp,player.hp+Math.round(s.heal*enchantBonus));log('+'+Math.round(s.heal*enchantBonus)+' heal — '+s.n,'#0f8');return}
+if(s.buff&&!s.dmg){log(s.n+' cast — effect active','#ff8');if(typeof hitFX==='function')hitFX(player.x,player.y+3,player.z,schoolColor_es(s.sch));return}
+if(s.aoe){let count=0;for(const e of enemies){const dx=e.mesh.position.x-player.x,dz=e.mesh.position.z-player.z;const d=Math.hypot(dx,dz);if(d<=s.r){const dmg=Math.round(s.dmg*bonus*enchantBonus);e.hp-=dmg;count++;if(typeof hitFX==='function')hitFX(e.mesh.position.x,e.mesh.position.y+2,e.mesh.position.z,schoolColor_es(s.sch))}}
+log(s.n+' hit '+count+' targets','#fa4');
+}else{const target=findTargetEnemy_es(s.r);if(!target){log(s.n+' — no target','#888');return}const dmg=Math.round(s.dmg*bonus*enchantBonus);target.hp-=dmg;if(typeof hitFX==='function')hitFX(target.mesh.position.x,target.mesh.position.y+2,target.mesh.position.z,schoolColor_es(s.sch));log(s.n+' hits '+target.type+' for '+dmg,'#fa4')}
+}
+window.__castESSpell=castESSpell;
+
+function openESSpellbook(){
+if(document.getElementById('es-spellbook'))return;
+const d=document.createElement('div');d.id='es-spellbook';
+d.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,rgba(20,15,8,.97),rgba(8,5,2,.99));border:3px solid #aa8844;border-radius:14px;padding:18px;z-index:1500;width:880px;max-width:96vw;max-height:90vh;overflow-y:auto;color:#ddd;font-family:serif;box-shadow:0 0 40px rgba(170,136,68,.6);';
+let html='<div style="text-align:center;margin-bottom:12px;color:#ffd700;font-size:22px;font-weight:bold;letter-spacing:3px;">⛓ TOME OF TAMRIEL ⛓</div>';
+html+='<div style="color:#cc9966;font-size:11px;text-align:center;margin-bottom:10px;">Skyrim/Oblivion spells & dragon shouts. Click to cast. [N] toggle.</div>';
+// Group by school
+const schools=['Destruction','Restoration','Alteration','Illusion','Conjuration','Shout'];
+for(const sc of schools){
+const list=ES_SPELLS.filter(s=>s.sch===sc);
+if(!list.length)continue;
+const hex='#'+schoolColor_es(sc).toString(16).padStart(6,'0');
+html+='<div style="color:'+hex+';font-weight:bold;font-size:14px;letter-spacing:2px;margin:10px 0 6px 4px;text-transform:uppercase;">'+sc+'</div>';
+html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">';
+for(const s of list){
+html+='<div onclick="window.__castESSpell(\''+s.k+'\')" style="background:rgba(40,28,18,.6);border:1px solid '+hex+';border-radius:5px;padding:7px;cursor:pointer;transition:transform .1s;font-size:11px;" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'\'">';
+html+='<div style="color:'+hex+';font-weight:bold;font-size:12px;">'+s.n+'</div>';
+html+='<div style="color:#bbb;margin-top:3px;">'+s.d+'</div>';
+html+='<div style="display:flex;justify-content:space-between;color:#aa9;margin-top:4px;font-size:10px;"><span>'+(s.cost?'Magicka '+s.cost:'Shout')+'</span><span>CD '+s.cd+'s</span></div>';
+html+='</div>';
+}
+html+='</div>';
+}
+html+='<button onclick="document.getElementById(\'es-spellbook\').remove()" style="width:100%;margin-top:12px;padding:10px;background:#332244;color:#ccaaff;border:2px solid #6644aa;border-radius:6px;cursor:pointer;font-weight:bold;">Close [N]</button>';
+d.innerHTML=html;document.body.appendChild(d);
+}
+document.addEventListener('keydown',e=>{
+if(!gameStarted)return;const tag=(document.activeElement&&document.activeElement.tagName)||'';if(tag==='INPUT'||tag==='TEXTAREA')return;
+if(e.key&&e.key.toLowerCase()==='n'){e.preventDefault();const ex=document.getElementById('es-spellbook');if(ex){ex.remove();return}openESSpellbook();}
+});
+
+// ---- 4. SKYRIM/OBLIVION CITIES SCATTERED ----------------------------
+function buildESHold(x,z,name,color,scale_,roofCol){
+const g=new THREE.Group();
+const scale=scale_||1.0;
+const stone=new MS({color:color,roughness:.78,emissive:(color>>3)&0x1f1f1f,emissiveIntensity:.12});
+const wood=new MS({color:0x5a3a1a,roughness:.85});
+const roof=new MS({color:roofCol||0x884422,roughness:.7});
+// Outer wall
+for(let i=0;i<4;i++){const ang=i*Math.PI/2;const wall=new THREE.Mesh(new THREE.BoxGeometry(50*scale,12*scale,2*scale),stone);
+wall.position.set(Math.cos(ang)*25*scale,6*scale,Math.sin(ang)*25*scale);wall.rotation.y=-ang;wall.castShadow=true;g.add(wall)}
+// Corner towers
+for(const sx of [-1,1]){for(const sz of [-1,1]){const t=new THREE.Mesh(new THREE.CylinderGeometry(4*scale,4.5*scale,18*scale,8),stone);
+t.position.set(sx*25*scale,9*scale,sz*25*scale);t.castShadow=true;g.add(t);
+const cap=new THREE.Mesh(new THREE.ConeGeometry(5*scale,4*scale,8),roof);cap.position.set(sx*25*scale,20*scale,sz*25*scale);g.add(cap)}}
+// Keep
+const keep=new THREE.Mesh(new THREE.BoxGeometry(20*scale,15*scale,20*scale),stone);keep.position.y=7.5*scale;keep.castShadow=true;g.add(keep);
+// Keep roof
+const keepRoof=new THREE.Mesh(new THREE.ConeGeometry(15*scale,7*scale,4),roof);keepRoof.position.y=18.5*scale;keepRoof.rotation.y=Math.PI/4;g.add(keepRoof);
+// Gate
+const gate=new THREE.Mesh(new THREE.BoxGeometry(8*scale,8*scale,1.5*scale),wood);gate.position.set(0,4*scale,25*scale);g.add(gate);
+// Inner houses
+for(let i=0;i<3;i++){const ang=i/3*Math.PI*2;const r=14*scale;const h=new THREE.Mesh(new THREE.BoxGeometry(6*scale,6*scale,6*scale),stone);
+h.position.set(Math.cos(ang)*r,3*scale,Math.sin(ang)*r);g.add(h);
+const hr=new THREE.Mesh(new THREE.ConeGeometry(5*scale,3*scale,4),roof);hr.position.set(Math.cos(ang)*r,7.5*scale,Math.sin(ang)*r);hr.rotation.y=Math.PI/4;g.add(hr)}
+// Name sign
+const lblC=document.createElement('canvas');lblC.width=768;lblC.height=72;
+const ctx=lblC.getContext('2d');ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(0,0,768,72);
+ctx.font='bold 30px serif';ctx.textAlign='center';ctx.fillStyle='#ffd96a';ctx.fillText('⚜ '+name+' ⚜',384,46);
+const tex=new THREE.CanvasTexture(lblC);
+const lbl=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+lbl.scale.set(40,4,1);lbl.position.set(0,28*scale,0);g.add(lbl);
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);
+return g;
+}
+
+const ES_CITIES=[
+// Skyrim 9 Holds
+{n:'Whiterun',x:3600,z:1400,col:0xccaa66,sc:1.2,roof:0x8a4a30},
+{n:'Solitude',x:4200,z:-1400,col:0xaaaaaa,sc:1.4,roof:0xaa3a3a},
+{n:'Markarth',x:-4600,z:2200,col:0x8a8a8a,sc:1.3,roof:0x4a4a4a},
+{n:'Riften',x:4500,z:2400,col:0x6a4a30,sc:1.1,roof:0x8a4a20},
+{n:'Windhelm',x:4800,z:-2200,col:0x4a4a5a,sc:1.4,roof:0x2a2a3a},
+{n:'Falkreath',x:2200,z:2800,col:0x5a6a4a,sc:0.9,roof:0x4a3a20},
+{n:'Morthal',x:2800,z:-2800,col:0x6a7a6a,sc:0.85,roof:0x3a4a3a},
+{n:'Dawnstar',x:3400,z:-3400,col:0xaabbcc,sc:0.9,roof:0x556677},
+{n:'Winterhold',x:4400,z:-3000,col:0x88aaff,sc:1.0,roof:0x2244aa},
+// Skyrim minor settlements
+{n:'Riverwood',x:2900,z:1600,col:0x5a3a1a,sc:0.6,roof:0x6a3a1a},
+{n:'Ivarstead',x:3800,z:2200,col:0x6a5a3a,sc:0.6,roof:0x6a4a20},
+{n:'Helgen (Ruins)',x:2400,z:2100,col:0x4a3a2a,sc:0.7,roof:0x553322},
+{n:'Rorikstead',x:2800,z:1200,col:0x7a6a4a,sc:0.6,roof:0x5a3a20},
+// Oblivion 9 cities
+{n:'Imperial City',x:-3600,z:-100,col:0xeeeedd,sc:1.6,roof:0xffd700},
+{n:'Anvil',x:-4400,z:-600,col:0xccbb88,sc:1.0,roof:0x8a5a30},
+{n:'Bravil',x:-3000,z:600,col:0x6a4a3a,sc:0.9,roof:0x4a3020},
+{n:'Bruma',x:-3700,z:-1100,col:0xaaaaff,sc:1.1,roof:0x4488cc},
+{n:'Cheydinhal',x:-2500,z:-300,col:0xaa9988,sc:1.0,roof:0xcc6644},
+{n:'Chorrol',x:-4000,z:-400,col:0xeeccaa,sc:1.1,roof:0x886633},
+{n:'Kvatch',x:-4500,z:300,col:0x886655,sc:0.9,roof:0x553322},
+{n:'Leyawiin',x:-2800,z:1000,col:0x9a8866,sc:0.95,roof:0x885533},
+{n:'Skingrad',x:-3300,z:200,col:0xddcc99,sc:1.1,roof:0xaa6633}
+];
+const esCities=[];
+setTimeout(()=>{
+for(const c of ES_CITIES){
+try{
+const m=buildESHold(c.x,c.z,c.n,c.col,c.sc,c.roof);
+esCities.push({x:c.x,z:c.z,name:c.n,mesh:m});
+// Enterable gate (north side of city)
+makeEnterable(c.x,c.z+(c.sc||1)*25,'castle',c.n+' Keep');
+// Teleport
+if(typeof teleports!=='undefined'&&teleports.push)teleports.push({name:c.n,x:c.x,z:c.z,unlocked:true});
+}catch(e){console.warn('city '+c.n+' failed',e)}
+}
+log('🏰 '+ES_CITIES.length+' Skyrim/Oblivion cities founded across the realm','#ffd96a');
+// Refresh entry prompts so the new gates have visible [E] signs
+if(window.__v8&&window.__v8.rebuildEntryPrompts)window.__v8.rebuildEntryPrompts();
+},10500);
+
+// ---- 5. MASTERY PERK TREE (Skyrim/Oblivion style, key Y) ------------
+const MASTERY_TREE={
+smithing:[
+{id:'sm_basic',name:'Basic Smithing',desc:'+5% melee damage per rank',max:5,prereq:null,col:'#cc8844'},
+{id:'sm_steel',name:'Steel Smithing',desc:'+5% weapon defense scaling per rank',max:5,prereq:'sm_basic',col:'#cc8844'},
+{id:'sm_daedric',name:'Daedric Smithing',desc:'+25% damage when wielding mythic/legendary item',max:1,prereq:'sm_steel',col:'#aa5522'},
+{id:'sm_dragon',name:'Dragon Smithing',desc:'+20% damage vs Dragons',max:1,prereq:'sm_daedric',col:'#aa5522'}
+],
+enchanting:[
+{id:'en_basic',name:'Basic Enchanting',desc:'+6% spell damage per rank',max:5,prereq:null,col:'#cc44cc'},
+{id:'en_insight',name:'Insightful Enchanter',desc:'+10% magicka regen per rank',max:3,prereq:'en_basic',col:'#cc44cc'},
+{id:'en_extra',name:'Extra Effect',desc:'+15% to spell healing & buff strength',max:3,prereq:'en_insight',col:'#aa22aa'},
+{id:'en_arcane',name:'Arcane Mastery',desc:'+30% to all spell schools',max:1,prereq:'en_extra',col:'#882288'}
+],
+alchemy:[
+{id:'al_basic',name:'Alchemist',desc:'+10% potion healing per rank',max:5,prereq:null,col:'#44aa44'},
+{id:'al_recipe',name:'Concentrated Poisons',desc:'+5% chance to apply DoT on hit',max:5,prereq:'al_basic',col:'#44aa44'},
+{id:'al_master',name:'Master Apothecary',desc:'Quick-potion (Q) heals +50% more',max:1,prereq:'al_recipe',col:'#228822'}
+],
+sneak:[
+{id:'sn_basic',name:'Stealth',desc:'+5% damage from behind per rank',max:5,prereq:null,col:'#888866'},
+{id:'sn_silent',name:'Silent Roll',desc:'Crit chance +3% per rank',max:5,prereq:'sn_basic',col:'#888866'},
+{id:'sn_assassin',name:'Assassin\'s Blade',desc:'+50% damage when target hasn\'t attacked you',max:1,prereq:'sn_silent',col:'#666644'},
+{id:'sn_shadow',name:'Shadow Warrior',desc:'+20% loot drop chance',max:1,prereq:'sn_assassin',col:'#666644'}
+],
+speech:[
+{id:'sp_haggle',name:'Haggle',desc:'+8% gold from kills per rank',max:5,prereq:null,col:'#88aacc'},
+{id:'sp_merchant',name:'Merchant',desc:'+15% all gold gain when chosen',max:1,prereq:'sp_haggle',col:'#5588aa'},
+{id:'sp_intimidate',name:'Intimidating Presence',desc:'+10% damage vs enemies under 30% HP',max:3,prereq:'sp_haggle',col:'#5588aa'}
+]
+};
+const MTREE_FLAT={};for(const cat in MASTERY_TREE)for(const n of MASTERY_TREE[cat]){n.cat=cat;MTREE_FLAT[n.id]=n}
+let mTreeRanks=JSON.parse(localStorage.getItem('soulscape_mtree_v9')||'{}');
+let mTreePts=parseInt(localStorage.getItem('soulscape_mtree_pts_v9')||'3');
+function mSave(){localStorage.setItem('soulscape_mtree_v9',JSON.stringify(mTreeRanks));localStorage.setItem('soulscape_mtree_pts_v9',String(mTreePts))}
+function mRank(id){return mTreeRanks[id]||0}
+function mCanLearn(id){const n=MTREE_FLAT[id];if(!n)return false;if(mRank(id)>=n.max)return false;if(mTreePts<=0)return false;if(n.prereq&&mRank(n.prereq)<1)return false;return true}
+function mLearn(id){if(!mCanLearn(id))return false;mTreeRanks[id]=mRank(id)+1;mTreePts--;mSave();refreshMasteryUI();log('Mastery: '+MTREE_FLAT[id].name+' rank '+mRank(id),'#ffaa66');return true}
+window.__learnMastery=function(id){mLearn(id)};
+
+// Hook level-ups grant mastery points too (one extra per 3 levels)
+let _lastLvForMastery=0;
+function getTotalLvM(){let t=0;for(const k in skills)if(skills[k]&&typeof skills[k].lv==='number')t+=skills[k].lv;return t}
+setInterval(()=>{const cur=getTotalLvM();if(_lastLvForMastery===0){_lastLvForMastery=cur;return}if(cur>_lastLvForMastery){const gained=cur-_lastLvForMastery;mTreePts+=Math.max(1,Math.floor(gained/2));mSave();log('+'+Math.max(1,Math.floor(gained/2))+' Mastery point(s) (Y to spend, '+mTreePts+' available)','#ffaa66');_lastLvForMastery=cur}},2000);
+
+function openMasteryDialog(){
+if(document.getElementById('mastery-dialog'))return;
+const d=document.createElement('div');d.id='mastery-dialog';
+d.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,rgba(15,12,8,.97),rgba(8,6,3,.99));border:3px solid #aa8844;border-radius:14px;padding:18px;z-index:1500;width:880px;max-width:96vw;max-height:92vh;overflow-y:auto;color:#ddd;font-family:serif;box-shadow:0 0 40px rgba(170,136,68,.55);';
+let html='<div style="text-align:center;margin-bottom:12px;"><div style="font-size:22px;color:#ffd96a;font-weight:bold;letter-spacing:2px;">⚒ MASTERY PERKS ⚒</div><div style="color:#cc9966;font-size:13px;margin-top:4px;">Skyrim-style permanent perks. Points Available: <b style="color:#ffd700;font-size:16px;" id="mp-count">'+mTreePts+'</b></div></div>';
+html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">';
+for(const cat in MASTERY_TREE){
+html+='<div style="background:rgba(40,30,20,0.45);border:1px solid '+MASTERY_TREE[cat][0].col+';border-radius:8px;padding:10px;"><div style="color:'+MASTERY_TREE[cat][0].col+';font-weight:bold;font-size:14px;text-align:center;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;border-bottom:1px solid '+MASTERY_TREE[cat][0].col+';padding-bottom:5px;">'+cat+'</div>';
+for(const n of MASTERY_TREE[cat]){
+const r=mRank(n.id);const ok=mCanLearn(n.id);
+html+='<div onclick="window.__learnMastery(\''+n.id+'\')" style="background:rgba(60,40,20,'+(r>0?'.8':'.3')+');border:2px solid '+(r>=n.max?'#ffd700':ok?n.col:'#554433')+';border-radius:6px;padding:8px;margin-bottom:6px;cursor:'+(ok?'pointer':'default')+';transition:transform .1s;" '+(ok?'onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'\'"':'')+'>';
+html+='<div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:'+n.col+';font-weight:bold;">'+n.name+'</span><span style="color:#ffd700;font-size:11px;">'+r+' / '+n.max+'</span></div>';
+html+='<div style="font-size:10px;color:#ddcc99;margin-top:3px;">'+n.desc+'</div>';
+if(n.prereq)html+='<div style="font-size:9px;color:#998866;margin-top:2px;">Req: '+MTREE_FLAT[n.prereq].name+'</div>';
+html+='</div>';
+}
+html+='</div>';
+}
+html+='</div>';
+html+='<button onclick="document.getElementById(\'mastery-dialog\').remove()" style="width:100%;margin-top:12px;padding:10px;background:#332222;color:#ffccaa;border:2px solid #aa6644;border-radius:6px;cursor:pointer;font-weight:bold;">Close [Y]</button>';
+d.innerHTML=html;document.body.appendChild(d);
+}
+function refreshMasteryUI(){const ex=document.getElementById('mastery-dialog');if(ex){ex.remove();openMasteryDialog()}}
+document.addEventListener('keydown',e=>{
+if(!gameStarted)return;const tag=(document.activeElement&&document.activeElement.tagName)||'';if(tag==='INPUT'||tag==='TEXTAREA')return;
+if(e.key&&e.key.toLowerCase()==='y'){e.preventDefault();const ex=document.getElementById('mastery-dialog');if(ex){ex.remove();return}openMasteryDialog();}
+});
+
+// Mastery bonus hooks (used by Skyrim spellbook + other systems)
+window.__getEnchantBonus=function(){
+let m=1.0;
+m*=1+0.06*mRank('en_basic');
+m*=1+0.15*mRank('en_extra')*0.5;// per rank
+if(mRank('en_arcane'))m*=1.3;
+return m;
+};
+window.__getMeleeBonus=function(){
+let m=1.0;
+m*=1+0.05*mRank('sm_basic');
+if(mRank('sm_daedric'))m*=1.25;
+return m;
+};
+window.__getStealthBonus=function(){
+let m=1.0;m*=1+0.05*mRank('sn_basic');
+if(mRank('sn_assassin'))m*=1.5;
+return m;
+};
+
+// ---- 6. UPDATE WORLD-BOSS / DUNGEON LOOT TO INCLUDE ES ITEMS --------
+const _v9SpawnLoot=spawnLoot;
+spawnLoot=function(x,z,e){
+const r=_v9SpawnLoot(x,z,e);
+try{
+const hp=(e&&e.maxHp)||0;
+let chance=0,tier=null;
+if(hp>=2000){chance=.6;tier='mythic'}
+else if(hp>=800){chance=.20;tier='legendary'}
+else if(hp>=300){chance=.08;tier='epic'}
+if(chance>0&&Math.random()<chance){
+const pool=ES_ITEMS.filter(it=>it[5]===tier);
+if(pool.length){const name=pool[Math.floor(Math.random()*pool.length)][0];grantESItem(name);log('☆ Tamriel relic: '+name+' acquired!','#ffd96a')}
+}
+}catch(e){}
+return r;
+};
+
+// ---- 7. HUD HINTS ---------------------------------------------------
+setTimeout(()=>{
+const c=document.getElementById('controls');
+if(c){c.innerHTML+=' &middot; <b style="color:#ffaa66">Y</b> Mastery &middot; <b style="color:#ffd96a">N</b> Tamriel Tome';}
+},11000);
+
+log('=== v9 Expansion loaded: '+Object.keys(ES_MOBS).length+' Skyrim/Oblivion mobs · '+ES_ITEMS.length+' ES items · '+ES_SPELLS.length+' ES spells · '+ES_CITIES.length+' cities · Mastery tree ===','#ffd96a');
+})();
+// =====================================================================
+
+// =====================================================================
+// ===  v10 EXPANSION  (Game of Thrones cities, monsters, kings,     ===
+// ===                  Valyrian items, custom boss meshes, map)     ===
+// =====================================================================
+(function v10Expansion(){
+// ---- 1. GoT MONSTERS / ENEMY UNITS ----------------------------------
+const GOT_MOBS={
+// Wildings / Beyond the Wall
+wildling:{hp:70,col:0x5a3a2a},wildling_raider:{hp:120,col:0x4a3020},
+wildling_chief:{hp:280,col:0x3a2a1a,boss:false},
+giant_wildling:{hp:480,col:0x6a5a3a,boss:true},
+mammoth_rider:{hp:680,col:0x4a3a2a,boss:true},
+// White Walkers / Wights
+wight:{hp:60,col:0x88a0c0},wight_warrior:{hp:130,col:0x7a90b0},
+wight_horseman:{hp:220,col:0x6a85a0},wight_archer:{hp:90,col:0x88a0c0},
+white_walker:{hp:340,col:0xaaddee,boss:false},
+night_king:{hp:6500,col:0xccddee,boss:true},
+ice_spider:{hp:280,col:0xaaccdd,boss:false},
+undead_giant:{hp:1200,col:0x99bbcc,boss:true},
+// Soldiers — Houses
+stark_soldier:{hp:90,col:0x556677},stark_captain:{hp:160,col:0x445566,boss:false},
+lannister_soldier:{hp:90,col:0xaa3322},lannister_captain:{hp:160,col:0x882211,boss:false},
+gold_cloak:{hp:110,col:0xddaa44},
+baratheon_soldier:{hp:90,col:0xaa6622},
+tyrell_soldier:{hp:90,col:0x447733},
+arryn_falconer:{hp:110,col:0x5588cc},
+greyjoy_reaver:{hp:130,col:0x445555},
+martell_spearman:{hp:120,col:0xcc8833},
+tully_soldier:{hp:90,col:0x5577aa},
+// Special / named tropes
+kingsguard:{hp:280,col:0xeeeedd,boss:false},
+mountain_guard:{hp:180,col:0x885522},
+bravo_companion:{hp:140,col:0x664433},
+unsullied:{hp:160,col:0x665544},
+unsullied_captain:{hp:280,col:0x4a3a2a,boss:false},
+dothraki_screamer:{hp:140,col:0x884a30},
+dothraki_bloodrider:{hp:240,col:0x6a3a20,boss:false},
+sons_of_harpy:{hp:130,col:0xddcc99},
+faceless_man:{hp:380,col:0x554466,boss:true},
+brave_companion:{hp:170,col:0x553a3a},
+// Beasts
+direwolf_pup:{hp:55,col:0x666666},direwolf:{hp:240,col:0x4a4a4a,boss:false},
+direwolf_alpha:{hp:480,col:0x222222,boss:true},
+shadow_cat:{hp:160,col:0x3a2a3a},
+stone_man:{hp:200,col:0x6a6a6a},
+manticore:{hp:280,col:0x8a3a30,boss:false},
+basilisk_got:{hp:340,col:0x4a6a3a,boss:true},
+// Dragons (Daenerys')
+drogon:{hp:4500,col:0x2a1a1a,boss:true},
+rhaegal:{hp:3800,col:0x2a5a3a,boss:true},
+viserion:{hp:3800,col:0xddcc66,boss:true},
+viserion_undead:{hp:4200,col:0x88aadd,boss:true},
+// Other notable
+hound:{hp:1200,col:0x6a4a3a,boss:true},
+mountain:{hp:2200,col:0x554433,boss:true},
+khal_drogo:{hp:1500,col:0x885522,boss:true},
+cersei_queen:{hp:1100,col:0xddaa44,boss:true},
+jon_snow:{hp:1400,col:0x222222,boss:true},
+melisandre:{hp:900,col:0xaa3322,boss:true},
+sandor_clegane:{hp:1100,col:0x6a4a3a,boss:true},
+gregor_clegane:{hp:2400,col:0x554433,boss:true},
+ramsay_bolton:{hp:850,col:0x553333,boss:true},
+ramsay_hound:{hp:140,col:0x664433},
+flayed_knight:{hp:280,col:0x553030,boss:false},
+slavers_overseer:{hp:200,col:0xddcc99,boss:false},
+stonecrow_outlaw:{hp:120,col:0x4a3a30},
+brotherhood_outlaw:{hp:160,col:0x553322}
+};
+for(const k in GOT_MOBS){if(eHP[k]==null)eHP[k]=GOT_MOBS[k].hp;if(eCol[k]==null)eCol[k]=GOT_MOBS[k].col;
+if(!questRewards[k]){const hp=GOT_MOBS[k].hp;questRewards[k]={xp:Math.max(40,Math.round(hp*0.75)),gold:Math.max(70,Math.round(hp*2.4))}}}
+
+// ---- 2. GoT VALYRIAN-STEEL ITEMS ------------------------------------
+const GOT_ITEMS=[
+// Valyrian Steel & House Swords
+['Ice (Ned\'s Greatsword)','Weapon',98,5,82,'mythic','Valyrian steel greatsword of House Stark'],
+['Longclaw','Weapon',92,5,72,'mythic','Wolf-pommel Valyrian steel of Jon Snow'],
+['Heartsbane','Weapon',92,4,72,'mythic','Valyrian greatsword of House Tarly'],
+['Widow\'s Wail','Weapon',88,4,68,'mythic','Half of Ice, gifted to Joffrey'],
+['Oathkeeper','Weapon',88,4,68,'mythic','Other half of Ice, given to Brienne'],
+['Lion\'s Tooth','Weapon',62,3,45,'legendary','Joffrey\'s young sword'],
+['Needle','Weapon',58,2,42,'legendary','Arya Stark\'s rapier — "Stick \'em with the pointy end"'],
+['Dawn','Weapon',104,5,88,'mythic','Sword of the Morning. Pale as milkglass.'],
+['Blackfyre','Weapon',100,5,82,'mythic','Ancestral blade of House Targaryen'],
+['Dark Sister','Weapon',96,4,75,'mythic','Sister blade to Blackfyre. Slender, deadly.'],
+['Brightroar','Weapon',92,5,75,'mythic','Lost Valyrian blade of House Lannister'],
+['Lamentation','Weapon',88,4,72,'legendary','Lost Valyrian blade of House Royce'],
+['Red Rain','Weapon',88,4,72,'legendary','Valyrian blade of House Drumm'],
+['Nightfall','Weapon',86,4,68,'legendary','Valyrian blade of House Harlaw'],
+// Dragonglass (Obsidian)
+['Dragonglass Dagger','Weapon',45,2,32,'legendary','Obsidian. Lethal to the White Walkers.'],
+['Dragonglass Spear','Weapon',68,3,52,'legendary','Obsidian spearhead — slays the dead'],
+['Dragonglass Arrowhead','Trinket',5,0,8,'epic','Reusable obsidian arrow'],
+['Dragonglass Sword','Weapon',62,3,42,'legendary','Forged obsidian, slays Walkers'],
+// House Crowns & Royal Regalia
+['The Iron Throne Crown','Helm',5,55,15,'mythic','Crown of the King of the Seven Kingdoms'],
+['Antler Crown of Stags','Helm',4,42,12,'legendary','Crown of King Robert Baratheon'],
+['Crown of Roses','Helm',3,32,8,'legendary','Crown of the Tyrell Queen'],
+['Direwolf Crown of the North','Helm',4,42,12,'legendary','Crown of the King in the North'],
+['Crown of the Dragon','Helm',5,48,14,'mythic','Crown of Daenerys Targaryen'],
+['Crown of the Andals','Helm',3,32,8,'legendary','Crown of the Vale'],
+['Crown of Stags','Helm',3,32,8,'legendary','Stannis Baratheon\'s crown'],
+['Hand of the King Pin','Trinket',3,5,5,'legendary','Pin of the King\'s Hand'],
+['Kingsguard White Cloak','Cloak',2,42,6,'legendary','Knight of the Kingsguard'],
+['Night\'s Watch Black Cloak','Cloak',2,32,4,'epic','Cloak of the Sworn Brothers'],
+['Maester\'s Chain','Necklace',2,4,8,'epic','Multi-metal chain of learning'],
+// House Sigils & Armor
+['Stark Direwolf Tabard','Armor',2,72,16,'legendary','Heavy plate with Stark sigil'],
+['Lannister Crimson Plate','Armor',3,82,18,'legendary','Crimson Lannister plate'],
+['Targaryen Black Armor','Armor',3,82,18,'legendary','Black & red Targaryen plate'],
+['Baratheon Stag Plate','Armor',2,72,16,'epic','Antler-crested plate'],
+['Tyrell Rose Armor','Armor',2,68,14,'epic','Green vine-embossed plate'],
+['Greyjoy Iron Mail','Armor',2,68,14,'epic','Sea-rusted Iron Islands mail'],
+['Martell Spear Plate','Armor',2,68,14,'epic','Sunspear-decorated plate'],
+['Arryn Falcon Mail','Armor',2,68,14,'epic','Eyrie blue & cream plate'],
+['Tully Trout Mail','Armor',2,62,12,'epic','Riverrun blue & red plate'],
+['Frey Bridge Mail','Armor',2,62,12,'epic','Twins crossing armor'],
+['Bolton Flayed Plate','Armor',3,75,16,'legendary','Pink-and-red bloody plate'],
+// Special heavy / weapons
+['Mountain\'s Greatsword','Weapon',110,5,95,'mythic','Ser Gregor\'s massive 2H sword'],
+['Hound\'s Greatsword','Weapon',92,4,75,'legendary','Sandor Clegane\'s blade'],
+['Khal Drogo\'s Arakh','Weapon',75,3,55,'legendary','Curved Dothraki blade'],
+['Unsullied Spear','Weapon',62,4,45,'epic','Spear of the Unsullied'],
+['Astapori Whip','Weapon',38,1,28,'epic','Slave-master\'s flail'],
+['Sons of the Harpy Dagger','Weapon',58,2,42,'epic','Gold-masked killer\'s blade'],
+['Brienne\'s Plate','Armor',3,78,15,'legendary','Tarth Knight armor'],
+['Knight of Flowers Armor','Armor',2,72,14,'legendary','Loras Tyrell\'s tourney plate'],
+['Stannis\'s Greatsword','Weapon',80,4,62,'legendary','Stannis\' One True King blade'],
+['Lightbringer','Weapon',88,3,68,'mythic','Sword of the Lord of Light. Glowing flame.'],
+['Faceless Man\'s Coin','Trinket',0,0,0,'mythic','Iron coin: "Valar Morghulis"'],
+['Iron Coin of the Many-Faced God','Trinket',0,0,0,'mythic','Identical to above'],
+['Coin of the Iron Bank','Trinket',0,0,0,'legendary','Bears a Bravosi mark'],
+['Dragon Egg','Trinket',0,0,0,'mythic','A petrified Targaryen dragon egg'],
+['Petrified Dragon Egg (Green)','Trinket',0,0,0,'mythic','Rhaegal\'s egg origin'],
+['Petrified Dragon Egg (Cream)','Trinket',0,0,0,'mythic','Viserion\'s egg origin'],
+['Petrified Dragon Egg (Black)','Trinket',0,0,0,'mythic','Drogon\'s egg origin'],
+['Three-Eyed Raven Feather','Trinket',0,0,0,'legendary','Feather of the Greenseer'],
+// Rings & Trinkets
+['Ring of the Sun and Spear','Ring',2,5,5,'legendary','Martell sigil ring'],
+['Lannister Lion Ring','Ring',3,3,5,'legendary','Lion-paw ring'],
+['Stark Direwolf Ring','Ring',2,4,5,'legendary','Wolf-head signet ring'],
+['Targaryen Dragon Ring','Ring',3,3,7,'legendary','Three-headed dragon ring'],
+['Brotherhood Without Banners Token','Trinket',3,3,3,'epic','Outlaw oath token'],
+['Wildling Skull Necklace','Necklace',2,5,5,'epic','Crow\'s skull on string'],
+// Wildling / North gear
+['Wildling Fur Cloak','Cloak',1,28,5,'epic','Heavy mountain fur'],
+['Bear Pelt Cloak','Cloak',2,32,6,'epic','Mormont bear pelt'],
+['Free Folk Hatchet','Weapon',55,2,42,'rare','Crude wildling axe'],
+['Bone Spear','Weapon',48,2,35,'rare','Wildling bone-spear'],
+// Books / Maesters
+['Tome of Lineage','Trinket',0,2,0,'rare','Genealogy of Westeros'],
+['Citadel Manuscript','Trinket',1,2,2,'epic','Oldtown maester text'],
+['Book of the Stranger','Trinket',0,1,3,'legendary','Forbidden Faith of the Seven'],
+['Theon\'s Cracked Helm','Helm',1,18,2,'rare','Reek\'s broken helmet'],
+['Hound\'s Burnt Helm','Helm',3,42,10,'legendary','The Hound\'s dog-shaped helm']
+];
+const GOT_ITEM_MAP={};for(const it of GOT_ITEMS){GOT_ITEM_MAP[it[0]]={atk:it[2],def:it[3],str:it[4],slot:it[1],rarity:it[5],desc:it[6]}}
+function grantGoTItem(name){
+const t=GOT_ITEM_MAP[name];if(!t)return null;
+let item;
+if(typeof createUniqueItem==='function'&&t.slot){item=createUniqueItem(name,t.atk,t.def,t.str,t.slot,t.rarity)}
+else{item={name:name,uid:'got'+Math.floor(Math.random()*1e9),atk:t.atk,def:t.def,str:t.str,slot:t.slot,rarity:t.rarity};if(typeof itemDB==='object'&&itemDB!==null)itemDB[item.uid]=item}
+if(inventory.length<28){inventory.push({name:item.name,uid:item.uid});if(typeof updateInvUI==='function')updateInvUI()}
+return item;
+}
+window.__grantGoTItem=grantGoTItem;
+window.__rollGoTItem=function(){
+const r=Math.random();const tier=r<.55?'epic':(r<.88?'legendary':'mythic');
+const pool=GOT_ITEMS.filter(it=>it[5]===tier);
+return (pool.length?pool:GOT_ITEMS)[Math.floor(Math.random()*(pool.length||GOT_ITEMS.length))][0];
+};
+
+// ---- 3. GoT CUSTOM BOSS MESHES --------------------------------------
+function buildNightKingMesh(){
+const g=new THREE.Group();
+const scale=1.6;
+const iceMat=new MS({color:0xb0d0e8,roughness:.3,metalness:.5,emissive:0x4488cc,emissiveIntensity:.55});
+const dark=new MS({color:0x223344,roughness:.7,emissive:0x112233,emissiveIntensity:.3});
+// Body
+const torso=new THREE.Mesh(new THREE.CylinderGeometry(scale*1.0,scale*1.2,scale*4.2,8),iceMat);torso.position.y=scale*3.5;torso.castShadow=true;g.add(torso);
+// Long cloak
+const cloak=new THREE.Mesh(new THREE.PlaneGeometry(scale*3,scale*4.5),new MS({color:0x112233,side:THREE.DoubleSide,roughness:.85}));cloak.position.set(0,scale*3.5,scale*-.8);g.add(cloak);
+// Head (gaunt)
+const head=new THREE.Mesh(new THREE.SphereGeometry(scale*.75,12,12),iceMat);head.position.y=scale*6;g.add(head);
+// Ice Crown (jagged spikes)
+for(let i=0;i<7;i++){const a=(i/7-.5)*Math.PI;const sp=new THREE.Mesh(new THREE.ConeGeometry(scale*.18,scale*1.3,4),iceMat);sp.position.set(Math.cos(a)*scale*.65,scale*7.0,Math.sin(a)*scale*.65);sp.rotation.z=Math.cos(a)*-.2;sp.rotation.x=Math.sin(a)*.2;g.add(sp)}
+// Glowing icy eyes
+for(const sx of [-.22,.22]){const e=new THREE.Mesh(new THREE.SphereGeometry(scale*.13,6,6),new THREE.MeshBasicMaterial({color:0x66ccff}));e.position.set(sx*scale,scale*6.05,scale*.55);g.add(e)}
+// Ice Spear (giant)
+const shaft=new THREE.Mesh(new THREE.CylinderGeometry(scale*.12,scale*.12,scale*6,8),dark);shaft.position.set(scale*1.5,scale*4,scale*.4);shaft.rotation.z=-.15;g.add(shaft);
+const tip=new THREE.Mesh(new THREE.ConeGeometry(scale*.25,scale*1.4,6),iceMat);tip.position.set(scale*2.4,scale*7,scale*.4);g.add(tip);
+// Aura light
+const aura=new THREE.PointLight(0x66ccff,5,55);aura.position.y=scale*4;g.add(aura);
+// Cold breath particles fade — handled by frame
+return g;
+}
+
+function buildDrogonMesh(scale_,col_){
+const g=new THREE.Group();
+const scale=scale_||3.0;// bigger than Onyxia
+const bodyCol=col_||0x1a1a1a;
+const bodyMat=new MS({color:bodyCol,roughness:.45,metalness:.35,emissive:0x110000,emissiveIntensity:.25});
+const bellyMat=new MS({color:0x661010,roughness:.5,emissive:0x441010,emissiveIntensity:.6});
+// Massive body
+const body=new THREE.Mesh(new THREE.SphereGeometry(scale*1.6,14,10),bodyMat);body.position.y=scale*2;body.scale.set(1,.7,1.8);body.castShadow=true;g.add(body);
+// Glowing belly (fire within)
+const belly=new THREE.Mesh(new THREE.SphereGeometry(scale*1.2,12,8),bellyMat);belly.position.set(0,scale*1.4,scale*.5);belly.scale.set(.9,.4,1.3);g.add(belly);
+// Head
+const head=new THREE.Mesh(new THREE.ConeGeometry(scale*.95,scale*2.2,8),bodyMat);head.position.set(0,scale*2.5,scale*3.3);head.rotation.x=Math.PI/2;head.castShadow=true;g.add(head);
+const jaw=new THREE.Mesh(new THREE.BoxGeometry(scale*1.1,scale*.5,scale*1.8),bodyMat);jaw.position.set(0,scale*2.2,scale*4);g.add(jaw);
+// Glowing eyes
+for(const sx of [-.5,.5]){const e=new THREE.Mesh(new THREE.SphereGeometry(scale*.18,6,6),new THREE.MeshBasicMaterial({color:0xff3300}));e.position.set(sx*scale,scale*2.9,scale*3.5);g.add(e)}
+// Sharp teeth
+for(let i=0;i<6;i++){const tx=(-2.5+i)*scale*.3;const tooth=new THREE.Mesh(new THREE.ConeGeometry(scale*.08,scale*.4,4),new MS({color:0xeeeeee}));tooth.position.set(tx,scale*2.4,scale*4.4);g.add(tooth)}
+// Horns
+for(const sx of [-1,1]){for(let i=0;i<2;i++){const horn=new THREE.Mesh(new THREE.ConeGeometry(scale*.18,scale*1.3,5),bodyMat);horn.position.set(sx*scale*(.6+i*.3),scale*3.4-i*.3,scale*(2.2-i*.6));horn.rotation.x=-.5;g.add(horn)}}
+// Massive wings
+const wingMat=new MS({color:bodyCol,side:THREE.DoubleSide,roughness:.5,emissive:0x110000,emissiveIntensity:.15});
+for(const ws of [-1,1]){
+const wing=new THREE.Mesh(new THREE.PlaneGeometry(scale*7,scale*4.5),wingMat);wing.position.set(ws*scale*3,scale*3.8,0);wing.rotation.set(.25,ws*.5,ws*-.4);wing.castShadow=true;g.add(wing);
+// Wing membrane veins (red)
+for(let i=0;i<4;i++){const vein=new THREE.Mesh(new THREE.CylinderGeometry(scale*.06,scale*.04,scale*3,4),new MS({color:0x331010,emissive:0x661010,emissiveIntensity:.5}));vein.position.set(ws*scale*(1.4+i*.8),scale*3.8,scale*(i*.5));vein.rotation.z=ws*Math.PI*.35;g.add(vein)}
+// Wing-claw at tip
+const claw=new THREE.Mesh(new THREE.ConeGeometry(scale*.15,scale*.8,4),bodyMat);claw.position.set(ws*scale*5.5,scale*4.5,scale*-1);g.add(claw);
+}
+// Tail
+const tail=new THREE.Mesh(new THREE.ConeGeometry(scale*.55,scale*6,6),bodyMat);tail.position.set(0,scale*1.8,scale*-3.5);tail.rotation.x=-Math.PI/2;g.add(tail);
+// Tail spikes
+for(let i=0;i<5;i++){const sp=new THREE.Mesh(new THREE.ConeGeometry(scale*.12,scale*.5,4),bodyMat);sp.position.set(0,scale*2.1+i*.05,scale*(-2.5-i*.6));g.add(sp)}
+// Legs (4 stout)
+for(const lx of [-1,1]){for(const lz of [-1.2,1.2]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(scale*.45,scale*.35,scale*1.6,6),bodyMat);leg.position.set(lx*scale*1.2,scale*.8,lz*scale);g.add(leg);
+// Claws
+for(const cl of [-.2,0,.2]){const claw=new THREE.Mesh(new THREE.ConeGeometry(scale*.1,scale*.3,4),new MS({color:0xeeeeee}));claw.position.set(lx*scale*1.2+cl*scale,scale*.1,lz*scale+scale*.5);g.add(claw)}}}
+return g;
+}
+
+function buildMountainMesh(){
+const g=new THREE.Group();
+const scale=1.8;
+const armorMat=new MS({color:0x554433,roughness:.55,metalness:.6,emissive:0x221100,emissiveIntensity:.15});
+const dark=new MS({color:0x2a2a2a,roughness:.7});
+// Massive torso
+const torso=new THREE.Mesh(new THREE.CylinderGeometry(scale*1.5,scale*1.7,scale*4.5,8),armorMat);torso.position.y=scale*3.8;torso.castShadow=true;g.add(torso);
+// Chest plate
+const chest=new THREE.Mesh(new THREE.BoxGeometry(scale*3.4,scale*3,scale*.7),armorMat);chest.position.set(0,scale*4.5,scale*1.1);g.add(chest);
+// Pauldrons (huge)
+for(const s of [-1,1]){const pa=new THREE.Mesh(new THREE.SphereGeometry(scale*1.2,10,10),armorMat);pa.position.set(s*scale*2.1,scale*5.5,0);pa.castShadow=true;g.add(pa);
+// Spikes
+const sp=new THREE.Mesh(new THREE.ConeGeometry(scale*.3,scale*1.2,4),dark);sp.position.set(s*scale*2.1,scale*6.5,0);g.add(sp)}
+// Heavy great helm (full-face)
+const helm=new THREE.Mesh(new THREE.CylinderGeometry(scale*.9,scale*1.0,scale*1.6,8),armorMat);helm.position.y=scale*6.7;g.add(helm);
+const helmTop=new THREE.Mesh(new THREE.SphereGeometry(scale*.95,10,10),armorMat);helmTop.position.y=scale*7.5;g.add(helmTop);
+// Visor slits (no eyes)
+const slit=new THREE.Mesh(new THREE.BoxGeometry(scale*1.4,scale*.18,scale*.1),new THREE.MeshBasicMaterial({color:0x000000}));slit.position.set(0,scale*6.8,scale*.85);g.add(slit);
+// Massive greatsword
+const blade=new THREE.Mesh(new THREE.BoxGeometry(scale*.5,scale*7,scale*.18),new MS({color:0x999999,roughness:.3,metalness:.85}));blade.position.set(scale*2.3,scale*5,scale*.5);blade.rotation.z=-.25;g.add(blade);
+const guard=new THREE.Mesh(new THREE.BoxGeometry(scale*1.6,scale*.3,scale*.25),dark);guard.position.set(scale*1.7,scale*1.7,scale*.5);g.add(guard);
+const hilt=new THREE.Mesh(new THREE.CylinderGeometry(scale*.16,scale*.16,scale*1.4,6),dark);hilt.position.set(scale*1.5,scale*1,scale*.5);g.add(hilt);
+// Legs
+for(const sx of [-1,1]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(scale*.55,scale*.5,scale*2.6,6),armorMat);leg.position.set(sx*scale*.7,scale*1.3,0);g.add(leg)}
+return g;
+}
+
+function buildKhalDrogoMesh(){
+const g=new THREE.Group();
+const scale=1.4;
+const skinMat=new MS({color:0x885533,roughness:.65});
+const braidMat=new MS({color:0x221a10,roughness:.85});
+// Body (bare-chested)
+const torso=new THREE.Mesh(new THREE.CylinderGeometry(scale*1.1,scale*1.3,scale*4,8),skinMat);torso.position.y=scale*3.5;torso.castShadow=true;g.add(torso);
+// Pec definition (faint dark belt)
+const beltLine=new THREE.Mesh(new THREE.BoxGeometry(scale*2,scale*.15,scale*1.4),new MS({color:0x553a20}));beltLine.position.y=scale*3;g.add(beltLine);
+// Head
+const head=new THREE.Mesh(new THREE.SphereGeometry(scale*.75,10,10),skinMat);head.position.y=scale*6;g.add(head);
+// Long braid
+const braid=new THREE.Mesh(new THREE.CylinderGeometry(scale*.18,scale*.12,scale*3.5,6),braidMat);braid.position.set(0,scale*4.5,scale*-.5);braid.rotation.x=.4;g.add(braid);
+// Bell at braid tip
+const bell=new THREE.Mesh(new THREE.SphereGeometry(scale*.15,6,6),new MS({color:0xcc9933,metalness:.7}));bell.position.set(0,scale*2.8,scale*-1.2);g.add(bell);
+// Eyes
+for(const sx of [-.2,.2]){const e=new THREE.Mesh(new THREE.SphereGeometry(scale*.08,4,4),new THREE.MeshBasicMaterial({color:0x000000}));e.position.set(sx*scale,scale*6.05,scale*.55);g.add(e)}
+// Arakh (curved blade)
+const blade=new THREE.Mesh(new THREE.TorusGeometry(scale*1.8,scale*.12,4,16,Math.PI),new MS({color:0xaaaaaa,metalness:.7}));blade.position.set(scale*1.4,scale*3.5,scale*.5);blade.rotation.z=.6;g.add(blade);
+const handle=new THREE.Mesh(new THREE.CylinderGeometry(scale*.1,scale*.1,scale*1.2,6),braidMat);handle.position.set(scale*.5,scale*2.6,scale*.5);handle.rotation.z=.4;g.add(handle);
+// Legs (bare with pants)
+for(const sx of [-1,1]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(scale*.4,scale*.45,scale*2.2,6),new MS({color:0x554422}));leg.position.set(sx*scale*.45,scale*1.1,0);g.add(leg)}
+return g;
+}
+
+function buildCerseiMesh(){
+const g=new THREE.Group();
+const scale=1.2;
+const robeMat=new MS({color:0xa02020,roughness:.5,emissive:0x441010,emissiveIntensity:.2});
+const goldMat=new MS({color:0xffcc44,roughness:.4,metalness:.7,emissive:0x553300,emissiveIntensity:.3});
+// Robe / body
+const robe=new THREE.Mesh(new THREE.ConeGeometry(scale*1.6,scale*5,8),robeMat);robe.position.y=scale*2.5;robe.castShadow=true;g.add(robe);
+// Upper torso (open robe)
+const torso=new THREE.Mesh(new THREE.CylinderGeometry(scale*.85,scale*1.0,scale*2,8),robeMat);torso.position.y=scale*4.5;g.add(torso);
+// Head
+const head=new THREE.Mesh(new THREE.SphereGeometry(scale*.6,10,10),new MS({color:0xeeddcc,roughness:.6}));head.position.y=scale*6;g.add(head);
+// Short blonde hair (post-walk-of-shame)
+const hair=new THREE.Mesh(new THREE.SphereGeometry(scale*.62,10,10,0,Math.PI*2,0,Math.PI/2),new MS({color:0xddcc88,roughness:.7}));hair.position.y=scale*6.05;g.add(hair);
+// Iron Throne style crown (jagged sword crown)
+for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const sp=new THREE.Mesh(new THREE.BoxGeometry(scale*.12,scale*.6,scale*.04),goldMat);sp.position.set(Math.cos(a)*scale*.5,scale*6.6,Math.sin(a)*scale*.5);g.add(sp)}
+const crownBand=new THREE.Mesh(new THREE.TorusGeometry(scale*.5,scale*.08,6,16),goldMat);crownBand.rotation.x=Math.PI/2;crownBand.position.y=scale*6.4;g.add(crownBand);
+// Eyes
+for(const sx of [-.18,.18]){const e=new THREE.Mesh(new THREE.SphereGeometry(scale*.07,4,4),new THREE.MeshBasicMaterial({color:0x224422}));e.position.set(sx*scale,scale*6.05,scale*.5);g.add(e)}
+// Gold goblet
+const gob=new THREE.Mesh(new THREE.CylinderGeometry(scale*.18,scale*.15,scale*.4,8),goldMat);gob.position.set(scale*1.1,scale*4.5,scale*.4);g.add(gob);
+const gobBase=new THREE.Mesh(new THREE.CylinderGeometry(scale*.05,scale*.18,scale*.3,8),goldMat);gobBase.position.set(scale*1.1,scale*4.1,scale*.4);g.add(gobBase);
+return g;
+}
+
+function buildJonSnowMesh(){
+const g=new THREE.Group();
+const scale=1.3;
+const cloth=new MS({color:0x222222,roughness:.75});
+const fur=new MS({color:0x554433,roughness:.95});
+const skinMat=new MS({color:0xddccaa,roughness:.6});
+// Body
+const torso=new THREE.Mesh(new THREE.CylinderGeometry(scale*1.0,scale*1.2,scale*4,8),cloth);torso.position.y=scale*3.5;torso.castShadow=true;g.add(torso);
+// Fur shoulder cloak
+const cloak=new THREE.Mesh(new THREE.PlaneGeometry(scale*2.8,scale*3.5),fur);cloak.position.set(0,scale*4,scale*-.5);g.add(cloak);
+// Shoulder fur lump
+const furLump=new THREE.Mesh(new THREE.SphereGeometry(scale*.7,10,10),fur);furLump.position.set(0,scale*5.5,scale*-.2);furLump.scale.set(1.8,.7,1);g.add(furLump);
+// Head
+const head=new THREE.Mesh(new THREE.SphereGeometry(scale*.65,10,10),skinMat);head.position.y=scale*6;g.add(head);
+// Dark curly hair
+const hair=new THREE.Mesh(new THREE.SphereGeometry(scale*.7,10,10,0,Math.PI*2,0,Math.PI*.6),new MS({color:0x1a1a1a,roughness:.85}));hair.position.y=scale*6.1;g.add(hair);
+// Beard
+const beard=new THREE.Mesh(new THREE.SphereGeometry(scale*.5,8,8,0,Math.PI*2,Math.PI*.4,Math.PI*.4),new MS({color:0x1a1a1a,roughness:.85}));beard.position.y=scale*5.7;g.add(beard);
+// Eyes (intense)
+for(const sx of [-.18,.18]){const e=new THREE.Mesh(new THREE.SphereGeometry(scale*.08,4,4),new THREE.MeshBasicMaterial({color:0x553311}));e.position.set(sx*scale,scale*6.05,scale*.5);g.add(e)}
+// Longclaw (white-wolf pommel sword)
+const blade=new THREE.Mesh(new THREE.BoxGeometry(scale*.22,scale*4,scale*.08),new MS({color:0xb0b0b0,roughness:.3,metalness:.85,emissive:0x1a1a1a,emissiveIntensity:.2}));blade.position.set(scale*1.3,scale*4.5,scale*.5);blade.rotation.z=-.2;g.add(blade);
+const wolfHead=new THREE.Mesh(new THREE.SphereGeometry(scale*.18,8,8),new MS({color:0xeeeedd,emissive:0x333333,emissiveIntensity:.2}));wolfHead.position.set(scale*.95,scale*2.4,scale*.5);g.add(wolfHead);
+const hilt=new THREE.Mesh(new THREE.CylinderGeometry(scale*.07,scale*.07,scale*.6,6),new MS({color:0x442211}));hilt.position.set(scale*1,scale*2.85,scale*.5);g.add(hilt);
+return g;
+}
+
+// Boss roster
+const GOT_BOSSES=[
+{key:'night_king_w',name:'The Night King',hp:6500,x:1500,z:-5000,radius:240,dmg:115,build:buildNightKingMesh,col:0xb0d0e8,
+ drops:['Crown of the Dragon','Ice (Ned\'s Greatsword)','Dragonglass Spear','Dragonglass Sword']},
+{key:'drogon_w',name:'Drogon, the Black Dread',hp:4500,x:4800,z:1800,radius:200,dmg:105,build:()=>buildDrogonMesh(3.0,0x1a1a1a),col:0x1a1a1a,
+ drops:['Petrified Dragon Egg (Black)','Crown of the Dragon','Targaryen Black Armor','Dragon Egg']},
+{key:'rhaegal_w',name:'Rhaegal',hp:3800,x:5200,z:1400,radius:180,dmg:90,build:()=>buildDrogonMesh(2.6,0x2a5a3a),col:0x2a5a3a,
+ drops:['Petrified Dragon Egg (Green)','Targaryen Black Armor','Dragon Egg']},
+{key:'viserion_w',name:'Viserion (Risen)',hp:4200,x:1400,z:-4600,radius:200,dmg:100,build:()=>buildDrogonMesh(2.8,0x88aadd),col:0x88aadd,
+ drops:['Petrified Dragon Egg (Cream)','Dragonglass Spear','Crown of the Dragon']},
+{key:'mountain_w',name:'Ser Gregor "The Mountain" Clegane',hp:2400,x:-2200,z:200,radius:140,dmg:85,build:buildMountainMesh,col:0x554433,
+ drops:['Mountain\'s Greatsword','Lannister Crimson Plate','Hound\'s Burnt Helm']},
+{key:'hound_w',name:'Sandor "The Hound" Clegane',hp:1500,x:-2100,z:600,radius:120,dmg:65,build:()=>{const m=buildMountainMesh();m.scale.set(.75,.75,.75);return m},col:0x6a4a3a,
+ drops:['Hound\'s Greatsword','Hound\'s Burnt Helm','Stark Direwolf Tabard']},
+{key:'drogo_w',name:'Khal Drogo, Lord of the Dothraki',hp:1500,x:4400,z:-200,radius:140,dmg:75,build:buildKhalDrogoMesh,col:0x885533,
+ drops:['Khal Drogo\'s Arakh','Wildling Fur Cloak','Dothraki Bell']},
+{key:'cersei_w',name:'Queen Cersei Lannister',hp:1100,x:-2800,z:-200,radius:80,dmg:55,build:buildCerseiMesh,col:0xa02020,
+ drops:['The Iron Throne Crown','Lannister Crimson Plate','Lannister Lion Ring']},
+{key:'jon_w',name:'Jon Snow, King in the North',hp:1400,x:-3300,z:-1900,radius:110,dmg:70,build:buildJonSnowMesh,col:0x222222,
+ drops:['Longclaw','Direwolf Crown of the North','Night\'s Watch Black Cloak','Bear Pelt Cloak']}
+];
+
+const gotBosses=[];
+function spawnGoTBoss(b){
+const mesh=b.build();
+mesh.position.set(b.x,meshTerrainH(b.x,b.z)+(b.key.startsWith('drogon_')||b.key.startsWith('rhaegal_')||b.key.startsWith('viserion_')?15:0),b.z);
+scene.add(mesh);
+// Name banner
+const lblC=document.createElement('canvas');lblC.width=896;lblC.height=80;
+const ctx=lblC.getContext('2d');ctx.fillStyle='rgba(0,0,0,.72)';ctx.fillRect(0,0,896,80);
+ctx.font='bold 32px serif';ctx.textAlign='center';
+ctx.fillStyle=b.key==='night_king_w'?'#88ddff':b.key==='cersei_w'?'#ffcc44':b.key==='jon_w'?'#ddddff':'#ff8844';
+ctx.fillText('⚔ '+b.name+' ⚔',448,50);
+const tex=new THREE.CanvasTexture(lblC);
+const lbl=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+lbl.scale.set(32,3.5,1);lbl.position.y=22;mesh.add(lbl);
+const ib={mesh:mesh,name:b.name,key:b.key,hp:b.hp,maxHp:b.hp,home:{x:b.x,z:b.z},radius:b.radius,dmg:b.dmg,col:b.col,drops:b.drops,patrolAngle:Math.random()*Math.PI*2,attackCD:0,fly:b.key.startsWith('drogon_')||b.key.startsWith('rhaegal_')||b.key.startsWith('viserion_')};
+gotBosses.push(ib);
+return ib;
+}
+function damageGoTBoss(ib,dmg){
+ib.hp-=dmg;
+if(ib.hp<=0){
+log('⚔ '+ib.name+' has fallen! Westeros trembles.','#ff8844');
+for(const it of ib.drops){if(Math.random()<.5)grantGoTItem(it)}
+if(ib.drops.length)grantGoTItem(ib.drops[0]);
+grantGoTItem(window.__rollGoTItem());
+const gold=3500+Math.floor(Math.random()*2500);
+if(inventory.length<28)inventory.push({name:'Gold Coins x'+gold,uid:null});
+if(typeof addSkillPoints==='function')addSkillPoints(5);
+skills.Attack.xp+=1200;skills.Strength.xp+=1200;skills.Defence.xp+=1200;skills.Hitpoints.xp+=1000;
+updateInvUI();updateXpBar();
+scene.remove(ib.mesh);
+const idx=gotBosses.indexOf(ib);if(idx>=0)gotBosses.splice(idx,1);
+setTimeout(()=>{const seed=GOT_BOSSES.find(x=>x.key===ib.key);if(seed)spawnGoTBoss(seed)},720000);// 12-min respawn
+}
+}
+window.__damageGoTBoss=damageGoTBoss;
+setTimeout(()=>{for(const b of GOT_BOSSES)spawnGoTBoss(b);log('⚔ The lords and ladies of Westeros have arrived ⚔','#ff8844')},11500);
+
+function updateGoTBosses(dt){
+for(const ib of gotBosses){
+if(!ib.mesh)continue;
+const dx=player.x-ib.mesh.position.x,dz=player.z-ib.mesh.position.z;
+const dist=Math.hypot(dx,dz);
+if(dist<ib.radius*0.6){
+const a=Math.atan2(dz,dx);
+const sp=ib.fly?0.13:0.09;
+ib.mesh.position.x+=Math.cos(a)*sp;ib.mesh.position.z+=Math.sin(a)*sp;
+ib.mesh.rotation.y=-a-Math.PI/2;
+if(dist<13&&ib.attackCD<=0){
+ib.attackCD=80;
+const def=window.__getDefenseBonus?window.__getDefenseBonus():0;
+const dmg=Math.round(ib.dmg*(1-def));
+player.hp=Math.max(0,player.hp-dmg);
+log('⚔ '+ib.name+' strikes for '+dmg+'!','#ff4422');
+if(typeof hitFX==='function')hitFX(player.x,player.y+3,player.z,ib.col);
+}
+} else {
+ib.patrolAngle+=ib.fly?0.006:0.004;
+const tx=ib.home.x+Math.cos(ib.patrolAngle)*ib.radius*0.4;
+const tz=ib.home.z+Math.sin(ib.patrolAngle)*ib.radius*0.4;
+const a=Math.atan2(tz-ib.mesh.position.z,tx-ib.mesh.position.x);
+const sp=ib.fly?0.09:0.05;
+ib.mesh.position.x+=Math.cos(a)*sp;ib.mesh.position.z+=Math.sin(a)*sp;
+ib.mesh.rotation.y=-a-Math.PI/2;
+}
+ib.mesh.position.y=meshTerrainH(ib.mesh.position.x,ib.mesh.position.z)+(ib.fly?18:0);
+ib.attackCD=Math.max(0,ib.attackCD-1);
+}}
+
+// ---- 4. GoT CITIES SCATTERED ACROSS THE LAND ------------------------
+function buildKingsLanding(x,z){
+const g=new THREE.Group();
+const stone=new MS({color:0xc8a8a8,roughness:.6,emissive:0x441010,emissiveIntensity:.15});
+const red=new MS({color:0xaa3322,roughness:.65,emissive:0x441010,emissiveIntensity:.2});
+const gold=new MS({color:0xffd870,roughness:.4,metalness:.7,emissive:0x553300,emissiveIntensity:.4});
+const stoneDk=new MS({color:0x886655,roughness:.7});
+// Red Keep — square stone core
+const keep=new THREE.Mesh(new THREE.BoxGeometry(50,40,50),red);keep.position.y=20;keep.castShadow=true;g.add(keep);
+// 7 towers (representing Seven Kingdoms)
+const towerPositions=[[-30,30],[30,30],[-30,-30],[30,-30],[0,35],[-35,0],[35,0]];
+for(const [tx,tz] of towerPositions){const t=new THREE.Mesh(new THREE.CylinderGeometry(6,7,55,10),stone);t.position.set(tx,27.5,tz);t.castShadow=true;g.add(t);
+const cap=new THREE.Mesh(new THREE.ConeGeometry(7.5,9,10),red);cap.position.set(tx,59.5,tz);g.add(cap);
+// Gold ball atop
+const ball=new THREE.Mesh(new THREE.SphereGeometry(1.5,8,8),gold);ball.position.set(tx,65,tz);g.add(ball);}
+// Sept of Baelor — domed cathedral
+const sept=new THREE.Mesh(new THREE.SphereGeometry(15,16,12,0,Math.PI*2,0,Math.PI/2),stone);sept.position.set(0,28,-55);sept.castShadow=true;g.add(sept);
+const septBase=new THREE.Mesh(new THREE.CylinderGeometry(15,18,10,12),stone);septBase.position.set(0,18,-55);g.add(septBase);
+// Iron Throne (visible from outside the keep)
+const throne=new THREE.Mesh(new THREE.BoxGeometry(8,12,6),new MS({color:0x222222,emissive:0x331122,emissiveIntensity:.3}));throne.position.set(0,46,0);g.add(throne);
+// Spikes for throne
+for(let i=0;i<8;i++){const sp=new THREE.Mesh(new THREE.ConeGeometry(.6,2.5,4),new MS({color:0x444444}));sp.position.set((i-3.5)*1.2,53,2);g.add(sp);}
+// City walls (low square)
+for(let i=0;i<4;i++){const ang=i*Math.PI/2;const wall=new THREE.Mesh(new THREE.BoxGeometry(80,8,3),stoneDk);wall.position.set(Math.cos(ang)*40,4,Math.sin(ang)*40);wall.rotation.y=-ang;g.add(wall)}
+addCitySign(g,'King\'s Landing',0,80,0,'#ffaa44');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildWinterfell(x,z){
+const g=new THREE.Group();
+const stone=new MS({color:0x4a4444,roughness:.85,emissive:0x111111,emissiveIntensity:.1});
+const wood=new MS({color:0x4a3020,roughness:.85});
+const slate=new MS({color:0x222222,roughness:.7});
+// Outer wall (granite)
+for(let i=0;i<4;i++){const ang=i*Math.PI/2;const wall=new THREE.Mesh(new THREE.BoxGeometry(70,15,4),stone);wall.position.set(Math.cos(ang)*35,7.5,Math.sin(ang)*35);wall.rotation.y=-ang;wall.castShadow=true;g.add(wall)}
+// Corner watchtowers
+for(const sx of [-1,1]){for(const sz of [-1,1]){const t=new THREE.Mesh(new THREE.CylinderGeometry(5,6,20,8),stone);t.position.set(sx*35,10,sz*35);t.castShadow=true;g.add(t);const cap=new THREE.Mesh(new THREE.ConeGeometry(6,6,8),slate);cap.position.set(sx*35,23,sz*35);g.add(cap)}}
+// First Keep (round dark tower)
+const keep=new THREE.Mesh(new THREE.CylinderGeometry(10,11,40,12),stone);keep.position.y=20;keep.castShadow=true;g.add(keep);
+const keepCap=new THREE.Mesh(new THREE.ConeGeometry(11,8,12),slate);keepCap.position.y=44;g.add(keepCap);
+// Great hall
+const hall=new THREE.Mesh(new THREE.BoxGeometry(30,12,18),stone);hall.position.set(0,6,15);hall.castShadow=true;g.add(hall);
+const hallRoof=new THREE.Mesh(new THREE.BoxGeometry(32,3,20),slate);hallRoof.position.set(0,13.5,15);g.add(hallRoof);
+// Heart tree (weirwood) in godswood
+const tree=new THREE.Mesh(new THREE.CylinderGeometry(1,1.5,12,8),new MS({color:0xeeeedd,roughness:.8}));tree.position.set(20,6,-15);g.add(tree);
+const leaves=new THREE.Mesh(new THREE.SphereGeometry(5,10,10),new MS({color:0xaa2222,roughness:.85,emissive:0x441010,emissiveIntensity:.3}));leaves.position.set(20,14,-15);g.add(leaves);
+// Direwolf banner pole
+const pole=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,28,6),wood);pole.position.set(-15,14,15);g.add(pole);
+const banner=new THREE.Mesh(new THREE.PlaneGeometry(5,7),new MS({color:0xeeeeff,side:THREE.DoubleSide}));banner.position.set(-12,20,15);g.add(banner);
+// Snow patches around city
+for(let i=0;i<8;i++){const a=Math.random()*Math.PI*2;const r=18+Math.random()*15;const sn=new THREE.Mesh(new THREE.CircleGeometry(2+Math.random()*2,8),new MS({color:0xeeeeff,roughness:.95}));sn.rotation.x=-Math.PI/2;sn.position.set(Math.cos(a)*r,.1,Math.sin(a)*r);g.add(sn)}
+addCitySign(g,'Winterfell',0,52,0,'#ccddee');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildCasterlyRock(x,z){
+const g=new THREE.Group();
+const stone=new MS({color:0xc8a060,roughness:.6,emissive:0x442200,emissiveIntensity:.2});
+const gold=new MS({color:0xffcc44,roughness:.4,metalness:.7,emissive:0x553300,emissiveIntensity:.45});
+// Massive rock-fortress
+const rock=new THREE.Mesh(new THREE.ConeGeometry(35,75,8),stone);rock.position.y=37.5;rock.castShadow=true;g.add(rock);
+// Lion-shaped statue at top
+const lionBody=new THREE.Mesh(new THREE.BoxGeometry(8,5,12),gold);lionBody.position.y=78;g.add(lionBody);
+const lionHead=new THREE.Mesh(new THREE.SphereGeometry(3.5,10,10),gold);lionHead.position.set(0,82,7);g.add(lionHead);
+// Mane spikes
+for(let i=0;i<12;i++){const a=i/12*Math.PI*2;const sp=new THREE.Mesh(new THREE.ConeGeometry(.5,1.8,4),gold);sp.position.set(Math.cos(a)*3.5,82+Math.sin(a)*1,7+Math.sin(a)*.5);g.add(sp)}
+// Outer walls
+for(let i=0;i<6;i++){const ang=i/6*Math.PI*2;const wall=new THREE.Mesh(new THREE.BoxGeometry(30,10,3),stone);wall.position.set(Math.cos(ang)*25,5,Math.sin(ang)*25);wall.rotation.y=-ang+Math.PI/2;g.add(wall)}
+// Lion banner pole
+const pole=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,30,6),new MS({color:0x553322}));pole.position.set(-12,15,-12);g.add(pole);
+const banner=new THREE.Mesh(new THREE.PlaneGeometry(6,8),new MS({color:0xaa2222,side:THREE.DoubleSide}));banner.position.set(-9,21,-12);g.add(banner);
+const aura=new THREE.PointLight(0xffcc44,3,100);aura.position.y=80;g.add(aura);
+addCitySign(g,'Casterly Rock',0,98,0,'#ffd700');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildTheWall(x,z){
+const g=new THREE.Group();
+const ice=new MS({color:0xb8d8f0,roughness:.3,metalness:.4,emissive:0x224488,emissiveIntensity:.4,transparent:true,opacity:.92});
+const stone=new MS({color:0x554a40,roughness:.85});
+// Massive ice wall (long stretch)
+const wall=new THREE.Mesh(new THREE.BoxGeometry(200,70,8),ice);wall.position.set(0,35,0);wall.castShadow=true;g.add(wall);
+// Castle Black tower (against the wall)
+const castle=new THREE.Mesh(new THREE.BoxGeometry(18,22,18),stone);castle.position.set(0,11,15);castle.castShadow=true;g.add(castle);
+const castleRoof=new THREE.Mesh(new THREE.ConeGeometry(13,6,4),new MS({color:0x222222}));castleRoof.position.set(0,25,15);g.add(castleRoof);
+// Side towers
+for(const sx of [-90,90]){const t=new THREE.Mesh(new THREE.CylinderGeometry(4,5,75,8),stone);t.position.set(sx,37.5,4);g.add(t);
+const lt=new THREE.PointLight(0xffaa44,2.5,30);lt.position.set(sx,70,4);g.add(lt)}
+// Ice gleam light
+const iceLight=new THREE.PointLight(0x88ccff,2,140);iceLight.position.set(0,40,0);g.add(iceLight);
+addCitySign(g,'The Wall · Castle Black',0,82,0,'#aaddff');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildDragonstone(x,z){
+const g=new THREE.Group();
+const black=new MS({color:0x1a1a1a,roughness:.65,emissive:0x110000,emissiveIntensity:.15});
+const red=new MS({color:0x661010,roughness:.7});
+// Volcanic core
+const core=new THREE.Mesh(new THREE.ConeGeometry(20,40,8),black);core.position.y=20;core.castShadow=true;g.add(core);
+// Carved dragon-pillar towers
+for(let i=0;i<4;i++){const ang=i*Math.PI/2;const t=new THREE.Mesh(new THREE.CylinderGeometry(3,4,30,6),black);t.position.set(Math.cos(ang)*18,15,Math.sin(ang)*18);g.add(t);
+// Dragon-head finial
+const head=new THREE.Mesh(new THREE.ConeGeometry(3,4,5),black);head.position.set(Math.cos(ang)*18,32,Math.sin(ang)*18);head.rotation.y=-ang;head.rotation.x=Math.PI/2;g.add(head);
+// Glowing eye
+const eye=new THREE.Mesh(new THREE.SphereGeometry(.4,6,6),new THREE.MeshBasicMaterial({color:0xff3300}));eye.position.set(Math.cos(ang)*18.5,32.5,Math.sin(ang)*18.5);g.add(eye)}
+// Lava glow
+const lava=new THREE.PointLight(0xff4400,3,80);lava.position.y=8;g.add(lava);
+addCitySign(g,'Dragonstone',0,50,0,'#ff5544');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildHighgarden(x,z){
+const g=new THREE.Group();
+const stone=new MS({color:0xeeddbb,roughness:.6});
+const green=new MS({color:0x447733,roughness:.8});
+const flower=new MS({color:0xeebbcc,roughness:.7,emissive:0x331122,emissiveIntensity:.2});
+// Central keep (white stone)
+const keep=new THREE.Mesh(new THREE.BoxGeometry(30,28,30),stone);keep.position.y=14;keep.castShadow=true;g.add(keep);
+// 4 tall slender towers
+for(const sx of [-1,1]){for(const sz of [-1,1]){const t=new THREE.Mesh(new THREE.CylinderGeometry(3,3.5,40,8),stone);t.position.set(sx*18,20,sz*18);g.add(t);const cap=new THREE.Mesh(new THREE.ConeGeometry(4,5,8),green);cap.position.set(sx*18,42.5,sz*18);g.add(cap)}}
+// Vines (green plates wrapping the walls)
+for(let i=0;i<8;i++){const ang=i*Math.PI/4;const vine=new THREE.Mesh(new THREE.PlaneGeometry(6,16),green);vine.position.set(Math.cos(ang)*16,12,Math.sin(ang)*16);vine.rotation.y=-ang;g.add(vine)}
+// Garden flowers around
+for(let i=0;i<24;i++){const a=Math.random()*Math.PI*2;const r=22+Math.random()*15;const fl=new THREE.Mesh(new THREE.SphereGeometry(.6,6,6),flower);fl.position.set(Math.cos(a)*r,.5,Math.sin(a)*r);g.add(fl)}
+addCitySign(g,'Highgarden',0,50,0,'#aaff88');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildPyke(x,z){
+const g=new THREE.Group();
+const stone=new MS({color:0x4a4a4a,roughness:.85,emissive:0x111111,emissiveIntensity:.05});
+// Jagged broken sea-stacks with towers atop
+for(let i=0;i<5;i++){const x_=(-15+i*8)+Math.random()*4;const z_=Math.random()*8-4;const h=20+Math.random()*15;
+const stack=new THREE.Mesh(new THREE.CylinderGeometry(4+Math.random(),5+Math.random()*1.5,h,7),stone);stack.position.set(x_,h/2,z_);stack.castShadow=true;g.add(stack);
+const tower=new THREE.Mesh(new THREE.BoxGeometry(5,6,5),stone);tower.position.set(x_,h+3,z_);g.add(tower);}
+addCitySign(g,'Pyke (Iron Islands)',0,50,0,'#888888');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildEyrie(x,z){
+const g=new THREE.Group();
+const white=new MS({color:0xeeeedd,roughness:.5,emissive:0x223344,emissiveIntensity:.1});
+const blue=new MS({color:0x4488cc,roughness:.6});
+// On top of a mountain pillar
+const pillar=new THREE.Mesh(new THREE.CylinderGeometry(8,18,50,8),new MS({color:0x666666,roughness:.85}));pillar.position.y=25;pillar.castShadow=true;g.add(pillar);
+// Castle atop
+for(let i=0;i<5;i++){const ang=i/5*Math.PI*2;const t=new THREE.Mesh(new THREE.CylinderGeometry(2.5,2.5,12,8),white);t.position.set(Math.cos(ang)*6,57,Math.sin(ang)*6);g.add(t);
+const cap=new THREE.Mesh(new THREE.ConeGeometry(3,4,8),blue);cap.position.set(Math.cos(ang)*6,65,Math.sin(ang)*6);g.add(cap)}
+const center=new THREE.Mesh(new THREE.BoxGeometry(10,10,10),white);center.position.y=55;g.add(center);
+addCitySign(g,'The Eyrie',0,80,0,'#aaccff');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildStormsEnd(x,z){
+const g=new THREE.Group();
+const stone=new MS({color:0x6a5a4a,roughness:.85});
+// One massive round tower
+const tower=new THREE.Mesh(new THREE.CylinderGeometry(15,18,60,16),stone);tower.position.y=30;tower.castShadow=true;g.add(tower);
+const cap=new THREE.Mesh(new THREE.ConeGeometry(18,8,16),new MS({color:0x554433}));cap.position.y=64;g.add(cap);
+// Crenellations
+for(let i=0;i<16;i++){const a=i/16*Math.PI*2;const cr=new THREE.Mesh(new THREE.BoxGeometry(2,3,2),stone);cr.position.set(Math.cos(a)*15.5,61,Math.sin(a)*15.5);g.add(cr)}
+addCitySign(g,'Storm\'s End',0,75,0,'#ffaa66');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildSunspear(x,z){
+const g=new THREE.Group();
+const stone=new MS({color:0xeed6a0,roughness:.7,emissive:0x553300,emissiveIntensity:.2});
+const sun=new MS({color:0xffaa20,emissive:0xff6600,emissiveIntensity:1.2});
+// Sandstone keep
+const keep=new THREE.Mesh(new THREE.BoxGeometry(35,25,35),stone);keep.position.y=12.5;keep.castShadow=true;g.add(keep);
+// 3 spear-like minarets
+for(let i=0;i<3;i++){const a=i/3*Math.PI*2;const t=new THREE.Mesh(new THREE.CylinderGeometry(2,3,35,8),stone);t.position.set(Math.cos(a)*12,17.5,Math.sin(a)*12);g.add(t);
+const tip=new THREE.Mesh(new THREE.ConeGeometry(2.5,5,8),stone);tip.position.set(Math.cos(a)*12,37.5,Math.sin(a)*12);g.add(tip)}
+// Sun and Spear sigil (glowing sun)
+const sundisc=new THREE.Mesh(new THREE.SphereGeometry(3,12,12),sun);sundisc.position.set(0,30,18);g.add(sundisc);
+for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const ray=new THREE.Mesh(new THREE.ConeGeometry(.5,2,3),sun);ray.position.set(Math.cos(a)*4,30,18+Math.sin(a)*.2);ray.rotation.z=-a;g.add(ray)}
+addCitySign(g,'Sunspear (Dorne)',0,48,0,'#ffaa33');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildRiverrun(x,z){
+const g=new THREE.Group();
+const stone=new MS({color:0x9a9a8a,roughness:.7,emissive:0x223344,emissiveIntensity:.1});
+const blue=new MS({color:0x4488aa,roughness:.4,transparent:true,opacity:.6});
+// Triangular keep
+const keep=new THREE.Mesh(new THREE.CylinderGeometry(15,18,30,3),stone);keep.rotation.y=Math.PI/6;keep.position.y=15;keep.castShadow=true;g.add(keep);
+// Towers at points
+for(let i=0;i<3;i++){const a=i/3*Math.PI*2-Math.PI/2;const t=new THREE.Mesh(new THREE.CylinderGeometry(3,4,40,8),stone);t.position.set(Math.cos(a)*17,20,Math.sin(a)*17);g.add(t);
+const cap=new THREE.Mesh(new THREE.ConeGeometry(4,5,8),new MS({color:0x553333}));cap.position.set(Math.cos(a)*17,42.5,Math.sin(a)*17);g.add(cap)}
+// Rivers (visible water rings)
+for(let i=0;i<2;i++){const water=new THREE.Mesh(new THREE.RingGeometry(28+i*5,32+i*5,32),blue);water.rotation.x=-Math.PI/2;water.position.y=.5;g.add(water)}
+addCitySign(g,'Riverrun',0,55,0,'#88ccdd');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildMeereen(x,z){
+const g=new THREE.Group();
+const tan=new MS({color:0xddcc99,roughness:.7,emissive:0x553300,emissiveIntensity:.1});
+const dark=new MS({color:0x886644,roughness:.8});
+// Great Pyramid
+const p=new THREE.Mesh(new THREE.ConeGeometry(40,60,4),tan);p.position.y=30;p.rotation.y=Math.PI/4;p.castShadow=true;g.add(p);
+// Top platform
+const top=new THREE.Mesh(new THREE.BoxGeometry(8,2,8),dark);top.position.y=61;g.add(top);
+// Smaller pyramids around
+for(let i=0;i<4;i++){const a=i/4*Math.PI*2+Math.PI/4;const sp=new THREE.Mesh(new THREE.ConeGeometry(10,18,4),tan);sp.position.set(Math.cos(a)*38,9,Math.sin(a)*38);sp.rotation.y=Math.PI/4;g.add(sp)}
+addCitySign(g,'Meereen',0,72,0,'#ddbb66');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildBraavos(x,z){
+const g=new THREE.Group();
+const stone=new MS({color:0x886655,roughness:.7});
+const bronze=new MS({color:0xaa6633,roughness:.5,metalness:.6,emissive:0x553300,emissiveIntensity:.3});
+// Titan of Braavos — giant bronze statue
+const legL=new THREE.Mesh(new THREE.CylinderGeometry(4,4.5,30,8),bronze);legL.position.set(-7,15,-15);legL.castShadow=true;g.add(legL);
+const legR=new THREE.Mesh(new THREE.CylinderGeometry(4,4.5,30,8),bronze);legR.position.set(7,15,-15);legR.castShadow=true;g.add(legR);
+const torso=new THREE.Mesh(new THREE.BoxGeometry(20,18,10),bronze);torso.position.set(0,39,-15);g.add(torso);
+const head=new THREE.Mesh(new THREE.SphereGeometry(5,12,12),bronze);head.position.set(0,52,-15);g.add(head);
+// Glowing eyes
+for(const sx of [-1.5,1.5]){const e=new THREE.Mesh(new THREE.SphereGeometry(.6,8,8),new THREE.MeshBasicMaterial({color:0xffcc44}));e.position.set(sx,53,-11);g.add(e)}
+// Arms outstretched (warning gesture)
+const armL=new THREE.Mesh(new THREE.CylinderGeometry(2.5,2.5,16,6),bronze);armL.position.set(-15,40,-15);armL.rotation.z=Math.PI/4;g.add(armL);
+const armR=new THREE.Mesh(new THREE.CylinderGeometry(2.5,2.5,16,6),bronze);armR.position.set(15,40,-15);armR.rotation.z=-Math.PI/4;g.add(armR);
+// City buildings behind
+for(let i=0;i<6;i++){const b=new THREE.Mesh(new THREE.BoxGeometry(8,12,8),stone);b.position.set((-15+i*6),6,20);g.add(b)}
+addCitySign(g,'Braavos',0,70,0,'#cc9966');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildHarrenhal(x,z){
+const g=new THREE.Group();
+const burnt=new MS({color:0x2a1a1a,roughness:.85,emissive:0x110000,emissiveIntensity:.2});
+// Ruined fortress — twisted, asymmetric towers
+for(let i=0;i<5;i++){const ang=i/5*Math.PI*2;const h=25+Math.random()*15;const t=new THREE.Mesh(new THREE.CylinderGeometry(4+Math.random()*2,5+Math.random()*2,h,8),burnt);
+t.position.set(Math.cos(ang)*14,h/2,Math.sin(ang)*14);t.rotation.x=(Math.random()-.5)*.15;t.rotation.z=(Math.random()-.5)*.15;t.castShadow=true;g.add(t)}
+// Central melted keep
+const keep=new THREE.Mesh(new THREE.CylinderGeometry(8,12,28,12),burnt);keep.position.y=14;keep.rotation.x=.05;g.add(keep);
+addCitySign(g,'Harrenhal (Ruins)',0,48,0,'#553333');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function addCitySign(g,name,x,y,z,color){
+const lblC=document.createElement('canvas');lblC.width=896;lblC.height=80;
+const ctx=lblC.getContext('2d');ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillRect(0,0,896,80);
+ctx.font='bold 34px serif';ctx.textAlign='center';ctx.fillStyle=color||'#ffd700';ctx.fillText('⚔ '+name+' ⚔',448,52);
+const tex=new THREE.CanvasTexture(lblC);
+const lbl=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+lbl.scale.set(48,4.5,1);lbl.position.set(x,y,z);g.add(lbl);
+}
+
+const GOT_CITIES=[
+{n:'King\'s Landing',x:-3300,z:200,build:buildKingsLanding},
+{n:'Winterfell',x:-3200,z:-2200,build:buildWinterfell},
+{n:'Casterly Rock',x:-2200,z:1200,build:buildCasterlyRock},
+{n:'The Wall · Castle Black',x:0,z:-4800,build:buildTheWall},
+{n:'Dragonstone',x:-1800,z:-100,build:buildDragonstone},
+{n:'Highgarden',x:-2800,z:1800,build:buildHighgarden},
+{n:'Pyke',x:-4200,z:1400,build:buildPyke},
+{n:'The Eyrie',x:-2400,z:-1400,build:buildEyrie},
+{n:'Storm\'s End',x:-2000,z:1600,build:buildStormsEnd},
+{n:'Sunspear',x:-3000,z:2400,build:buildSunspear},
+{n:'Riverrun',x:-2600,z:-600,build:buildRiverrun},
+{n:'Meereen',x:4400,z:1900,build:buildMeereen},
+{n:'Braavos',x:5200,z:200,build:buildBraavos},
+{n:'Harrenhal',x:-2800,z:-1000,build:buildHarrenhal}
+];
+const gotCities=[];
+setTimeout(()=>{
+for(const c of GOT_CITIES){try{
+const m=c.build(c.x,c.z);
+gotCities.push({x:c.x,z:c.z,name:c.n,mesh:m});
+makeEnterable(c.x,c.z+30,'castle',c.n+' Keep');
+if(typeof teleports!=='undefined'&&teleports.push)teleports.push({name:c.n,x:c.x,z:c.z,unlocked:true});
+}catch(e){console.warn('city '+c.n+' failed',e)}}
+log('⚔ '+GOT_CITIES.length+' kingdoms of Westeros and the Free Cities established ⚔','#ff8844');
+if(window.__v8&&window.__v8.rebuildEntryPrompts)window.__v8.rebuildEntryPrompts();
+},12000);
+
+// ---- 5. WANDERING NAMED NPCs (kings, queens, advisors) --------------
+function buildNamedNPC(x,z,name,role,bodyCol,headCol){
+const h=meshTerrainH(x,z);
+const g=new THREE.Group();
+const body=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.6,5.5,8),new MS({color:bodyCol,roughness:.6,emissive:0x111111,emissiveIntensity:.1}));
+body.position.y=2.75;body.castShadow=true;g.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(1.1,8,8),new MS({color:headCol||0xddccaa,roughness:.6}));
+head.position.y=6;g.add(head);
+// Floating crown / marker
+const markG=new THREE.Group();markG.position.y=8;
+const mb=new THREE.Mesh(new THREE.CylinderGeometry(.4,.4,.7,8),new MS({color:0xffd700,emissive:0xffaa00,emissiveIntensity:2.2}));mb.position.y=0;markG.add(mb);
+const mt2=new THREE.Mesh(new THREE.OctahedronGeometry(.4),new MS({color:0xffd700,emissive:0xffaa00,emissiveIntensity:2}));mt2.position.y=.6;markG.add(mt2);
+g.add(markG);
+// Name banner sprite
+const lblC=document.createElement('canvas');lblC.width=600;lblC.height=72;
+const ctx=lblC.getContext('2d');ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(0,0,600,72);
+ctx.font='bold 24px serif';ctx.textAlign='center';ctx.fillStyle='#ffd96a';ctx.fillText(name,300,36);
+ctx.font='14px serif';ctx.fillStyle='#cc9966';ctx.fillText(role,300,58);
+const tex=new THREE.CanvasTexture(lblC);
+const lbl=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+lbl.scale.set(16,2,1);lbl.position.y=10;g.add(lbl);
+g.position.set(x,h,z);scene.add(g);
+return {mesh:g,marker:markG,x:x,z:z,name:name,role:role,t:Math.random()*6};
+}
+
+const NAMED_NPCS_DATA=[
+// Kings & Queens
+{x:-3300,z:230,name:'King Tommen Baratheon',role:'King on the Iron Throne',body:0xaa3322,head:0xffd6aa,
+ dialog:'I rule the Seven Kingdoms. Bring me loyalty, traveler.',reward:'Lannister Crimson Plate'},
+{x:-3320,z:180,name:'Queen Cersei Lannister',role:'Queen Regent',body:0xa02020,head:0xeeddcc,
+ dialog:'I have been Queen for a long time. You will treat me as such.',reward:'The Iron Throne Crown'},
+{x:-3200,z:-2150,name:'Lord Eddard "Ned" Stark',role:'Warden of the North',body:0x556677,head:0xddccaa,
+ dialog:'The man who passes the sentence should swing the sword.',reward:'Stark Direwolf Tabard'},
+{x:-3180,z:-2240,name:'Lady Catelyn Tully Stark',role:'Lady of Winterfell',body:0x5577aa,head:0xeeddcc,
+ dialog:'The North remembers.',reward:'Tully Trout Mail'},
+{x:-3300,z:-1880,name:'Robb Stark, King in the North',role:'The Young Wolf',body:0x556677,head:0xddccaa,
+ dialog:'I will avenge my father. The Lannisters will pay.',reward:'Direwolf Crown of the North'},
+{x:-2200,z:1240,name:'Lord Tywin Lannister',role:'Lord of Casterly Rock',body:0xaa3322,head:0xddccaa,
+ dialog:'A Lannister always pays his debts.',reward:'Lannister Lion Ring'},
+{x:5200,z:240,name:'Iron Bank Magister',role:'Of the Bank',body:0x665544,head:0xddccaa,
+ dialog:'The Iron Bank... will have its due.',reward:'Coin of the Iron Bank'},
+{x:4400,z:1900,name:'Daenerys Stormborn Targaryen',role:'Mother of Dragons',body:0x661010,head:0xeeeedd,
+ dialog:'I am the blood of the dragon. Bow or burn.',reward:'Crown of the Dragon'},
+{x:4380,z:1880,name:'Jorah Mormont',role:'Khaleesi\'s sworn sword',body:0x554433,head:0xddccaa,
+ dialog:'I serve my queen, until the end.',reward:'Bear Pelt Cloak'},
+{x:-3200,z:-2300,name:'Bran Stark',role:'The Three-Eyed Raven',body:0x4a5a6a,head:0xddccaa,
+ dialog:'I can see... everything. All of it.',reward:'Three-Eyed Raven Feather'},
+{x:-2400,z:-1380,name:'Lord Petyr Baelish',role:'Littlefinger, Master of Coin',body:0x4a4a4a,head:0xddccaa,
+ dialog:'Chaos is a ladder.',reward:'Coin of the Iron Bank'},
+{x:-3320,z:250,name:'Lord Tyrion Lannister',role:'Hand of the King',body:0x882211,head:0xddccaa,
+ dialog:'I drink and I know things.',reward:'Hand of the King Pin'},
+{x:0,z:-4750,name:'Jon Snow',role:'Lord Commander, Night\'s Watch',body:0x222222,head:0xddccaa,
+ dialog:'I am the shield that guards the realms of men.',reward:'Night\'s Watch Black Cloak'},
+{x:0,z:-4800,name:'Samwell Tarly',role:'Maester of the Citadel',body:0x222222,head:0xeeddcc,
+ dialog:'I have read the histories. The dead are coming.',reward:'Citadel Manuscript'},
+{x:-3300,z:-1900,name:'Arya Stark',role:'No One',body:0x3a3a3a,head:0xddccaa,
+ dialog:'A girl is no one. Valar Morghulis.',reward:'Needle'},
+{x:-3290,z:-1880,name:'Sansa Stark',role:'Lady of Winterfell',body:0x556677,head:0xffd6cc,
+ dialog:'I learned a great deal in King\'s Landing.',reward:'Direwolf Crown of the North'},
+{x:-3270,z:-1860,name:'Brienne of Tarth',role:'Sworn Sword',body:0x445566,head:0xddccaa,
+ dialog:'I am Brienne of Tarth. I keep my oaths.',reward:'Oathkeeper'},
+{x:0,z:-4900,name:'Tormund Giantsbane',role:'Wildling Chief',body:0x554422,head:0xeeaa66,
+ dialog:'Climbed a giant once. Beautiful woman she was.',reward:'Wildling Fur Cloak'},
+{x:-1800,z:-100,name:'Stannis Baratheon',role:'The One True King',body:0xaa6622,head:0xddccaa,
+ dialog:'The Iron Throne is mine. By rights.',reward:'Stannis\'s Greatsword'},
+{x:-1800,z:-150,name:'Lady Melisandre',role:'Red Priestess of R\'hllor',body:0xaa1111,head:0xffd6dd,
+ dialog:'The night is dark and full of terrors.',reward:'Lightbringer'},
+{x:-3200,z:-2100,name:'Theon Greyjoy',role:'Of the Iron Islands',body:0x444444,head:0xddccaa,
+ dialog:'My name is Theon. Theon Greyjoy.',reward:'Greyjoy Iron Mail'},
+{x:4380,z:1920,name:'Missandei of Naath',role:'Translator & Counselor',body:0xeeccaa,head:0x553322,
+ dialog:'Valar dohaeris — all men must serve.',reward:'Crown of the Dragon'}
+];
+
+const namedNPCs=[];
+setTimeout(()=>{
+for(const d of NAMED_NPCS_DATA){
+const npc=buildNamedNPC(d.x,d.z,d.name,d.role,d.body,d.head);
+npc.dialog=d.dialog;npc.reward=d.reward;npc.spoken=false;
+namedNPCs.push(npc);
+}
+log('⚜ '+namedNPCs.length+' named lords, ladies and rulers walk the realm ⚜','#ffd96a');
+},12500);
+
+function showNamedNPCDialog(npc){
+if(document.getElementById('named-npc-dialog'))return;
+const d=document.createElement('div');d.id='named-npc-dialog';
+d.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,rgba(20,15,8,.97),rgba(10,5,3,.99));border:3px solid #ffd96a;border-radius:12px;padding:20px;z-index:1500;width:480px;max-width:92vw;color:#ddd;font-family:serif;box-shadow:0 0 40px rgba(255,217,106,.4);';
+let html='<div style="text-align:center;margin-bottom:14px;"><div style="font-size:18px;color:#ffd96a;font-weight:bold;">⚜ '+npc.name+' ⚜</div><div style="font-size:11px;color:#cc9966;font-style:italic;margin-top:3px;">'+npc.role+'</div></div>';
+html+='<div style="background:rgba(60,40,20,.5);padding:14px;border-left:3px solid #ffd96a;border-radius:4px;color:#eeddaa;font-style:italic;font-size:13px;line-height:1.5;">"'+npc.dialog+'"</div>';
+if(!npc.spoken){
+html+='<button onclick="window.__takeNamedGift(\''+npc.name.replace(/'/g,'\\\'')+'\')" style="width:100%;margin-top:14px;padding:10px;background:#553311;color:#ffd96a;border:2px solid #aa7733;border-radius:6px;cursor:pointer;font-weight:bold;">⚜ Accept Gift: '+npc.reward+' ⚜</button>';
+}else{
+html+='<div style="text-align:center;margin-top:14px;color:#998866;font-size:11px;">You have already received this lord\'s gift.</div>';
+}
+html+='<button onclick="document.getElementById(\'named-npc-dialog\').remove()" style="width:100%;margin-top:8px;padding:8px;background:#332222;color:#cc9988;border:2px solid #553333;border-radius:6px;cursor:pointer;">Leave</button>';
+d.innerHTML=html;document.body.appendChild(d);
+}
+window.__takeNamedGift=function(name){
+const npc=namedNPCs.find(n=>n.name===name);if(!npc||npc.spoken)return;
+npc.spoken=true;
+const item=grantGoTItem(npc.reward);
+if(item)log('⚜ '+npc.name+' bestows: '+npc.reward,'#ffd96a');
+else log('⚜ Your hands are full!','#aa6622');
+const d=document.getElementById('named-npc-dialog');if(d)d.remove();
+};
+
+function updateNamedNPCs(dt){
+for(const n of namedNPCs){
+n.t+=0.03;
+if(n.marker){n.marker.rotation.y+=0.025;n.marker.children[1].rotation.y+=0.05;n.marker.position.y=8+Math.sin(n.t)*0.4}
+const dx=player.x-n.x,dz=player.z-n.z;
+if(Math.hypot(dx,dz)<6 && (keys['KeyE']||(gpButtons&&gpButtons.x))){
+if(!document.getElementById('named-npc-dialog')&&!document.getElementById('extra-quest-dialog')&&!document.getElementById('quest-dialog'))showNamedNPCDialog(n);
+break;
+}}}
+
+// ---- 6. LOOT INTEGRATION FOR GoT ITEMS ------------------------------
+const _v10SpawnLoot=spawnLoot;
+spawnLoot=function(x,z,e){
+const r=_v10SpawnLoot(x,z,e);
+try{
+const hp=(e&&e.maxHp)||0;
+let chance=0,tier=null;
+if(hp>=2000){chance=.55;tier='mythic'}
+else if(hp>=800){chance=.18;tier='legendary'}
+else if(hp>=300){chance=.06;tier='epic'}
+if(chance>0&&Math.random()<chance){
+const pool=GOT_ITEMS.filter(it=>it[5]===tier);
+if(pool.length){const name=pool[Math.floor(Math.random()*pool.length)][0];grantGoTItem(name);log('⚔ House relic: '+name+'!','#ff8844')}
+}
+}catch(e){}
+return r;
+};
+
+// ---- 7. MINIMAP MARKERS FOR GoT CITIES & BOSSES ---------------------
+const _v10DrawMM=drawMinimap;
+drawMinimap=function(){
+_v10DrawMM();
+try{
+const scale=.12,cx=125,cy=84;
+// GoT cities (orange diamond)
+mmCtx.fillStyle='#ff8844';
+for(const c of gotCities){
+if(Math.abs(c.x-player.x)>1100||Math.abs(c.z-player.z)>800)continue;
+const x=(c.x-player.x)*scale+cx,z=(c.z-player.z)*scale+cy;
+if(x>2&&x<243&&z>2&&z<166){mmCtx.beginPath();mmCtx.moveTo(x,z-4);mmCtx.lineTo(x+4,z);mmCtx.lineTo(x,z+4);mmCtx.lineTo(x-4,z);mmCtx.closePath();mmCtx.fill();mmCtx.strokeStyle='#000';mmCtx.stroke()}}
+// GoT bosses (orange circle with cross)
+mmCtx.fillStyle='#ff4422';
+for(const b of gotBosses){if(!b.mesh)continue;
+const bx=b.mesh.position.x,bz=b.mesh.position.z;
+if(Math.abs(bx-player.x)>1100||Math.abs(bz-player.z)>800)continue;
+const x=(bx-player.x)*scale+cx,z=(bz-player.z)*scale+cy;
+if(x>2&&x<243&&z>2&&z<166){mmCtx.beginPath();mmCtx.arc(x,z,5,0,Math.PI*2);mmCtx.fill();mmCtx.strokeStyle='#fff';mmCtx.lineWidth=2;mmCtx.stroke();mmCtx.lineWidth=1;
+mmCtx.strokeStyle='#fff';mmCtx.beginPath();mmCtx.moveTo(x-3,z);mmCtx.lineTo(x+3,z);mmCtx.moveTo(x,z-3);mmCtx.lineTo(x,z+3);mmCtx.stroke();}}
+// Named NPCs (small gold dot)
+mmCtx.fillStyle='#ffd96a';
+for(const n of namedNPCs){
+if(Math.abs(n.x-player.x)>900||Math.abs(n.z-player.z)>700)continue;
+const x=(n.x-player.x)*scale+cx,z=(n.z-player.z)*scale+cy;
+if(x>2&&x<243&&z>2&&z<166){mmCtx.beginPath();mmCtx.arc(x,z,2,0,Math.PI*2);mmCtx.fill()}}
+}catch(e){}
+};
+
+// ---- 8. PER-FRAME HOOK ----------------------------------------------
+const _v10Orig=window.requestAnimationFrame;
+let _v10Last=0;
+window.requestAnimationFrame=function(cb){
+return _v10Orig.call(window,function(t){
+const dt=(t-_v10Last)/16;_v10Last=t;
+try{updateGoTBosses(dt)}catch(e){}
+try{updateNamedNPCs(dt)}catch(e){}
+cb(t);
+});
+};
+
+// ---- 9. HUD HINT ----------------------------------------------------
+setTimeout(()=>{
+const c=document.getElementById('controls');if(c)c.innerHTML+=' &middot; <b style="color:#ff8844">⚔ Westeros opens</b>';
+},13000);
+
+log('=== v10 Expansion loaded: '+Object.keys(GOT_MOBS).length+' GoT mobs · '+GOT_ITEMS.length+' GoT items · '+GOT_BOSSES.length+' iconic bosses · '+GOT_CITIES.length+' cities · '+NAMED_NPCS_DATA.length+' named lords ===','#ff8844');
+})();
+// =====================================================================
+
+// =====================================================================
+// ===  v11 EXPANSION  (Guild Wars 2: cities, Elder Dragons, gear)   ===
+// =====================================================================
+(function v11Expansion(){
+// ---- 1. GW2 MONSTERS ------------------------------------------------
+const GW2_MOBS={
+// Centaurs
+centaur_tamini:{hp:90,col:0x6a4a3a},centaur_harathi:{hp:160,col:0x554433},centaur_modniir:{hp:280,col:0x3a2a20,boss:false},
+centaur_warlord:{hp:480,col:0x2a1a10,boss:true},
+// Skritt
+skritt:{hp:35,col:0x886655},skritt_thief:{hp:55,col:0x664433},skritt_skirmisher:{hp:80,col:0x4a3a20},
+// Risen
+risen_corpse:{hp:55,col:0x4a5a3a},risen_thrall:{hp:90,col:0x556a44},risen_brute:{hp:200,col:0x3a4a2a,boss:false},
+risen_priest:{hp:280,col:0x2a3a1a,boss:false},
+// Branded
+branded_devourer:{hp:140,col:0x9a3a8a},branded_minotaur:{hp:280,col:0x7a2a6a,boss:false},
+branded_warrior:{hp:240,col:0x5a1a4a,boss:false},branded_dragon_spawn:{hp:520,col:0x8a44ff,boss:true},
+// Mordrem
+mordrem_husk:{hp:120,col:0x447733},mordrem_thrasher:{hp:280,col:0x336622,boss:false},
+mordrem_teragriff:{hp:380,col:0x225511,boss:true},mordrem_wolf:{hp:160,col:0x3a5a30},
+// Awakened (Joko)
+awakened_canid:{hp:80,col:0x886633},awakened_warrior:{hp:180,col:0x553322,boss:false},
+awakened_doppelganger:{hp:340,col:0x442211,boss:false},
+// Forged
+forged_assassin:{hp:200,col:0xcc6644},forged_warrior:{hp:280,col:0xaa5533,boss:false},
+forged_collossus:{hp:680,col:0x884422,boss:true},
+// Inquest
+inquest_assistant:{hp:75,col:0x8855aa},inquest_researcher:{hp:130,col:0x6644aa},
+inquest_golem:{hp:380,col:0x4a3a8a,boss:false},golem_mk2:{hp:550,col:0x3a2a6a,boss:true},
+// Bandits / Sons of Svanir / Flame Legion / Nightmare Court
+bandit:{hp:80,col:0x554433},bandit_thug:{hp:140,col:0x443322},
+sons_of_svanir:{hp:160,col:0xa0c0e0},svanir_shaman:{hp:280,col:0x88aacc,boss:false},
+flame_legion:{hp:120,col:0xcc4422},flame_legion_shaman:{hp:240,col:0xaa3311,boss:false},
+nightmare_courtier:{hp:140,col:0x553355},nightmare_knight:{hp:280,col:0x442244,boss:false},
+// Creatures
+drake_marsh:{hp:160,col:0x447755},drake_reef:{hp:160,col:0x336666},
+devourer_sand:{hp:75,col:0x886644},devourer_lashtail:{hp:130,col:0x664422},
+skale:{hp:75,col:0x447766},krait_slaver:{hp:160,col:0x336655,boss:false},
+quaggan:{hp:40,col:0xaaccdd},quaggan_warrior:{hp:140,col:0x88aacc,boss:false},
+hylek:{hp:55,col:0xccaa33},largos_assassin:{hp:240,col:0x335577,boss:false},
+ogre_gw:{hp:280,col:0x664433,boss:false},jotun_warrior:{hp:340,col:0x886633,boss:false},
+grawl:{hp:60,col:0x554433},grawl_shaman:{hp:160,col:0x443322,boss:false},
+// Champions & Legendaries
+shatterer_minion:{hp:240,col:0xaa44ff},
+champion_branded:{hp:680,col:0x6a22aa,boss:true},
+karka:{hp:320,col:0x886633,boss:false},karka_queen:{hp:1400,col:0x664422,boss:true},
+fire_imp:{hp:55,col:0xff5520},chak_lobber:{hp:240,col:0x6622aa,boss:false},
+jotun_gold:{hp:420,col:0xddcc66,boss:true},
+// Elder Dragons & Champions
+zhaitan:{hp:5200,col:0x4a5a3a,boss:true},kralkatorrik:{hp:5800,col:0x6622aa,boss:true},
+mordremoth:{hp:5400,col:0x336622,boss:true},jormag:{hp:5600,col:0x88ccff,boss:true},
+primordus:{hp:5800,col:0xcc3322,boss:true},aurene:{hp:4800,col:0xddccff,boss:true},
+soo_won:{hp:5400,col:0x4488aa,boss:true},shatterer_boss:{hp:3800,col:0xaa44ff,boss:true},
+tequatl:{hp:4200,col:0x223322,boss:true},claw_jormag:{hp:3600,col:0xaaccff,boss:true},
+balthazar_god:{hp:6500,col:0xff5500,boss:true},joko_lich:{hp:5000,col:0xcc66cc,boss:true},
+// Aetherblade / Jade Brotherhood / Speakers
+aetherblade_thug:{hp:140,col:0x665544},aetherblade_captain:{hp:340,col:0x443322,boss:true},
+jade_brotherhood:{hp:160,col:0x336655},
+elemental_air:{hp:200,col:0x88ccff,boss:false},
+elemental_fire:{hp:200,col:0xff5520,boss:false},
+elemental_earth:{hp:280,col:0x886644,boss:false},
+elemental_water:{hp:200,col:0x4488aa,boss:false}
+};
+for(const k in GW2_MOBS){if(eHP[k]==null)eHP[k]=GW2_MOBS[k].hp;if(eCol[k]==null)eCol[k]=GW2_MOBS[k].col;
+if(!questRewards[k]){const hp=GW2_MOBS[k].hp;questRewards[k]={xp:Math.max(45,Math.round(hp*0.8)),gold:Math.max(80,Math.round(hp*2.6))}}}
+
+// ---- 2. GW2 LEGENDARY GEAR CATALOG ----------------------------------
+const GW2_ITEMS=[
+// Legendary weapons (Tyria's named legendaries)
+['The Bifrost','Weapon',92,4,40,'mythic','Rainbow staff — leaves a glittering trail'],
+['Eternity','Weapon',108,5,88,'mythic','Greatsword combining Sunrise and Twilight'],
+['Sunrise','Weapon',98,5,82,'mythic','Greatsword of pure light'],
+['Twilight','Weapon',98,5,82,'mythic','Greatsword of pure shadow'],
+['Bolt','Weapon',88,4,72,'mythic','Lightning-wreathed sword'],
+['Quip','Weapon',60,2,42,'legendary','Pistol that fires confetti & damage'],
+['Frenzy','Weapon',82,4,68,'legendary','Mace of pure fury'],
+['Frostfang','Weapon',88,5,72,'mythic','Axe of frozen wrath'],
+['The Predator','Weapon',88,3,72,'mythic','Rifle that shoots lasers'],
+['Howler','Weapon',45,2,30,'legendary','Warhorn of wolf souls'],
+['Kudzu','Weapon',82,2,68,'mythic','Living-wood longbow — flowers as you walk'],
+['Kraitkin','Weapon',75,3,55,'legendary','Trident of the Krait God'],
+['Meteorlogicus','Weapon',75,3,32,'legendary','Scepter of starlight'],
+['Incinerator','Weapon',82,3,65,'mythic','Burning dagger of pure flame'],
+['Juggernaut','Weapon',98,5,82,'mythic','Hammer of liquid mercury'],
+['The Flameseeker Prophecies','Offhand',5,82,15,'mythic','Shield of glowing prophecy'],
+['The Moot','Weapon',82,4,65,'legendary','Disco-ball mace of pure cheer'],
+['The Minstrel','Offhand',3,55,8,'legendary','Focus of musical magic'],
+['Astralaria','Weapon',98,5,82,'mythic','Astrolabe-axe — stars on every swing'],
+['HOPE','Offhand',5,68,12,'mythic','Focus of pure optimism'],
+['Nevermore','Weapon',96,4,30,'mythic','Raven-shaped legendary staff'],
+['Pharus','Offhand',4,72,10,'legendary','Lighthouse-shaped torch'],
+['Chuka and Champawat','Weapon',92,3,78,'mythic','Shortbow with tiger-spirit'],
+['Verdarach','Weapon',88,4,72,'mythic','Living-vine axe'],
+['Claw of the Khan-Ur','Weapon',90,4,72,'mythic','Charr-legacy dagger'],
+['Aurene\'s Tail','Weapon',95,4,76,'mythic','Aurene-crystal sword'],
+['Aurene\'s Argent','Weapon',95,4,76,'mythic','Aurene-crystal greatsword'],
+['Aurene\'s Wisdom','Weapon',92,3,40,'mythic','Crystal Dragon staff'],
+['Aurene\'s Reach','Weapon',88,3,72,'mythic','Crystal Dragon longbow'],
+['Aurene\'s Voice','Offhand',4,52,8,'mythic','Crystal Dragon warhorn'],
+['Conflux Ring','Ring',3,5,8,'legendary','Legendary WvW ring'],
+['Coalescence Trinket','Trinket',4,5,8,'legendary','Legendary accessory'],
+['Vision Trinket','Trinket',4,5,8,'legendary','Legendary back-piece'],
+['Transcendence','Trinket',4,5,8,'legendary','Legendary amulet'],
+['Prismatic Champion\'s Regalia','Cloak',2,52,12,'legendary','Legendary back-piece'],
+// Cultural T3 sets — Human Aristocrat (heavy)
+['Aristocrat Helm','Helm',2,40,10,'legendary','Krytan noble heavy helm'],
+['Aristocrat Cuirass','Armor',2,75,18,'legendary','Krytan noble cuirass'],
+['Aristocrat Gauntlets','Hand',2,32,8,'legendary','Krytan noble gauntlets'],
+['Aristocrat Greaves','Legs',2,55,12,'legendary','Krytan noble greaves'],
+['Aristocrat Boots','Boots',2,30,8,'legendary','Krytan noble sabatons'],
+['Aristocrat Pauldrons','Shoulder',2,32,8,'legendary','Krytan noble pauldrons'],
+// Cultural T3 — Norn Wolfborn (heavy)
+['Wolfborn Mask','Helm',3,48,14,'legendary','Norn wolf-mask helm'],
+['Wolfborn Cuirass','Armor',3,82,20,'legendary','Norn wolf-pelt heavy chest'],
+['Wolfborn Gauntlets','Hand',3,36,10,'legendary','Norn fur gauntlets'],
+['Wolfborn Greaves','Legs',3,62,14,'legendary','Norn heavy greaves'],
+['Wolfborn Boots','Boots',3,35,10,'legendary','Norn heavy boots'],
+// Cultural T3 — Asura Magitech (medium)
+['Magitech Visor','Helm',2,32,5,'legendary','Asuran circuitry visor'],
+['Magitech Coat','Armor',2,60,10,'legendary','Asuran magnetic coat'],
+['Magitech Gauntlets','Hand',2,25,5,'legendary','Asuran tech gauntlets'],
+['Magitech Leggings','Legs',2,45,8,'legendary','Asuran tech leggings'],
+['Magitech Boots','Boots',2,25,5,'legendary','Asuran tech boots'],
+// Cultural T3 — Sylvari Cultivated (light)
+['Cultivated Tendril','Helm',1,28,3,'legendary','Sylvari leaf-and-vine helm'],
+['Cultivated Vestments','Armor',1,52,8,'legendary','Sylvari living-cloth chest'],
+['Cultivated Gauntlets','Hand',1,22,3,'legendary','Sylvari vine gauntlets'],
+['Cultivated Leggings','Legs',1,40,6,'legendary','Sylvari living-cloth leggings'],
+['Cultivated Boots','Boots',1,22,3,'legendary','Sylvari root boots'],
+// Cultural T3 — Charr Citadel Champion (heavy)
+['Citadel Champion Helm','Helm',3,52,16,'legendary','Charr iron-forged helm'],
+['Citadel Champion Cuirass','Armor',3,88,22,'legendary','Charr iron-forged cuirass'],
+['Citadel Champion Gauntlets','Hand',3,40,12,'legendary','Charr-claws gauntlets'],
+['Citadel Champion Greaves','Legs',3,68,16,'legendary','Charr heavy greaves'],
+['Citadel Champion Boots','Boots',3,38,11,'legendary','Charr iron boots'],
+// Legendary armor (Triumphant / Envoy / Perfected)
+['Mistforged Triumphant Crown','Helm',4,55,18,'mythic','Legendary WvW armor — heavy crown'],
+['Mistforged Triumphant Plate','Armor',4,95,25,'mythic','Legendary WvW armor — chest'],
+['Mistforged Triumphant Greaves','Legs',4,72,18,'mythic','Legendary WvW armor — legs'],
+['Mistforged Triumphant Sabatons','Boots',4,42,12,'mythic','Legendary WvW armor — boots'],
+['Mistforged Triumphant Gauntlets','Hand',4,42,12,'mythic','Legendary WvW armor — hands'],
+['Envoy\'s Herald Helm','Helm',4,55,18,'mythic','Legendary raid armor'],
+['Envoy\'s Herald Chest','Armor',4,95,25,'mythic','Legendary raid armor'],
+['Envoy\'s Herald Leggings','Legs',4,72,18,'mythic','Legendary raid armor'],
+['Perfected Envoy Helm','Helm',5,60,20,'mythic','Legendary tier-3 armor'],
+['Perfected Envoy Chest','Armor',5,108,28,'mythic','Legendary tier-3 armor'],
+// Elder Dragon trophies
+['Zhaitan\'s Eye','Trinket',5,5,5,'mythic','Eye of the Dragon of Death'],
+['Kralkatorrik\'s Brand','Trinket',5,5,5,'mythic','Branded crystal of the Crystal Dragon'],
+['Mordremoth\'s Seed','Trinket',5,5,5,'mythic','Living seed of the Plant Dragon'],
+['Jormag\'s Whisper','Trinket',5,5,5,'mythic','Ice shard of the Ice Dragon'],
+['Primordus\' Heart','Trinket',5,5,5,'mythic','Smouldering core of the Fire Dragon'],
+['Aurene\'s Tear','Trinket',5,5,5,'mythic','Crystal tear of the Pale Dragon'],
+['Soo-Won Scale','Trinket',5,5,5,'mythic','Scale of the Water Dragon'],
+// Misc
+['Mystic Forge Stone','Trinket',0,0,0,'rare','Catalyst for the Mystic Forge'],
+['Endless Mystery Tonic','Trinket',0,0,0,'legendary','Transforms you into a random creature'],
+['Chak Egg Sac','Trinket',2,2,2,'epic','Chak resin trinket'],
+['Mawdrey II','Trinket',3,3,3,'legendary','Sentient back-flower'],
+['Princess (Mini)','Trinket',0,0,0,'epic','A small kitten that follows you'],
+['Karka Egg','Trinket',1,2,1,'epic','Karka egg pet'],
+['Black Lion Chest Key','Trinket',0,0,0,'rare','Opens a Black Lion Chest'],
+['Permanent Bank Access Express','Trinket',0,0,0,'legendary','Anytime bank access'],
+['Bag of Coins (Mystic)','Trinket',0,0,0,'epic','100-500 gold burst']
+];
+const GW2_ITEM_MAP={};for(const it of GW2_ITEMS){GW2_ITEM_MAP[it[0]]={atk:it[2],def:it[3],str:it[4],slot:it[1],rarity:it[5],desc:it[6]}}
+function grantGW2Item(name){
+const t=GW2_ITEM_MAP[name];if(!t)return null;
+let item;
+if(typeof createUniqueItem==='function'&&t.slot){item=createUniqueItem(name,t.atk,t.def,t.str,t.slot,t.rarity)}
+else{item={name:name,uid:'gw2_'+Math.floor(Math.random()*1e9),atk:t.atk,def:t.def,str:t.str,slot:t.slot,rarity:t.rarity};if(typeof itemDB==='object'&&itemDB!==null)itemDB[item.uid]=item}
+if(inventory.length<28){inventory.push({name:item.name,uid:item.uid});if(typeof updateInvUI==='function')updateInvUI()}
+return item;
+}
+window.__grantGW2Item=grantGW2Item;
+window.__rollGW2Item=function(){
+const r=Math.random();const tier=r<.55?'epic':(r<.88?'legendary':'mythic');
+const pool=GW2_ITEMS.filter(it=>it[5]===tier);
+return (pool.length?pool:GW2_ITEMS)[Math.floor(Math.random()*(pool.length||GW2_ITEMS.length))][0];
+};
+
+// ---- 3. GW2 ELDER DRAGON BOSS MESHES --------------------------------
+function buildKralkatorrikMesh(){
+const g=new THREE.Group();
+const scale=3.2;
+const crystalMat=new MS({color:0x6622aa,roughness:.3,metalness:.6,emissive:0x4400aa,emissiveIntensity:.7});
+const darkMat=new MS({color:0x2a0a3a,roughness:.7,emissive:0x110011,emissiveIntensity:.2});
+// Massive body
+const body=new THREE.Mesh(new THREE.SphereGeometry(scale*1.8,14,10),crystalMat);body.position.y=scale*2;body.scale.set(1,.7,2);body.castShadow=true;g.add(body);
+// Crystal spikes erupting from back
+for(let i=0;i<14;i++){const a=i/14*Math.PI*2;const sp=new THREE.Mesh(new THREE.OctahedronGeometry(scale*.4),crystalMat);
+sp.position.set(Math.cos(a)*scale*1.2,scale*3+i*.1,Math.sin(a)*scale*1.0);sp.rotation.set(Math.random(),Math.random(),Math.random());g.add(sp);}
+// Head (crystalline)
+const head=new THREE.Mesh(new THREE.OctahedronGeometry(scale*1.2),crystalMat);head.position.set(0,scale*2.8,scale*3.5);g.add(head);
+// Glowing eyes
+for(const sx of [-.5,.5]){const e=new THREE.Mesh(new THREE.SphereGeometry(scale*.2,6,6),new THREE.MeshBasicMaterial({color:0xff00ff}));e.position.set(sx*scale,scale*3.2,scale*4);g.add(e)}
+// Massive wings with crystals
+for(const ws of [-1,1]){
+const wing=new THREE.Mesh(new THREE.PlaneGeometry(scale*8,scale*5),new MS({color:0x6622aa,side:THREE.DoubleSide,roughness:.4,emissive:0x440088,emissiveIntensity:.4}));
+wing.position.set(ws*scale*3.5,scale*3.5,0);wing.rotation.set(.3,ws*.5,ws*-.4);wing.castShadow=true;g.add(wing);
+// Crystals on wings
+for(let i=0;i<4;i++){const c=new THREE.Mesh(new THREE.OctahedronGeometry(scale*.25),crystalMat);c.position.set(ws*scale*(2+i*1),scale*3.5,scale*(i*.4));g.add(c)}
+}
+// Tail
+const tail=new THREE.Mesh(new THREE.ConeGeometry(scale*.55,scale*7,6),crystalMat);tail.position.set(0,scale*1.8,scale*-4);tail.rotation.x=-Math.PI/2;g.add(tail);
+// Tail spikes
+for(let i=0;i<6;i++){const sp=new THREE.Mesh(new THREE.OctahedronGeometry(scale*.18),crystalMat);sp.position.set(Math.cos(i*2)*scale*.4,scale*2.1,scale*(-2.5-i*.8));g.add(sp);}
+// Legs
+for(const lx of [-1,1]){for(const lz of [-1.2,1.2]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(scale*.45,scale*.35,scale*1.6,6),darkMat);leg.position.set(lx*scale*1.3,scale*.8,lz*scale);g.add(leg)}}
+// Aura
+const aura=new THREE.PointLight(0xaa44ff,5,80);aura.position.y=scale*3;g.add(aura);
+return g;
+}
+function buildJormagMesh(){
+const g=new THREE.Group();
+const scale=3.0;
+const iceMat=new MS({color:0xb0d0e8,roughness:.3,metalness:.6,emissive:0x4488cc,emissiveIntensity:.5,transparent:true,opacity:.92});
+const darkIce=new MS({color:0x6699cc,roughness:.5,emissive:0x223355,emissiveIntensity:.4});
+// Body (icy serpent)
+const body=new THREE.Mesh(new THREE.SphereGeometry(scale*1.6,14,10),iceMat);body.position.y=scale*2;body.scale.set(1,.7,1.8);body.castShadow=true;g.add(body);
+// Ice spikes (jagged)
+for(let i=0;i<16;i++){const a=i/16*Math.PI*2;const sp=new THREE.Mesh(new THREE.ConeGeometry(scale*.3,scale*1.5,4),iceMat);
+sp.position.set(Math.cos(a)*scale*1.3,scale*3+i*.08,Math.sin(a)*scale*1.1);sp.rotation.set(Math.random()*.4,Math.random(),Math.random()*.4);g.add(sp);}
+// Head with frost crown
+const head=new THREE.Mesh(new THREE.ConeGeometry(scale*1.1,scale*2.4,8),iceMat);head.position.set(0,scale*2.6,scale*3.5);head.rotation.x=Math.PI/2;g.add(head);
+// Crown of ice
+for(let i=0;i<6;i++){const sp=new THREE.Mesh(new THREE.ConeGeometry(scale*.2,scale*1.4,4),darkIce);
+sp.position.set((-.5+i*.2)*scale,scale*3.5,scale*3);sp.rotation.x=-.4;g.add(sp);}
+// Glowing icy eyes
+for(const sx of [-.5,.5]){const e=new THREE.Mesh(new THREE.SphereGeometry(scale*.22,6,6),new THREE.MeshBasicMaterial({color:0x88ccff}));e.position.set(sx*scale,scale*3,scale*4);g.add(e)}
+// Wings (ice planes)
+for(const ws of [-1,1]){
+const wing=new THREE.Mesh(new THREE.PlaneGeometry(scale*8,scale*5),new MS({color:0xb0d0e8,side:THREE.DoubleSide,roughness:.4,emissive:0x4488cc,emissiveIntensity:.3,transparent:true,opacity:.7}));
+wing.position.set(ws*scale*3.5,scale*3.8,0);wing.rotation.set(.3,ws*.5,ws*-.4);wing.castShadow=true;g.add(wing);
+}
+const aura=new THREE.PointLight(0x88ccff,5,80);aura.position.y=scale*3;g.add(aura);
+return g;
+}
+function buildMordremothMesh(){
+const g=new THREE.Group();
+const scale=3.0;
+const plantMat=new MS({color:0x4a7a3a,roughness:.7,emissive:0x224422,emissiveIntensity:.4});
+const woodMat=new MS({color:0x553322,roughness:.85});
+const glowMat=new MS({color:0x88ff44,roughness:.4,emissive:0x44ff22,emissiveIntensity:1.2});
+// Massive plant body
+const body=new THREE.Mesh(new THREE.SphereGeometry(scale*1.7,12,10),plantMat);body.position.y=scale*2;body.scale.set(1,.8,1.6);body.castShadow=true;g.add(body);
+// Vines/tentacles erupting
+for(let i=0;i<10;i++){const a=i/10*Math.PI*2;const len=2+Math.random()*3;
+const vine=new THREE.Mesh(new THREE.CylinderGeometry(scale*.15,scale*.3,scale*len,6),woodMat);
+vine.position.set(Math.cos(a)*scale*1.5,scale*1.8+Math.random()*1.5,Math.sin(a)*scale*1.5);
+vine.rotation.set((Math.random()-.5)*.6,a,(Math.random()-.5)*.6);g.add(vine);
+// Glowing tip
+const tip=new THREE.Mesh(new THREE.SphereGeometry(scale*.25,8,8),glowMat);
+tip.position.set(Math.cos(a)*scale*1.5+Math.cos(a)*scale*len*.5,scale*1.8+scale*len,Math.sin(a)*scale*1.5+Math.sin(a)*scale*len*.5);g.add(tip);}
+// Maw of teeth
+const maw=new THREE.Mesh(new THREE.SphereGeometry(scale*1.1,10,10),woodMat);maw.position.set(0,scale*2.4,scale*3);g.add(maw);
+// Teeth ring
+for(let i=0;i<12;i++){const a=i/12*Math.PI*2;const tooth=new THREE.Mesh(new THREE.ConeGeometry(scale*.18,scale*.7,4),new MS({color:0xeeddaa}));
+tooth.position.set(Math.cos(a)*scale*.9,scale*2.4,scale*3+Math.sin(a)*scale*.3);tooth.rotation.x=-.3;g.add(tooth);}
+// Glowing inner light
+const aura=new THREE.PointLight(0x44ff44,5,90);aura.position.y=scale*2;g.add(aura);
+return g;
+}
+function buildZhaitanMesh(){
+const g=new THREE.Group();
+const scale=3.4;
+const decayMat=new MS({color:0x4a5a3a,roughness:.85,emissive:0x223322,emissiveIntensity:.3});
+const boneMat=new MS({color:0xddcc99,roughness:.7});
+const glowMat=new MS({color:0xff5520,emissive:0xff3300,emissiveIntensity:1.5});
+// Skeletal-rotting body
+const body=new THREE.Mesh(new THREE.SphereGeometry(scale*1.6,12,8),decayMat);body.position.y=scale*2;body.scale.set(1,.7,1.8);body.castShadow=true;g.add(body);
+// Ribcage
+for(let i=0;i<8;i++){const rib=new THREE.Mesh(new THREE.TorusGeometry(scale*1.5-i*.15,scale*.1,4,12,Math.PI),boneMat);
+rib.position.set(0,scale*1.4+i*.18,scale*(-1.5+i*.4));rib.rotation.x=Math.PI/2;g.add(rib);}
+// Head
+const head=new THREE.Mesh(new THREE.ConeGeometry(scale*1.0,scale*2.2,8),boneMat);head.position.set(0,scale*2.5,scale*3.5);head.rotation.x=Math.PI/2;g.add(head);
+// Glowing orange eye sockets
+for(const sx of [-.5,.5]){const e=new THREE.Mesh(new THREE.SphereGeometry(scale*.22,6,6),glowMat);e.position.set(sx*scale,scale*3,scale*4);g.add(e)}
+// Tattered wings
+for(const ws of [-1,1]){
+const wing=new THREE.Mesh(new THREE.PlaneGeometry(scale*7,scale*4.5),new MS({color:0x4a5a3a,side:THREE.DoubleSide,roughness:.85,emissive:0x113311,emissiveIntensity:.3,transparent:true,opacity:.8}));
+wing.position.set(ws*scale*3,scale*3.5,0);wing.rotation.set(.3,ws*.5,ws*-.4);wing.castShadow=true;g.add(wing);
+// Tatters (holes)
+for(let i=0;i<3;i++){const hole=new THREE.Mesh(new THREE.CircleGeometry(scale*.4,8),new MS({color:0x000000,transparent:true,opacity:.6}));
+hole.position.set(ws*scale*(1.5+i*1.5),scale*3.5,scale*.05);g.add(hole)}
+}
+// Tail
+const tail=new THREE.Mesh(new THREE.ConeGeometry(scale*.5,scale*6,6),decayMat);tail.position.set(0,scale*1.8,scale*-3.5);tail.rotation.x=-Math.PI/2;g.add(tail);
+// Aura
+const aura=new THREE.PointLight(0xff4422,5,80);aura.position.y=scale*2.5;g.add(aura);
+return g;
+}
+function buildAureneMesh(){
+const g=new THREE.Group();
+const scale=2.6;
+const crystalMat=new MS({color:0xddccff,roughness:.2,metalness:.55,emissive:0xaa88ff,emissiveIntensity:.65,transparent:true,opacity:.95});
+const palerMat=new MS({color:0xeeddff,roughness:.15,metalness:.6,emissive:0xccaaff,emissiveIntensity:.8});
+// Body (similar to Drogon but smaller and crystalline)
+const body=new THREE.Mesh(new THREE.SphereGeometry(scale*1.4,14,10),crystalMat);body.position.y=scale*2;body.scale.set(1,.7,1.7);body.castShadow=true;g.add(body);
+// Crystalline scales (octahedra along the back)
+for(let i=0;i<10;i++){const sp=new THREE.Mesh(new THREE.OctahedronGeometry(scale*.25),palerMat);sp.position.set(0,scale*3+i*.05,scale*(-1.6+i*.4));g.add(sp);}
+// Head
+const head=new THREE.Mesh(new THREE.ConeGeometry(scale*.85,scale*1.8,8),crystalMat);head.position.set(0,scale*2.4,scale*2.8);head.rotation.x=Math.PI/2;g.add(head);
+// Glowing prism eyes
+for(const sx of [-.4,.4]){const e=new THREE.Mesh(new THREE.OctahedronGeometry(scale*.15),new THREE.MeshBasicMaterial({color:0x88aaff}));e.position.set(sx*scale,scale*2.7,scale*3.2);g.add(e)}
+// Crystal horns
+for(const sx of [-1,1]){const h=new THREE.Mesh(new THREE.OctahedronGeometry(scale*.3),palerMat);h.position.set(sx*scale*.6,scale*3,scale*2.4);g.add(h)}
+// Wings (translucent crystal)
+for(const ws of [-1,1]){
+const wing=new THREE.Mesh(new THREE.PlaneGeometry(scale*6.5,scale*4),new MS({color:0xddccff,side:THREE.DoubleSide,roughness:.2,emissive:0xaa88ff,emissiveIntensity:.5,transparent:true,opacity:.75}));
+wing.position.set(ws*scale*3,scale*3.5,0);wing.rotation.set(.3,ws*.5,ws*-.4);wing.castShadow=true;g.add(wing);
+}
+// Tail
+const tail=new THREE.Mesh(new THREE.ConeGeometry(scale*.4,scale*5,6),crystalMat);tail.position.set(0,scale*1.8,scale*-3);tail.rotation.x=-Math.PI/2;g.add(tail);
+// Light aura
+const aura=new THREE.PointLight(0xaa99ff,4,80);aura.position.y=scale*2.5;g.add(aura);
+return g;
+}
+function buildShattererMesh(){
+const m=buildKralkatorrikMesh();
+m.scale.multiplyScalar(.85);m.traverse(o=>{if(o.material&&o.material.emissive)o.material=o.material.clone()});
+return m;
+}
+
+const GW2_BOSSES=[
+{key:'kralk_gw',name:'Kralkatorrik, the Crystal Dragon',hp:5800,x:5500,z:-1200,radius:240,dmg:118,build:buildKralkatorrikMesh,col:0x6622aa,
+ drops:['Kralkatorrik\'s Brand','Astralaria','Aurene\'s Tail','Aurene\'s Argent']},
+{key:'jormag_gw',name:'Jormag, the Ice Dragon',hp:5600,x:200,z:-5400,radius:220,dmg:112,build:buildJormagMesh,col:0x88ccff,
+ drops:['Jormag\'s Whisper','Frostfang','Eternity','Frenzy']},
+{key:'mordremoth_gw',name:'Mordremoth, the Plant Dragon',hp:5400,x:-5800,z:2200,radius:220,dmg:115,build:buildMordremothMesh,col:0x336622,
+ drops:['Mordremoth\'s Seed','Kudzu','Nevermore','Verdarach']},
+{key:'zhaitan_gw',name:'Zhaitan, the Dragon of Death',hp:5200,x:5200,z:2400,radius:220,dmg:110,build:buildZhaitanMesh,col:0x4a5a3a,
+ drops:['Zhaitan\'s Eye','Twilight','Incinerator','The Predator']},
+{key:'aurene_gw',name:'Aurene, the Crystal Pact Dragon',hp:4800,x:-5500,z:-1100,radius:200,dmg:95,build:buildAureneMesh,col:0xddccff,
+ drops:['Aurene\'s Tear','Aurene\'s Tail','Aurene\'s Argent','Aurene\'s Wisdom','Aurene\'s Reach','Aurene\'s Voice']},
+{key:'shatterer_gw',name:'The Shatterer',hp:3800,x:3800,z:-3000,radius:180,dmg:90,build:buildShattererMesh,col:0xaa44ff,
+ drops:['Kralkatorrik\'s Brand','Astralaria','Sunrise','Twilight']}
+];
+
+const gw2Bosses=[];
+function spawnGW2Boss(b){
+const mesh=b.build();
+mesh.position.set(b.x,meshTerrainH(b.x,b.z)+18,b.z);
+scene.add(mesh);
+const lblC=document.createElement('canvas');lblC.width=896;lblC.height=80;
+const ctx=lblC.getContext('2d');ctx.fillStyle='rgba(0,0,0,.72)';ctx.fillRect(0,0,896,80);
+ctx.font='bold 32px serif';ctx.textAlign='center';ctx.fillStyle='#aa88ff';ctx.fillText('🐉 '+b.name+' 🐉',448,50);
+const tex=new THREE.CanvasTexture(lblC);
+const lbl=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+lbl.scale.set(40,4,1);lbl.position.y=24;mesh.add(lbl);
+const ib={mesh:mesh,name:b.name,key:b.key,hp:b.hp,maxHp:b.hp,home:{x:b.x,z:b.z},radius:b.radius,dmg:b.dmg,col:b.col,drops:b.drops,patrolAngle:Math.random()*Math.PI*2,attackCD:0};
+gw2Bosses.push(ib);
+return ib;
+}
+function damageGW2Boss(ib,dmg){
+ib.hp-=dmg;
+if(ib.hp<=0){
+log('🐉 '+ib.name+' has fallen! Tyria is changed.','#aa88ff');
+for(const it of ib.drops){if(Math.random()<.5)grantGW2Item(it)}
+if(ib.drops.length)grantGW2Item(ib.drops[0]);
+grantGW2Item(window.__rollGW2Item());
+const gold=4000+Math.floor(Math.random()*3000);
+if(inventory.length<28)inventory.push({name:'Gold Coins x'+gold,uid:null});
+if(typeof addSkillPoints==='function')addSkillPoints(6);
+skills.Attack.xp+=1500;skills.Strength.xp+=1500;skills.Defence.xp+=1500;skills.Hitpoints.xp+=1200;
+updateInvUI();updateXpBar();
+scene.remove(ib.mesh);
+const idx=gw2Bosses.indexOf(ib);if(idx>=0)gw2Bosses.splice(idx,1);
+setTimeout(()=>{const seed=GW2_BOSSES.find(x=>x.key===ib.key);if(seed)spawnGW2Boss(seed)},900000);
+}
+}
+window.__damageGW2Boss=damageGW2Boss;
+setTimeout(()=>{for(const b of GW2_BOSSES)spawnGW2Boss(b);log('🐉 The Elder Dragons of Tyria have manifested 🐉','#aa88ff')},13500);
+
+function updateGW2Bosses(dt){
+for(const ib of gw2Bosses){
+if(!ib.mesh)continue;
+const dx=player.x-ib.mesh.position.x,dz=player.z-ib.mesh.position.z;
+const dist=Math.hypot(dx,dz);
+if(dist<ib.radius*0.6){
+const a=Math.atan2(dz,dx);
+ib.mesh.position.x+=Math.cos(a)*0.13;ib.mesh.position.z+=Math.sin(a)*0.13;
+ib.mesh.rotation.y=-a-Math.PI/2;
+if(dist<14&&ib.attackCD<=0){
+ib.attackCD=80;
+const def=window.__getDefenseBonus?window.__getDefenseBonus():0;
+const dmg=Math.round(ib.dmg*(1-def));
+player.hp=Math.max(0,player.hp-dmg);
+log('🐉 '+ib.name+' strikes for '+dmg+'!','#ff4422');
+if(typeof hitFX==='function')hitFX(player.x,player.y+3,player.z,ib.col);
+}
+} else {
+ib.patrolAngle+=0.005;
+const tx=ib.home.x+Math.cos(ib.patrolAngle)*ib.radius*0.45;
+const tz=ib.home.z+Math.sin(ib.patrolAngle)*ib.radius*0.45;
+const a=Math.atan2(tz-ib.mesh.position.z,tx-ib.mesh.position.x);
+ib.mesh.position.x+=Math.cos(a)*0.09;ib.mesh.position.z+=Math.sin(a)*0.09;
+ib.mesh.rotation.y=-a-Math.PI/2;
+}
+ib.mesh.position.y=meshTerrainH(ib.mesh.position.x,ib.mesh.position.z)+22;
+ib.attackCD=Math.max(0,ib.attackCD-1);
+}}
+
+// ---- 4. GW2 CITIES WITH DISTINCTIVE GRAPHICS ------------------------
+function addGW2Sign(g,name,y,color){
+const lblC=document.createElement('canvas');lblC.width=896;lblC.height=80;
+const ctx=lblC.getContext('2d');ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillRect(0,0,896,80);
+ctx.font='bold 30px serif';ctx.textAlign='center';ctx.fillStyle=color||'#aaccff';ctx.fillText('⚜ '+name+' ⚜',448,50);
+const tex=new THREE.CanvasTexture(lblC);
+const lbl=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+lbl.scale.set(44,4,1);lbl.position.y=y;g.add(lbl);
+}
+
+function buildDivinitysReach(x,z){
+const g=new THREE.Group();
+const stone=new MS({color:0xeeccaa,roughness:.6,emissive:0x442200,emissiveIntensity:.15});
+const gold=new MS({color:0xffd770,roughness:.4,metalness:.7,emissive:0x553300,emissiveIntensity:.45});
+// Massive circular wall
+for(let i=0;i<16;i++){const ang=i/16*Math.PI*2;const wall=new THREE.Mesh(new THREE.BoxGeometry(20,18,3),stone);
+wall.position.set(Math.cos(ang)*50,9,Math.sin(ang)*50);wall.rotation.y=-ang;wall.castShadow=true;g.add(wall);}
+// 6 district towers (six gods)
+for(let i=0;i<6;i++){const ang=i/6*Math.PI*2;const t=new THREE.Mesh(new THREE.CylinderGeometry(5,6,30,10),stone);
+t.position.set(Math.cos(ang)*38,15,Math.sin(ang)*38);t.castShadow=true;g.add(t);
+const cap=new THREE.Mesh(new THREE.ConeGeometry(6,7,10),gold);cap.position.set(Math.cos(ang)*38,33.5,Math.sin(ang)*38);g.add(cap);}
+// Central statue plaza
+const statue=new THREE.Mesh(new THREE.CylinderGeometry(8,10,4,12),gold);statue.position.y=2;g.add(statue);
+// Queen's Heart center spire (massive)
+const spire=new THREE.Mesh(new THREE.CylinderGeometry(7,9,60,12),stone);spire.position.y=30;spire.castShadow=true;g.add(spire);
+const spireCap=new THREE.Mesh(new THREE.ConeGeometry(9,15,12),gold);spireCap.position.y=67.5;g.add(spireCap);
+// Sunburst at top
+for(let i=0;i<12;i++){const a=i/12*Math.PI*2;const ray=new THREE.Mesh(new THREE.BoxGeometry(1,5,.3),gold);ray.position.set(Math.cos(a)*5,75,Math.sin(a)*5);ray.rotation.z=-a;g.add(ray);}
+const aura=new THREE.PointLight(0xffd700,3,140);aura.position.y=50;g.add(aura);
+addGW2Sign(g,'Divinity\'s Reach',82,'#ffd770');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildHoelbrak(x,z){
+const g=new THREE.Group();
+const woodMat=new MS({color:0x553322,roughness:.85});
+const woodDark=new MS({color:0x331a11,roughness:.85});
+const fur=new MS({color:0x886655,roughness:.95});
+const stone=new MS({color:0x6a6655,roughness:.8});
+// Massive longhouse (Great Lodge)
+const lodge=new THREE.Mesh(new THREE.BoxGeometry(60,18,30),woodMat);lodge.position.y=9;lodge.castShadow=true;g.add(lodge);
+// Pitched roof
+const roofL=new THREE.Mesh(new THREE.BoxGeometry(60,1,18),woodDark);roofL.position.set(0,20,-7);roofL.rotation.x=-.3;g.add(roofL);
+const roofR=new THREE.Mesh(new THREE.BoxGeometry(60,1,18),woodDark);roofR.position.set(0,20,7);roofR.rotation.x=.3;g.add(roofR);
+// Giant wolf statue (Wolf shrine)
+const wolfBody=new THREE.Mesh(new THREE.BoxGeometry(8,6,18),fur);wolfBody.position.set(-25,8,20);g.add(wolfBody);
+const wolfHead=new THREE.Mesh(new THREE.BoxGeometry(6,5,6),fur);wolfHead.position.set(-25,9,30);g.add(wolfHead);
+// Wolf ears
+for(const sx of [-1,1]){const ear=new THREE.Mesh(new THREE.ConeGeometry(1.5,2.5,4),fur);ear.position.set(-25+sx*2,12.5,30);g.add(ear);}
+// Wolf glowing eyes
+for(const sx of [-1,1]){const e=new THREE.Mesh(new THREE.SphereGeometry(.4,6,6),new THREE.MeshBasicMaterial({color:0xffaa00}));e.position.set(-25+sx*1.5,10,33);g.add(e);}
+// Giant bear statue
+const bearBody=new THREE.Mesh(new THREE.SphereGeometry(7,12,10),fur);bearBody.position.set(25,7,20);bearBody.scale.set(1,.9,1.4);g.add(bearBody);
+const bearHead=new THREE.Mesh(new THREE.SphereGeometry(4,10,10),fur);bearHead.position.set(25,8,30);g.add(bearHead);
+// Bear glowing eyes
+for(const sx of [-1,1]){const e=new THREE.Mesh(new THREE.SphereGeometry(.4,6,6),new THREE.MeshBasicMaterial({color:0xff6600}));e.position.set(25+sx*1.5,9,33);g.add(e);}
+// Banner poles
+for(const sx of [-25,25]){const pole=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,28,6),woodMat);pole.position.set(sx,14,-15);g.add(pole);
+const flag=new THREE.Mesh(new THREE.PlaneGeometry(4,6),new MS({color:0x553322,side:THREE.DoubleSide}));flag.position.set(sx+2,22,-15);g.add(flag);}
+// Stone steps to entrance
+for(let i=0;i<4;i++){const st=new THREE.Mesh(new THREE.BoxGeometry(20-i*2,1,3),stone);st.position.set(0,.5+i*1,15+i*1);g.add(st);}
+addGW2Sign(g,'Hoelbrak',38,'#ddccaa');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildRataSum(x,z){
+const g=new THREE.Group();
+const asuraMat=new MS({color:0xeeeeff,roughness:.4,metalness:.5,emissive:0x4488cc,emissiveIntensity:.7});
+const glow=new MS({color:0x88ccff,emissive:0x88ccff,emissiveIntensity:1.5,roughness:.2});
+// Floating cube (the city)
+const cube=new THREE.Mesh(new THREE.BoxGeometry(40,40,40),asuraMat);cube.position.y=40;cube.castShadow=true;g.add(cube);
+// Smaller cubes attached at corners
+for(const sx of [-1,1]){for(const sy of [-1,1]){for(const sz of [-1,1]){const sc=new THREE.Mesh(new THREE.BoxGeometry(12,12,12),asuraMat);sc.position.set(sx*22,40+sy*22,sz*22);g.add(sc);}}}
+// Energy rings around (Asura tech) — torus rings
+for(let i=0;i<3;i++){const ring=new THREE.Mesh(new THREE.TorusGeometry(30+i*5,.5,6,32),glow);ring.position.y=40;ring.rotation.x=i*.5;g.add(ring);}
+// Magnetic suspension lines (visible blue beams from ground)
+for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const beam=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,40,6),glow);beam.position.set(Math.cos(a)*22,20,Math.sin(a)*22);g.add(beam);}
+// Energy core (glowing center)
+const core=new THREE.Mesh(new THREE.SphereGeometry(6,12,12),glow);core.position.y=40;g.add(core);
+const aura=new THREE.PointLight(0x88ccff,8,200);aura.position.y=40;g.add(aura);
+addGW2Sign(g,'Rata Sum',88,'#88ccff');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildTheGrove(x,z){
+const g=new THREE.Group();
+const bark=new MS({color:0x553322,roughness:.85});
+const leaf=new MS({color:0x44aa44,roughness:.7,emissive:0x224422,emissiveIntensity:.4});
+const flower=new MS({color:0xff88aa,emissive:0xaa4466,emissiveIntensity:.7,roughness:.5});
+// Massive Pale Tree
+const trunk=new THREE.Mesh(new THREE.CylinderGeometry(5,8,60,10),bark);trunk.position.y=30;trunk.castShadow=true;g.add(trunk);
+// Many leaf canopies
+for(let i=0;i<5;i++){const c=new THREE.Mesh(new THREE.SphereGeometry(20-i*2,14,12),leaf);c.position.y=55+i*5;c.scale.set(1+i*.1,.6+i*.1,1+i*.1);g.add(c);}
+// Glowing flowers in the tree
+for(let i=0;i<20;i++){const a=Math.random()*Math.PI*2;const r=15+Math.random()*8;const h=55+Math.random()*15;
+const fl=new THREE.Mesh(new THREE.SphereGeometry(1.2,8,8),flower);fl.position.set(Math.cos(a)*r,h,Math.sin(a)*r);g.add(fl);}
+// Mushroom-pod buildings around
+for(let i=0;i<7;i++){const a=i/7*Math.PI*2;const r=25;const stem=new THREE.Mesh(new THREE.CylinderGeometry(2,2.5,8,8),bark);
+stem.position.set(Math.cos(a)*r,4,Math.sin(a)*r);g.add(stem);
+const cap=new THREE.Mesh(new THREE.SphereGeometry(5,12,8,0,Math.PI*2,0,Math.PI/2),leaf);cap.position.set(Math.cos(a)*r,8,Math.sin(a)*r);g.add(cap);}
+const aura=new THREE.PointLight(0x66ff66,4,160);aura.position.y=60;g.add(aura);
+addGW2Sign(g,'The Grove',98,'#88ff88');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildBlackCitadel(x,z){
+const g=new THREE.Group();
+const iron=new MS({color:0x333333,roughness:.65,metalness:.7,emissive:0x110000,emissiveIntensity:.2});
+const fire=new MS({color:0xff4400,emissive:0xff2200,emissiveIntensity:1.5});
+const stone=new MS({color:0x554a40,roughness:.85});
+// Massive industrial fortress core
+const core=new THREE.Mesh(new THREE.BoxGeometry(60,30,60),stone);core.position.y=15;core.castShadow=true;g.add(core);
+// Iron plating
+const plate=new THREE.Mesh(new THREE.BoxGeometry(58,3,58),iron);plate.position.y=31;g.add(plate);
+// 4 huge smokestacks
+for(const sx of [-1,1]){for(const sz of [-1,1]){const stack=new THREE.Mesh(new THREE.CylinderGeometry(3,4,35,8),iron);stack.position.set(sx*20,30,sz*20);stack.castShadow=true;g.add(stack);
+// Glow at top
+const glow=new THREE.Mesh(new THREE.SphereGeometry(2.5,8,8),fire);glow.position.set(sx*20,48,sz*20);g.add(glow);}}
+// Central forge spire
+const spire=new THREE.Mesh(new THREE.BoxGeometry(15,40,15),iron);spire.position.y=50;spire.castShadow=true;g.add(spire);
+const spireTop=new THREE.Mesh(new THREE.ConeGeometry(8,8,4),iron);spireTop.position.y=74;g.add(spireTop);
+// War machines (catapults / artillery) around
+for(let i=0;i<4;i++){const a=i/4*Math.PI*2;const cat=new THREE.Mesh(new THREE.BoxGeometry(6,4,8),iron);cat.position.set(Math.cos(a)*36,2,Math.sin(a)*36);cat.rotation.y=-a;g.add(cat);
+const arm=new THREE.Mesh(new THREE.BoxGeometry(.8,8,.8),iron);arm.position.set(Math.cos(a)*36,6,Math.sin(a)*36);arm.rotation.z=.5;g.add(arm);}
+// Outer wall (jagged)
+for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const wall=new THREE.Mesh(new THREE.BoxGeometry(20,12,3),iron);wall.position.set(Math.cos(a)*45,6,Math.sin(a)*45);wall.rotation.y=-a+Math.PI/2;g.add(wall);}
+// Forge glow
+const flameLight=new THREE.PointLight(0xff4400,5,120);flameLight.position.y=50;g.add(flameLight);
+addGW2Sign(g,'The Black Citadel',82,'#ff8844');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildLionsArch(x,z){
+const g=new THREE.Group();
+const wood=new MS({color:0x553322,roughness:.85});
+const stone=new MS({color:0x886655,roughness:.7});
+const blue=new MS({color:0x4488aa,roughness:.4,transparent:true,opacity:.7});
+const gold=new MS({color:0xffcc44,roughness:.4,metalness:.7,emissive:0x553300,emissiveIntensity:.4});
+// Lighthouse — massive central tower
+const ltBase=new THREE.Mesh(new THREE.CylinderGeometry(8,12,18,10),stone);ltBase.position.y=9;ltBase.castShadow=true;g.add(ltBase);
+const ltMid=new THREE.Mesh(new THREE.CylinderGeometry(5,8,22,10),stone);ltMid.position.y=29;g.add(ltMid);
+const ltTop=new THREE.Mesh(new THREE.CylinderGeometry(7,5,8,10),stone);ltTop.position.y=44;g.add(ltTop);
+const ltCap=new THREE.Mesh(new THREE.ConeGeometry(8,6,10),new MS({color:0x885533}));ltCap.position.y=51;g.add(ltCap);
+// Glowing light at top
+const light=new THREE.Mesh(new THREE.SphereGeometry(2.5,10,10),new THREE.MeshBasicMaterial({color:0xffeeaa}));light.position.y=46;g.add(light);
+const beam=new THREE.PointLight(0xffeeaa,8,200);beam.position.y=46;g.add(beam);
+// Docks (multiple piers)
+for(let i=0;i<4;i++){const ang=i/4*Math.PI*2;const pier=new THREE.Mesh(new THREE.BoxGeometry(3,1,40),wood);pier.position.set(Math.cos(ang)*30,1,Math.sin(ang)*30);pier.rotation.y=-ang;g.add(pier);}
+// Ships at piers (simple hulls)
+for(let i=0;i<3;i++){const a=i/3*Math.PI*2;const hull=new THREE.Mesh(new THREE.BoxGeometry(8,4,16),wood);hull.position.set(Math.cos(a)*42,3,Math.sin(a)*42);hull.rotation.y=-a;g.add(hull);
+const mast=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,12,6),wood);mast.position.set(Math.cos(a)*42,9,Math.sin(a)*42);g.add(mast);
+const sail=new THREE.Mesh(new THREE.PlaneGeometry(6,8),new MS({color:0xeeeeee,side:THREE.DoubleSide}));sail.position.set(Math.cos(a)*42,10,Math.sin(a)*42);g.add(sail);}
+// Pirate lion statue
+const lion=new THREE.Mesh(new THREE.SphereGeometry(3,10,10),gold);lion.position.set(0,3,-15);g.add(lion);
+// Water surrounding
+const water=new THREE.Mesh(new THREE.RingGeometry(15,60,32),blue);water.rotation.x=-Math.PI/2;water.position.y=.3;g.add(water);
+addGW2Sign(g,'Lion\'s Arch',60,'#88ccff');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildNewKaineng(x,z){
+const g=new THREE.Group();
+const red=new MS({color:0xaa3322,roughness:.6,emissive:0x331100,emissiveIntensity:.2});
+const gold=new MS({color:0xffcc44,roughness:.4,metalness:.6,emissive:0x553300,emissiveIntensity:.4});
+const dark=new MS({color:0x222222,roughness:.7});
+// Pagoda — central tower (multi-tiered)
+for(let i=0;i<5;i++){const w=18-i*2.5;const h=8;const tier=new THREE.Mesh(new THREE.BoxGeometry(w,h,w),red);tier.position.y=4+i*h;g.add(tier);
+// Curved corner-up roof
+const roof=new THREE.Mesh(new THREE.BoxGeometry(w+2,1,w+2),dark);roof.position.y=4+i*h+h/2;g.add(roof);}
+// Top pinnacle
+const pin=new THREE.Mesh(new THREE.ConeGeometry(2,5,8),gold);pin.position.y=48;g.add(pin);
+// Lanterns hanging on chains
+for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const r=12;const lt=new THREE.Mesh(new THREE.SphereGeometry(1.2,8,8),new THREE.MeshBasicMaterial({color:0xff9966}));lt.position.set(Math.cos(a)*r,18,Math.sin(a)*r);g.add(lt);}
+// Outer walls with low pagoda buildings
+for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const r=28;const hb=new THREE.Mesh(new THREE.BoxGeometry(8,8,10),red);hb.position.set(Math.cos(a)*r,4,Math.sin(a)*r);hb.rotation.y=-a;g.add(hb);
+const hr=new THREE.Mesh(new THREE.BoxGeometry(10,1,12),dark);hr.position.set(Math.cos(a)*r,8.5,Math.sin(a)*r);hr.rotation.y=-a;g.add(hr);}
+// Cherry blossoms (pink spheres)
+for(let i=0;i<15;i++){const a=Math.random()*Math.PI*2;const r=15+Math.random()*15;const cb=new THREE.Mesh(new THREE.SphereGeometry(2,8,8),new MS({color:0xffaabb,emissive:0x553344,emissiveIntensity:.3}));cb.position.set(Math.cos(a)*r,8+Math.random()*8,Math.sin(a)*r);g.add(cb);}
+addGW2Sign(g,'New Kaineng City',60,'#ffaabb');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildAmnoon(x,z){
+const g=new THREE.Group();
+const sand=new MS({color:0xeed6a0,roughness:.7,emissive:0x553300,emissiveIntensity:.15});
+const palm=new MS({color:0x4a7733,roughness:.85});
+const wood=new MS({color:0x553322,roughness:.85});
+// Sandstone keep
+const keep=new THREE.Mesh(new THREE.BoxGeometry(25,18,25),sand);keep.position.y=9;keep.castShadow=true;g.add(keep);
+// Dome on top
+const dome=new THREE.Mesh(new THREE.SphereGeometry(12,12,10,0,Math.PI*2,0,Math.PI/2),sand);dome.position.y=18;g.add(dome);
+// Palm trees around
+for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const r=18;const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.5,.7,10,6),wood);trunk.position.set(Math.cos(a)*r,5,Math.sin(a)*r);g.add(trunk);
+for(let j=0;j<5;j++){const fa=j/5*Math.PI*2;const frond=new THREE.Mesh(new THREE.PlaneGeometry(4,1),new MS({color:0x447733,side:THREE.DoubleSide}));frond.position.set(Math.cos(a)*r+Math.cos(fa)*2,11,Math.sin(a)*r+Math.sin(fa)*2);frond.rotation.set(0,-fa,.4);g.add(frond);}}
+// Oasis pool
+const pool=new THREE.Mesh(new THREE.CircleGeometry(8,16),new MS({color:0x4488aa,transparent:true,opacity:.7}));pool.rotation.x=-Math.PI/2;pool.position.set(0,.3,-25);g.add(pool);
+addGW2Sign(g,'Amnoon',40,'#ddcc88');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+const GW2_CITIES=[
+{n:'Divinity\'s Reach',x:-4800,z:3000,build:buildDivinitysReach},
+{n:'Hoelbrak',x:-200,z:-3300,build:buildHoelbrak},
+{n:'Rata Sum',x:5500,z:2900,build:buildRataSum},
+{n:'The Grove',x:-5500,z:1500,build:buildTheGrove},
+{n:'The Black Citadel',x:5000,z:-3800,build:buildBlackCitadel},
+{n:'Lion\'s Arch',x:2400,z:3300,build:buildLionsArch},
+{n:'New Kaineng City',x:5800,z:2200,build:buildNewKaineng},
+{n:'Amnoon',x:3000,z:4300,build:buildAmnoon}
+];
+const gw2Cities=[];
+setTimeout(()=>{
+for(const c of GW2_CITIES){try{
+const m=c.build(c.x,c.z);
+gw2Cities.push({x:c.x,z:c.z,name:c.n,mesh:m});
+makeEnterable(c.x,c.z+30,'castle',c.n+' Gates');
+if(typeof teleports!=='undefined'&&teleports.push)teleports.push({name:c.n,x:c.x,z:c.z,unlocked:true});
+}catch(e){console.warn('city '+c.n+' failed',e)}}
+log('🐉 '+GW2_CITIES.length+' Guild Wars 2 cities founded across Tyria 🐉','#aa88ff');
+if(window.__v8&&window.__v8.rebuildEntryPrompts)window.__v8.rebuildEntryPrompts();
+},14000);
+
+// ---- 5. LOOT INTEGRATION --------------------------------------------
+const _v11SpawnLoot=spawnLoot;
+spawnLoot=function(x,z,e){
+const r=_v11SpawnLoot(x,z,e);
+try{
+const hp=(e&&e.maxHp)||0;
+let chance=0,tier=null;
+if(hp>=2500){chance=.55;tier='mythic'}
+else if(hp>=800){chance=.18;tier='legendary'}
+else if(hp>=300){chance=.05;tier='epic'}
+if(chance>0&&Math.random()<chance){
+const pool=GW2_ITEMS.filter(it=>it[5]===tier);
+if(pool.length){const name=pool[Math.floor(Math.random()*pool.length)][0];grantGW2Item(name);log('🐉 Tyrian legendary: '+name+'!','#aa88ff')}
+}
+}catch(e){}
+return r;
+};
+
+// ---- 6. MINIMAP MARKERS ---------------------------------------------
+const _v11DrawMM=drawMinimap;
+drawMinimap=function(){
+_v11DrawMM();
+try{
+const scale=.12,cx=125,cy=84;
+// GW2 cities (light purple triangle)
+mmCtx.fillStyle='#aa88ff';
+for(const c of gw2Cities){
+if(Math.abs(c.x-player.x)>1100||Math.abs(c.z-player.z)>800)continue;
+const x=(c.x-player.x)*scale+cx,z=(c.z-player.z)*scale+cy;
+if(x>2&&x<243&&z>2&&z<166){mmCtx.beginPath();mmCtx.moveTo(x,z-5);mmCtx.lineTo(x+4,z+3);mmCtx.lineTo(x-4,z+3);mmCtx.closePath();mmCtx.fill();mmCtx.strokeStyle='#000';mmCtx.stroke()}}
+// GW2 Elder Dragons (purple star)
+mmCtx.fillStyle='#cc44ff';
+for(const b of gw2Bosses){if(!b.mesh)continue;
+const bx=b.mesh.position.x,bz=b.mesh.position.z;
+if(Math.abs(bx-player.x)>1100||Math.abs(bz-player.z)>800)continue;
+const x=(bx-player.x)*scale+cx,z=(bz-player.z)*scale+cy;
+if(x>2&&x<243&&z>2&&z<166){for(let i=0;i<5;i++){const a=(i/5-.25)*Math.PI*2;const r=i%2?2:5;mmCtx[i===0?'beginPath':'lineTo'](x+Math.cos(a)*r,z+Math.sin(a)*r);if(i===0)mmCtx.moveTo(x+Math.cos(a)*r,z+Math.sin(a)*r);}mmCtx.fill();mmCtx.strokeStyle='#fff';mmCtx.stroke()}}
+}catch(e){}
+};
+
+// ---- 7. PER-FRAME HOOK ----------------------------------------------
+const _v11Orig=window.requestAnimationFrame;
+let _v11Last=0;
+window.requestAnimationFrame=function(cb){
+return _v11Orig.call(window,function(t){
+const dt=(t-_v11Last)/16;_v11Last=t;
+try{updateGW2Bosses(dt)}catch(e){}
+cb(t);
+});
+};
+
+setTimeout(()=>{const c=document.getElementById('controls');if(c)c.innerHTML+=' &middot; <b style="color:#aa88ff">🐉 Tyria opens</b>';},14500);
+
+log('=== v11 Expansion loaded: '+Object.keys(GW2_MOBS).length+' GW2 mobs · '+GW2_ITEMS.length+' GW2 items · '+GW2_BOSSES.length+' Elder Dragons · '+GW2_CITIES.length+' cities ===','#aa88ff');
+})();
+// =====================================================================
+
+// =====================================================================
+// ===  v12 MEGAPACK  (Witcher 3, BG3, Chrono Trigger, FF7,           ==
+// ===                 Elden Ring, Fallout New Vegas, Diablo)        ===
+// =====================================================================
+(function v12Expansion(){
+
+// ---- 1. MONSTERS ACROSS 7 IPs ---------------------------------------
+const MEGA_MOBS={
+// === WITCHER 3 ===
+drowner:{hp:75,col:0x4a6a4a},nekker:{hp:55,col:0x5a4a3a},nekker_warrior:{hp:130,col:0x4a3a20,boss:false},
+wraith:{hp:200,col:0xaaccdd,boss:false},noonwraith:{hp:280,col:0xeeeeee,boss:true},nightwraith:{hp:280,col:0x444466,boss:true},
+striga:{hp:380,col:0x8a4a4a,boss:true},leshen:{hp:520,col:0x3a4a2a,boss:true},
+fiend:{hp:680,col:0x5a3a20,boss:true},bruxa:{hp:340,col:0x331122,boss:true},
+katakan:{hp:380,col:0x2a1a1a,boss:false},botchling:{hp:240,col:0xeeccaa,boss:false},
+witcher_wolf:{hp:55,col:0x444444},endrega:{hp:110,col:0x886633},rotfiend:{hp:90,col:0x4a3a2a},
+basilisk_wt:{hp:380,col:0x6a8a3a,boss:false},cockatrice_wt:{hp:280,col:0x885522,boss:false},
+golem_wt:{hp:550,col:0x6a6a6a,boss:true},gargoyle_wt:{hp:340,col:0x554a40,boss:false},
+nilfgaardian_soldier:{hp:90,col:0x222222},nilfgaardian_knight:{hp:240,col:0x111111,boss:false},
+wild_hunt_warrior:{hp:380,col:0x88aaff,boss:false},wild_hunt_hound:{hp:280,col:0x6688cc,boss:false},
+eredin_kit:{hp:3200,col:0x4488ff,boss:true},caranthir_kit:{hp:2400,col:0x2266cc,boss:true},
+// === BALDUR'S GATE 3 ===
+mind_flayer:{hp:680,col:0x6a4a8a,boss:true},intellect_devourer:{hp:80,col:0x884466},
+goblin_bg3:{hp:35,col:0x5a6633},hobgoblin_bg3:{hp:110,col:0x445533},
+bugbear:{hp:160,col:0x4a3a20},drow_warrior:{hp:140,col:0x331a4a},drow_priestess:{hp:220,col:0x442266,boss:false},
+beholder:{hp:480,col:0x884a4a,boss:true},spectator:{hp:240,col:0x664a4a,boss:false},
+owlbear:{hp:280,col:0x886644,boss:false},owlbear_cub:{hp:80,col:0xaa8855},
+gnoll:{hp:90,col:0x886633},gnoll_flesh_gnawer:{hp:140,col:0x664422},
+hag_bg3:{hp:340,col:0x553355,boss:true},cambion:{hp:220,col:0x88332a,boss:false},
+tadpole_creature:{hp:280,col:0x884a8a,boss:false},
+elder_brain:{hp:5800,col:0x6a3a8a,boss:true},
+ketheric_thorm:{hp:4400,col:0x554455,boss:true},
+orin_red:{hp:3800,col:0xaa3322,boss:true},
+gortash_lord:{hp:3600,col:0x554433,boss:true},
+// === CHRONO TRIGGER ===
+imp_ct:{hp:30,col:0x5a8a3a},reptite:{hp:80,col:0x4a6a3a},bantam_imp:{hp:55,col:0x885533},
+robot_t1:{hp:120,col:0xaaaaaa},robot_t2:{hp:220,col:0x888888,boss:false},
+yakra:{hp:480,col:0x884a22,boss:true},heckran:{hp:680,col:0x4488aa,boss:true},
+magus_kit:{hp:2200,col:0x4422aa,boss:true},dragon_tank:{hp:1400,col:0x886622,boss:true},
+giga_gaia:{hp:2800,col:0x886644,boss:true},lavos_core:{hp:7500,col:0xaa3322,boss:true},
+mother_brain:{hp:2200,col:0xff66aa,boss:true},
+nu:{hp:280,col:0x4a6a8a,boss:false},
+black_omen_guard:{hp:340,col:0x442266,boss:false},
+prehistoric_t_rex:{hp:1200,col:0x886633,boss:true},
+// === FF7 ===
+shinra_soldier:{hp:90,col:0x4a5a6a},shinra_mp:{hp:140,col:0x3a4a5a,boss:false},
+turk:{hp:280,col:0x222222,boss:false},soldier_3rd_class:{hp:240,col:0x4488aa},
+soldier_1st_class:{hp:680,col:0x224488,boss:true},
+sephiroth:{hp:6500,col:0xeeeeee,boss:true},jenova_kit:{hp:4400,col:0xaa6688,boss:true},
+diamond_weapon:{hp:5200,col:0xaaccff,boss:true},ruby_weapon:{hp:5500,col:0xaa3322,boss:true},
+emerald_weapon:{hp:5400,col:0x447733,boss:true},ultimate_weapon:{hp:5000,col:0xddaa44,boss:true},
+bahamut:{hp:4200,col:0x88aacc,boss:true},ifrit_kit:{hp:3200,col:0xcc4422,boss:true},
+shiva_kit:{hp:3200,col:0x88ccdd,boss:true},
+cactuar:{hp:80,col:0x88aa55},tonberry:{hp:340,col:0x4a6a44,boss:true},
+marlboro:{hp:480,col:0x6a8833,boss:true},
+behemoth_ff7:{hp:680,col:0x664422,boss:true},
+malboro_great:{hp:680,col:0x556622,boss:true},
+zolom:{hp:1200,col:0x664433,boss:true},
+// === ELDEN RING ===
+soldier_godrick:{hp:55,col:0x554433},soldier_radahn:{hp:120,col:0x665544,boss:false},
+crucible_knight:{hp:480,col:0xaa9966,boss:true},tree_sentinel:{hp:680,col:0xddccaa,boss:true},
+black_knife_assassin:{hp:340,col:0x222222,boss:true},
+beastman:{hp:160,col:0x554433},beastman_alpha:{hp:340,col:0x3a2a1a,boss:false},
+putrid_tree_spirit:{hp:480,col:0x886644,boss:true},
+erdtree_avatar:{hp:1200,col:0xddcc66,boss:true},
+grafted_scion:{hp:580,col:0x553322,boss:true},
+margit_omen:{hp:2400,col:0x886633,boss:true},
+godrick_grafted:{hp:3200,col:0x554433,boss:true},
+rennala_queen:{hp:2800,col:0xddccff,boss:true},
+starscourge_radahn:{hp:4800,col:0xff5522,boss:true},
+morgott_omen_king:{hp:3800,col:0x6a4a3a,boss:true},
+malenia_blade:{hp:4400,col:0xff4466,boss:true},
+maliketh_black_blade:{hp:4200,col:0x222222,boss:true},
+radagon_golden:{hp:5200,col:0xddaa44,boss:true},
+elden_beast:{hp:6800,col:0xffeebb,boss:true},
+// === FALLOUT NEW VEGAS ===
+deathclaw:{hp:1200,col:0x6a5a4a,boss:true},
+deathclaw_alpha:{hp:1800,col:0x554433,boss:true},
+legendary_deathclaw:{hp:2400,col:0x332211,boss:true},
+cazador:{hp:280,col:0x4a3322,boss:false},
+radscorpion:{hp:140,col:0x885522},giant_radscorpion:{hp:340,col:0x664433,boss:false},
+yao_guai:{hp:380,col:0x553322,boss:false},
+super_mutant:{hp:280,col:0x447733,boss:false},super_mutant_master:{hp:680,col:0x335522,boss:true},
+feral_ghoul:{hp:75,col:0x886644},glowing_one:{hp:240,col:0x88cc44,boss:false},
+ncr_trooper:{hp:130,col:0x886655},ncr_veteran:{hp:240,col:0x664433,boss:false},
+caesars_legion:{hp:110,col:0x884422},legion_centurion:{hp:340,col:0x553322,boss:false},
+fiend_drug:{hp:90,col:0x7a4a3a},
+powder_ganger:{hp:75,col:0x554433},
+mr_house_kit:{hp:2200,col:0xaaccff,boss:true},
+benny:{hp:1100,col:0x554433,boss:true},
+caesar_lanius:{hp:3200,col:0x886622,boss:true},
+robocom_mk2:{hp:1800,col:0x445566,boss:true},
+// === DIABLO ===
+fallen_imp:{hp:35,col:0x553322},fallen_one:{hp:55,col:0x664433},fallen_shaman:{hp:110,col:0x886655,boss:false},
+skeleton_diablo:{hp:55,col:0xccc8a8},skeleton_archer:{hp:75,col:0xbbb8a0},
+zombie_diablo:{hp:60,col:0x4a6a3a},risen_dead:{hp:80,col:0x554a30},
+gargantuan_diablo:{hp:340,col:0x553322,boss:false},
+abominable_horror:{hp:480,col:0x4a3322,boss:true},
+oblivion_knight:{hp:680,col:0x331a3a,boss:true},
+andariel:{hp:2800,col:0xaa3344,boss:true},
+duriel:{hp:3200,col:0x4488aa,boss:true},
+mephisto:{hp:4400,col:0x6622aa,boss:true},
+diablo_lord:{hp:6500,col:0xaa1111,boss:true},
+baal_destruction:{hp:5800,col:0x664433,boss:true},
+lilith_queen:{hp:6200,col:0xaa4466,boss:true},
+inarius:{hp:5400,col:0xddccff,boss:true},
+belial_lies:{hp:4400,col:0x4a3a8a,boss:true},
+azmodan_sin:{hp:5200,col:0x88332a,boss:true},
+imperius:{hp:5800,col:0xddaa44,boss:true},
+butcher_dnd:{hp:2400,col:0xaa4422,boss:true}
+};
+for(const k in MEGA_MOBS){if(eHP[k]==null)eHP[k]=MEGA_MOBS[k].hp;if(eCol[k]==null)eCol[k]=MEGA_MOBS[k].col;
+if(!questRewards[k]){const hp=MEGA_MOBS[k].hp;questRewards[k]={xp:Math.max(50,Math.round(hp*0.8)),gold:Math.max(80,Math.round(hp*2.5))}}}
+
+// ---- 2. ITEMS ACROSS 7 IPs ------------------------------------------
+const MEGA_ITEMS=[
+// === WITCHER 3 ===
+['Aerondight','Weapon',105,5,82,'mythic','Silver sword of the Lady of the Lake'],
+['Iris','Weapon',92,4,72,'mythic','Cursed steel of Olgierd von Everec'],
+['Gnomish Silver Sword','Weapon',88,4,68,'legendary','Pure silver of dwarven craft'],
+['Viper School Steel Sword','Weapon',82,4,65,'legendary','School of the Viper relic'],
+['Wolf School Steel Sword','Weapon',86,4,68,'legendary','School of the Wolf relic'],
+['Bear School Steel Sword','Weapon',92,5,75,'legendary','Heavy School of the Bear'],
+['Cat School Steel Sword','Weapon',78,3,62,'legendary','Swift School of the Cat'],
+['Griffin School Steel Sword','Weapon',82,4,65,'legendary','Magical School of the Griffin'],
+['Manticore School Steel Sword','Weapon',88,4,70,'legendary','Hybrid School of the Manticore'],
+['Wolf School Armor','Armor',2,82,18,'legendary','Witcher heavy armor — wolf medallion'],
+['Bear School Armor','Armor',3,98,22,'legendary','Witcher heavy armor — bear'],
+['Cat School Armor','Armor',1,52,10,'legendary','Witcher light armor — cat'],
+['Griffin School Armor','Armor',2,72,14,'legendary','Witcher medium armor — griffin'],
+['Manticore School Armor','Armor',2,78,16,'legendary','Witcher medium armor — manticore'],
+['Geralt\'s Crossbow','Weapon',55,2,40,'epic','Standard hunter\'s crossbow'],
+['Dancing Star Bomb','Trinket',3,0,5,'epic','Incendiary alchemical bomb'],
+['Northern Wind Bomb','Trinket',3,0,5,'epic','Freezing alchemical bomb'],
+['Dragon\'s Dream Bomb','Trinket',5,0,8,'legendary','Flammable gas cloud bomb'],
+['Witcher\'s Wolf Medallion','Necklace',2,4,5,'legendary','Vibrates near monsters'],
+['Cat Eye Potion','Trinket',0,0,0,'epic','See in darkness'],
+['Tawny Owl Potion','Trinket',0,0,2,'epic','Regenerate stamina'],
+['Swallow Potion','Trinket',0,2,2,'epic','Regenerate health'],
+// === BALDUR'S GATE 3 ===
+['Phalar Aluve','Weapon',88,3,68,'legendary','Sentient drow shortsword — sings'],
+['Blood of Lathander','Weapon',95,4,72,'mythic','Holy mace of the Dawnlord'],
+['Bloodthirst','Weapon',82,3,65,'legendary','Vampiric dagger that thirsts'],
+['Selune\'s Spear of Night','Weapon',85,3,68,'legendary','Lunar spear of the moon goddess'],
+['Wapira\'s Crown','Helm',3,42,10,'legendary','+grants healing on crit'],
+['Hellfire Crossbow','Weapon',88,3,70,'mythic','Diabolic infernal crossbow'],
+['Shadowflame Greataxe','Weapon',98,4,82,'mythic','2H axe wreathed in shadow'],
+['Sussur Sword','Weapon',75,3,55,'legendary','Sussur tree blade — anti-magic'],
+['Sword of Justice','Weapon',82,4,65,'legendary','Paladin\'s holy longsword'],
+['Soul Coin','Trinket',2,2,2,'legendary','Trapped soul of a damned mortal'],
+['Tadpole','Trinket',0,0,5,'rare','Squamous and unsettling'],
+['Mind Flayer Parasite','Trinket',5,0,5,'legendary','Ceremorphosis...'],
+['Karlach\'s Engine Heart','Trinket',3,3,8,'mythic','Infernal engine in chest'],
+['Dark Justiciar Mask','Helm',3,42,10,'legendary','Shar cultist mask'],
+['Lae\'zel\'s Silver Sword','Weapon',92,4,72,'mythic','Githyanki silver greatsword'],
+['Cap of Curing','Helm',1,32,5,'epic','Healing crit chance helm'],
+['Adamantine Splint Armor','Armor',5,108,28,'mythic','Indestructible plate'],
+['Adamantine Shield','Offhand',5,92,15,'mythic','Perfect block - foe staggered'],
+['Helldusk Armor','Armor',4,98,22,'legendary','Infernal heavy plate'],
+['Drow Boots of Elvenkind','Boots',1,28,5,'epic','Silent movement in darkness'],
+// === CHRONO TRIGGER ===
+['Masamune','Weapon',98,4,80,'mythic','Living blade — speaks with you'],
+['Rainbow Sword','Weapon',95,4,78,'mythic','Final sword forged from Sun Stone'],
+['Wondershot','Weapon',92,3,75,'mythic','Lucca\'s random-damage cannon'],
+['Crisis Arm','Weapon',88,3,72,'legendary','Robo\'s greatest fist'],
+['Dreamreaper','Weapon',88,4,68,'legendary','Frog\'s ultimate sword'],
+['Brave Sword','Weapon',82,4,65,'legendary','Frog\'s legendary blade'],
+['Doom Sickle','Weapon',92,3,75,'legendary','Magus\' scythe'],
+['Mop','Weapon',1,1,2,'rare','It\'s... a mop'],
+['Sun Stone','Trinket',5,5,5,'mythic','Light of the sun captured'],
+['Wings of Time','Trinket',0,0,0,'mythic','Allows time travel'],
+['Lumin Robe','Armor',1,42,5,'legendary','Magus\' robe of light'],
+['Nova Armor','Armor',3,85,18,'legendary','Highest-tier armor'],
+['PrismDress','Armor',1,55,8,'legendary','Marle\'s ultimate gown'],
+['Black Vest','Armor',2,72,15,'legendary','Crono\'s ultimate gi'],
+['Mermaid Cap','Helm',1,28,3,'epic','Breathe underwater'],
+['Iron Helm','Helm',2,38,8,'rare','Standard iron helm'],
+['Speed Tab','Trinket',0,0,8,'legendary','+1 speed permanently'],
+['Power Tab','Trinket',5,0,3,'legendary','+1 power permanently'],
+['Magic Tab','Trinket',3,3,3,'legendary','+1 magic permanently'],
+// === FF7 ===
+['Buster Sword','Weapon',92,4,75,'mythic','Cloud\'s signature 2H sword'],
+['Ultima Weapon','Weapon',108,5,88,'mythic','Strongest sword, scales with HP'],
+['Masamune (FF7)','Weapon',105,4,85,'mythic','Sephiroth\'s 7-foot katana'],
+['Save the Queen','Weapon',98,4,82,'mythic','Beatrix\'s ultimate'],
+['Apocalypse','Weapon',96,4,78,'legendary','Cloud\'s alt sword'],
+['Conformer','Weapon',92,3,75,'mythic','Yuffie\'s ultimate shuriken'],
+['Death Penalty','Weapon',102,3,82,'mythic','Vincent\'s ultimate gun'],
+['Venus Gospel','Weapon',92,4,75,'mythic','Cid\'s ultimate spear'],
+['Premium Heart','Weapon',98,4,78,'mythic','Tifa\'s ultimate fists'],
+['Princess Guard','Weapon',88,3,68,'legendary','Aerith\'s ultimate staff'],
+['Limited Moon','Weapon',92,4,72,'mythic','Red XIII\'s ultimate'],
+['Missing Score','Weapon',98,4,78,'mythic','Barret\'s ultimate gun-arm'],
+['Mystile','Armor',2,72,12,'legendary','High-tier armor with magic def'],
+['Ziedrich','Armor',3,95,22,'legendary','Highest-defense armor'],
+['Escort Guard','Armor',2,78,15,'legendary','Anti-attack armor'],
+['Edincoat','Armor',2,68,12,'legendary','Cid\'s armor'],
+['Master Materia (KOTR)','Trinket',5,5,5,'mythic','Knights of the Round summon'],
+['Mime Materia','Trinket',3,2,3,'legendary','Repeats last command'],
+['W-Summon Materia','Trinket',5,2,5,'mythic','Cast summon twice'],
+['HP Plus Materia','Trinket',0,5,0,'epic','+50% max HP'],
+['Counter Materia','Trinket',2,2,2,'epic','Counter-attack on hit'],
+// === ELDEN RING ===
+['Moonveil Katana','Weapon',98,4,78,'mythic','Conjures moonlight slash'],
+['Rivers of Blood','Weapon',95,3,75,'mythic','Bleed katana of Okina'],
+['Sword of Night and Flame','Weapon',102,4,82,'mythic','Cast moonlight or scorching flame'],
+['Blasphemous Blade','Weapon',105,5,85,'mythic','Cursed flame of the Lord of Blood'],
+['Dark Moon Greatsword','Weapon',102,4,82,'mythic','Ranni\'s moonlight greatsword'],
+['Marais Executioner\'s Sword','Weapon',98,4,80,'mythic','Eochaid\'s gravity sword'],
+['Bolt of Gransax','Weapon',95,4,75,'mythic','Dragon-killer lightning spear'],
+['Eclipse Shotel','Weapon',88,3,68,'legendary','Cursed crescent blade'],
+['Wing of Astel','Weapon',98,4,78,'legendary','Star-flecked curved sword'],
+['Bloodhound\'s Fang','Weapon',95,3,75,'mythic','Curved sword of bloodhound knight'],
+['Sword of St. Trina','Weapon',88,3,68,'legendary','Sleep-inducing blade'],
+['Maliketh\'s Black Blade','Weapon',108,5,88,'mythic','Sword of the Death Beast'],
+['Ruins Greatsword','Weapon',105,5,88,'mythic','Misbegotten\'s ruin greatsword'],
+['Greatsword (Colossal)','Weapon',98,4,90,'legendary','Massive Cleric Knight blade'],
+['Crucible Knight Armor','Armor',5,108,28,'mythic','Old order\'s plate'],
+['Bull-Goat Set Helm','Helm',5,55,18,'mythic','Massive horned poise-tank helm'],
+['Bull-Goat Set Chest','Armor',5,108,28,'mythic','Bull-Goat armor body'],
+['Tree Sentinel Armor','Armor',4,95,25,'mythic','Tree Sentinel plate'],
+['Black Knife Armor','Armor',3,75,15,'legendary','Black Knife Assassin set'],
+['Malenia\'s Armor','Armor',3,85,18,'mythic','Blade of Miquella armor'],
+['Marika\'s Soreseal','Ring',3,3,8,'legendary','+5 all stats, +15% damage taken'],
+['Radagon\'s Soreseal','Ring',5,5,8,'legendary','+5 all stats variant'],
+['Erdtree\'s Favor','Trinket',3,5,8,'legendary','+stamina/HP/equip load'],
+['Carian Filigreed Crest','Trinket',2,2,5,'legendary','-25% skill FP cost'],
+['Cerulean Hidden Tear','Trinket',0,0,0,'legendary','Wondrous Physick — no FP cost'],
+// === FALLOUT NEW VEGAS ===
+['Anti-Materiel Rifle','Weapon',108,3,88,'mythic','.50 BMG sniper'],
+['This Machine','Weapon',85,3,68,'legendary','M1 Garand .308'],
+['Ratslayer','Weapon',75,2,55,'legendary','Suppressed .22 sniper'],
+['Plasma Caster','Weapon',95,3,75,'mythic','Heavy plasma weapon'],
+['Lucky','Weapon',88,2,68,'mythic','.357 Magnum revolver — never miss'],
+['Mercy','Weapon',95,3,75,'legendary','40mm grenade machinegun'],
+['That Gun','Weapon',82,2,65,'legendary','5.56mm pistol (Blade Runner)'],
+['Maria','Weapon',88,2,68,'mythic','Benny\'s engraved 9mm pistol'],
+['Survivalist\'s Rifle','Weapon',92,2,70,'legendary','12.7mm in Honest Hearts'],
+['Holorifle','Weapon',95,3,72,'mythic','Energy holorifle (Dead Money)'],
+['Knock-Knock','Weapon',95,4,82,'mythic','Fire axe (Honest Hearts)'],
+['Ballistic Fist','Weapon',98,3,82,'mythic','Powered fist with shotgun'],
+['Pip-Boy 3000','Trinket',2,3,5,'mythic','Wrist-mounted info computer'],
+['Power Armor (T-45d)','Armor',5,98,28,'legendary','Pre-war heavy power armor'],
+['Power Armor (T-51b)','Armor',5,108,32,'mythic','Brotherhood elite power armor'],
+['Power Armor (X-01)','Armor',5,118,35,'mythic','Enclave advanced power armor'],
+['NCR Veteran Ranger Armor','Armor',3,82,18,'legendary','Trench coat + helmet'],
+['Legion Centurion Armor','Armor',3,72,16,'legendary','Roman-style plate'],
+['Stealth Boy','Trinket',0,0,0,'epic','Active camouflage'],
+['Implant GRX','Trinket',3,3,5,'legendary','Drug glands implanted'],
+['Lucky Shades','Helm',2,12,5,'legendary','+1 Luck eyewear'],
+['Faceless Mask','Helm',1,18,3,'epic','Disguise mask'],
+// === DIABLO ===
+['Stormshield','Offhand',5,92,15,'mythic','Diablo 2 paladin shield'],
+['The Grandfather','Weapon',102,5,85,'mythic','Diablo unique 2H sword'],
+['Windforce','Weapon',98,3,78,'mythic','Diablo unique bow'],
+['Buriza-Do Kyanon','Weapon',92,3,72,'legendary','Diablo unique crossbow'],
+['Shako (Harlequin Crest)','Helm',4,52,18,'mythic','+2 skills magic find helm'],
+['Enigma Rune Word Armor','Armor',5,98,25,'mythic','Teleport runeword'],
+['Infinity Rune Word','Weapon',95,4,78,'mythic','Conviction aura runeword'],
+['Heart of the Oak','Weapon',82,3,28,'mythic','Druid runeword staff'],
+['Spirit Sword','Weapon',75,3,52,'legendary','Runeword shield/sword'],
+['Hand of Justice','Weapon',95,4,75,'mythic','Holy Fire runeword'],
+['Doom Runeword','Weapon',98,5,80,'mythic','Holy Freeze runeword'],
+['Eaglehorn','Weapon',92,3,72,'legendary','Amazon unique bow'],
+['Wirt\'s Leg','Weapon',55,2,38,'legendary','Wooden leg secret weapon'],
+['Helm of Iron Maiden','Helm',3,42,12,'legendary','Iron Maiden aura helm'],
+['Vampire Gaze','Helm',3,52,15,'legendary','Damage reduction helm'],
+['Boots of Cow King','Boots',2,28,10,'legendary','Resists from secret cow'],
+['Andariel\'s Visage','Helm',4,55,18,'mythic','Skill boost helm'],
+['Mavina\'s Diadem','Helm',3,42,15,'legendary','Amazon set helm'],
+['Tal Rasha\'s Wrappings','Armor',3,82,18,'legendary','Sorceress set chest'],
+['Immortal King Armor','Armor',4,98,25,'mythic','Barbarian ultra set'],
+['Trang-Oul\'s Avatar','Armor',3,82,18,'legendary','Necromancer transform set'],
+['Khalim\'s Will','Weapon',62,2,45,'epic','Quest reward 1H'],
+['Horadric Cube','Trinket',2,2,2,'mythic','Magical transmutation cube'],
+['Soulstone of Diablo','Trinket',5,5,5,'mythic','Prime Evil soulstone'],
+['Soulstone of Mephisto','Trinket',5,5,5,'mythic','Lord of Hatred soulstone'],
+['Soulstone of Baal','Trinket',5,5,5,'mythic','Lord of Destruction soulstone'],
+['Worldstone Shard','Trinket',3,3,3,'legendary','Fragment of the Worldstone'],
+['Inarius\' Wings','Cloak',3,52,8,'mythic','Wings of the fallen angel'],
+['Lilith\'s Crown','Helm',5,62,18,'mythic','Daughter of Hatred\'s crown'],
+['Imperius\' Spear','Weapon',108,5,88,'mythic','Solarion - Spear of Valor']
+];
+const MEGA_ITEM_MAP={};for(const it of MEGA_ITEMS){MEGA_ITEM_MAP[it[0]]={atk:it[2],def:it[3],str:it[4],slot:it[1],rarity:it[5],desc:it[6]}}
+function grantMegaItem(name){
+const t=MEGA_ITEM_MAP[name];if(!t)return null;
+let item;
+if(typeof createUniqueItem==='function'&&t.slot){item=createUniqueItem(name,t.atk,t.def,t.str,t.slot,t.rarity)}
+else{item={name:name,uid:'mega_'+Math.floor(Math.random()*1e9),atk:t.atk,def:t.def,str:t.str,slot:t.slot,rarity:t.rarity};if(typeof itemDB==='object'&&itemDB!==null)itemDB[item.uid]=item}
+if(inventory.length<28){inventory.push({name:item.name,uid:item.uid});if(typeof updateInvUI==='function')updateInvUI()}
+return item;
+}
+window.__grantMegaItem=grantMegaItem;
+window.__rollMegaItem=function(){
+const r=Math.random();const tier=r<.55?'epic':(r<.88?'legendary':'mythic');
+const pool=MEGA_ITEMS.filter(it=>it[5]===tier);
+return (pool.length?pool:MEGA_ITEMS)[Math.floor(Math.random()*(pool.length||MEGA_ITEMS.length))][0];
+};
+
+// ---- 3. ICONIC BOSS MESHES ------------------------------------------
+function buildSephirothMesh(){
+const g=new THREE.Group();const s=1.5;
+const robe=new MS({color:0x111111,roughness:.6,emissive:0x110011,emissiveIntensity:.2});
+const skin=new MS({color:0xeeddaa,roughness:.55});
+const hair=new MS({color:0xeeeeee,roughness:.5,emissive:0x888888,emissiveIntensity:.4});
+// Tall slim body
+const torso=new THREE.Mesh(new THREE.CylinderGeometry(s*.9,s*1.0,s*4.5,8),robe);torso.position.y=s*3.8;torso.castShadow=true;g.add(torso);
+// Coat tails
+for(const sx of [-1,1]){const tail=new THREE.Mesh(new THREE.PlaneGeometry(s*1.4,s*3.5),robe);tail.position.set(sx*s*.5,s*2,s*.3);tail.rotation.y=sx*.2;g.add(tail)}
+// Shoulder pauldrons (silver)
+for(const sx of [-1,1]){const pa=new THREE.Mesh(new THREE.SphereGeometry(s*.55,8,8),new MS({color:0x888888,metalness:.7}));pa.position.set(sx*s*1.2,s*5.5,0);g.add(pa)}
+// Head
+const head=new THREE.Mesh(new THREE.SphereGeometry(s*.6,10,10),skin);head.position.y=s*6.2;g.add(head);
+// Long silver hair
+const hairMass=new THREE.Mesh(new THREE.SphereGeometry(s*.72,10,10),hair);hairMass.position.y=s*6.3;hairMass.scale.set(1,1.4,1);g.add(hairMass);
+const hairTail=new THREE.Mesh(new THREE.ConeGeometry(s*.35,s*4,6),hair);hairTail.position.set(0,s*4,s*-.6);hairTail.rotation.x=.2;g.add(hairTail);
+// Glowing green Mako eyes
+for(const sx of [-.18,.18]){const e=new THREE.Mesh(new THREE.SphereGeometry(s*.08,6,6),new THREE.MeshBasicMaterial({color:0x66ff66}));e.position.set(sx*s,s*6.25,s*.5);g.add(e)}
+// SINGLE BLACK WING (iconic)
+const wingMat=new MS({color:0x111111,side:THREE.DoubleSide,roughness:.85});
+const wing=new THREE.Mesh(new THREE.PlaneGeometry(s*5,s*4),wingMat);wing.position.set(s*2,s*5,s*-.5);wing.rotation.set(.3,-.5,.4);wing.castShadow=true;g.add(wing);
+// Feathers on wing
+for(let i=0;i<6;i++){const f=new THREE.Mesh(new THREE.ConeGeometry(s*.15,s*.7,4),wingMat);f.position.set(s*(2.5+i*.3),s*5,s*-.4);f.rotation.set(.3,-.5,-.6);g.add(f)}
+// Masamune — extremely long katana
+const blade=new THREE.Mesh(new THREE.BoxGeometry(s*.12,s*7,s*.05),new MS({color:0xddddee,roughness:.2,metalness:.95,emissive:0x222222,emissiveIntensity:.3}));blade.position.set(s*1.5,s*4,s*.6);blade.rotation.z=-.05;g.add(blade);
+const hilt=new THREE.Mesh(new THREE.CylinderGeometry(s*.06,s*.06,s*.8,6),new MS({color:0x333333}));hilt.position.set(s*1.5,s*1,s*.6);g.add(hilt);
+return g;
+}
+
+function buildLavosMesh(){
+const g=new THREE.Group();const s=3.5;
+const shell=new MS({color:0xaa3322,roughness:.85,emissive:0x441100,emissiveIntensity:.3});
+const core=new MS({color:0xff6600,emissive:0xff3300,emissiveIntensity:1.5});
+// Massive spiked dome (the alien)
+const dome=new THREE.Mesh(new THREE.SphereGeometry(s*2,16,12,0,Math.PI*2,0,Math.PI/2),shell);dome.position.y=s*.5;dome.castShadow=true;g.add(dome);
+// Spikes covering the shell
+for(let i=0;i<20;i++){const a=Math.random()*Math.PI*2;const r=Math.random()*s*1.8;const h=s*.5+Math.random()*s;
+const sp=new THREE.Mesh(new THREE.ConeGeometry(s*.18,s*1.2,5),shell);sp.position.set(Math.cos(a)*r,h,Math.sin(a)*r);sp.rotation.x=(Math.random()-.5)*.4;sp.rotation.z=(Math.random()-.5)*.4;g.add(sp);}
+// Central glowing core (Lavos core)
+const coreM=new THREE.Mesh(new THREE.SphereGeometry(s*.6,12,12),core);coreM.position.y=s*1.5;g.add(coreM);
+// Pulsing aura
+const aura=new THREE.PointLight(0xff4400,8,140);aura.position.y=s*1.5;g.add(aura);
+// Mandible-like outer claws
+for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const cl=new THREE.Mesh(new THREE.CylinderGeometry(s*.2,s*.3,s*3,6),shell);
+cl.position.set(Math.cos(a)*s*1.5,s*.3,Math.sin(a)*s*1.5);cl.rotation.set(0,a,Math.PI/2-.4);g.add(cl);}
+return g;
+}
+
+function buildMaleniaMesh(){
+const g=new THREE.Group();const s=1.5;
+const goldMat=new MS({color:0xddaa44,roughness:.4,metalness:.7,emissive:0x553300,emissiveIntensity:.35});
+const rotMat=new MS({color:0xff4466,roughness:.5,emissive:0xaa2244,emissiveIntensity:.6});
+const dark=new MS({color:0x442222,roughness:.7});
+// Body
+const torso=new THREE.Mesh(new THREE.CylinderGeometry(s*.85,s*1.0,s*4,8),goldMat);torso.position.y=s*3.5;torso.castShadow=true;g.add(torso);
+// Chest plate
+const chest=new THREE.Mesh(new THREE.BoxGeometry(s*1.8,s*2.4,s*.55),goldMat);chest.position.set(0,s*4.2,s*.85);g.add(chest);
+// Pauldrons
+for(const sx of [-1,1]){const pa=new THREE.Mesh(new THREE.SphereGeometry(s*.75,10,10),goldMat);pa.position.set(sx*s*1.25,s*5.2,0);g.add(pa)}
+// Bird-like crown helm
+const helm=new THREE.Mesh(new THREE.ConeGeometry(s*.7,s*1.6,8),goldMat);helm.position.y=s*6.2;g.add(helm);
+// Helm crest (long feather/sword going back)
+const crest=new THREE.Mesh(new THREE.BoxGeometry(s*.1,s*2,s*.3),goldMat);crest.position.set(0,s*6.8,s*-.4);crest.rotation.x=-.4;g.add(crest);
+// Glowing eyes (rot-blinded)
+for(const sx of [-.18,.18]){const e=new THREE.Mesh(new THREE.SphereGeometry(s*.08,6,6),new THREE.MeshBasicMaterial({color:0xff4488}));e.position.set(sx*s,s*6.1,s*.5);g.add(e)}
+// Mechanical prosthetic arm (left)
+const armL=new THREE.Mesh(new THREE.CylinderGeometry(s*.25,s*.3,s*2,6),dark);armL.position.set(-s*1.4,s*4,s*.3);armL.rotation.z=.3;g.add(armL);
+// Rot blooms on body
+for(let i=0;i<6;i++){const a=Math.random()*Math.PI*2;const fl=new THREE.Mesh(new THREE.SphereGeometry(s*.18,8,8),rotMat);fl.position.set(Math.cos(a)*s*1.1,s*(2+Math.random()*3),Math.sin(a)*s*1.1+s*.3);g.add(fl)}
+// Hateblade (Malenia's curved sword)
+const blade=new THREE.Mesh(new THREE.BoxGeometry(s*.18,s*4.5,s*.08),new MS({color:0xddccaa,emissive:0x553322,emissiveIntensity:.3}));blade.position.set(s*1.5,s*4.2,s*.5);blade.rotation.z=-.2;g.add(blade);
+const hilt=new THREE.Mesh(new THREE.CylinderGeometry(s*.08,s*.08,s*.7,6),new MS({color:0x222222}));hilt.position.set(s*1.2,s*2.3,s*.5);g.add(hilt);
+// Rot aura
+const aura=new THREE.PointLight(0xff4466,3,55);aura.position.y=s*3;g.add(aura);
+return g;
+}
+
+function buildDeathclawMesh(){
+const g=new THREE.Group();const s=1.5;
+const skin=new MS({color:0x6a5a4a,roughness:.85});
+const dark=new MS({color:0x332a20,roughness:.85});
+const claw=new MS({color:0x222222,roughness:.5,metalness:.4});
+// Hunched body
+const torso=new THREE.Mesh(new THREE.SphereGeometry(s*1.5,12,10),skin);torso.position.y=s*3;torso.scale.set(1,.95,1.5);torso.castShadow=true;g.add(torso);
+// Belly
+const belly=new THREE.Mesh(new THREE.SphereGeometry(s*1.0,10,8),new MS({color:0x886655}));belly.position.set(0,s*2.3,s*.6);belly.scale.set(1,.5,1.3);g.add(belly);
+// Powerful arms
+for(const sx of [-1,1]){const arm=new THREE.Mesh(new THREE.CylinderGeometry(s*.5,s*.4,s*3.5,6),skin);
+arm.position.set(sx*s*1.7,s*2.6,s*.5);arm.rotation.z=sx*-.3;g.add(arm);
+// Massive claws (3 per hand)
+for(let c=0;c<3;c++){const cl=new THREE.Mesh(new THREE.ConeGeometry(s*.15,s*1.4,4),claw);cl.position.set(sx*s*(2.2+c*.15),s*1.2,s*(.7+c*.15));cl.rotation.x=-.3;g.add(cl)}}
+// Head with horns
+const head=new THREE.Mesh(new THREE.SphereGeometry(s*.9,10,10),skin);head.position.set(0,s*4.5,s*1.2);g.add(head);
+// Horns (curved back)
+for(const sx of [-1,1]){const horn=new THREE.Mesh(new THREE.ConeGeometry(s*.18,s*1.6,6),dark);horn.position.set(sx*s*.5,s*5.5,s*.8);horn.rotation.z=sx*.3;horn.rotation.x=-.4;g.add(horn)}
+// Glowing yellow eyes
+for(const sx of [-.3,.3]){const e=new THREE.Mesh(new THREE.SphereGeometry(s*.15,6,6),new THREE.MeshBasicMaterial({color:0xffaa00}));e.position.set(sx*s,s*4.7,s*1.8);g.add(e)}
+// Teeth
+for(let i=0;i<6;i++){const tx=(-2.5+i)*s*.18;const tooth=new THREE.Mesh(new THREE.ConeGeometry(s*.08,s*.4,4),new MS({color:0xeeeeee}));tooth.position.set(tx,s*4,s*1.9);g.add(tooth)}
+// Tail
+const tail=new THREE.Mesh(new THREE.ConeGeometry(s*.4,s*4,6),skin);tail.position.set(0,s*2.5,s*-2);tail.rotation.x=-Math.PI/2;g.add(tail);
+// Hind legs
+for(const sx of [-1,1]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(s*.5,s*.55,s*2,6),skin);leg.position.set(sx*s*.7,s*1,s*-.3);g.add(leg)}
+return g;
+}
+
+function buildDiabloMesh(){
+const g=new THREE.Group();const s=2.4;
+const skin=new MS({color:0xaa1111,roughness:.7,emissive:0x551111,emissiveIntensity:.4});
+const horn=new MS({color:0x331111,roughness:.7});
+const fire=new MS({color:0xff5500,emissive:0xff3300,emissiveIntensity:1.5});
+// Massive demonic body
+const torso=new THREE.Mesh(new THREE.CylinderGeometry(s*1.4,s*1.8,s*5,8),skin);torso.position.y=s*4;torso.castShadow=true;g.add(torso);
+// Chest spikes
+for(let i=0;i<6;i++){const a=i/6*Math.PI;const sp=new THREE.Mesh(new THREE.ConeGeometry(s*.3,s*1.2,4),horn);sp.position.set(Math.cos(a)*s*1.3,s*5+i*.1,Math.sin(a)*s*1.3+s*.5);sp.rotation.x=-.3;g.add(sp)}
+// Head (skull-like with massive horns)
+const head=new THREE.Mesh(new THREE.SphereGeometry(s*1,12,12),skin);head.position.y=s*7;g.add(head);
+// MASSIVE curved horns
+for(const sx of [-1,1]){const horn1=new THREE.Mesh(new THREE.ConeGeometry(s*.35,s*3.5,6),horn);
+horn1.position.set(sx*s*.8,s*8.5,0);horn1.rotation.z=sx*-.5;horn1.rotation.x=-.3;g.add(horn1);
+// Second smaller horn pair
+const horn2=new THREE.Mesh(new THREE.ConeGeometry(s*.22,s*2.2,5),horn);horn2.position.set(sx*s*.5,s*8,0);horn2.rotation.z=sx*-.2;g.add(horn2);}
+// Glowing fiery eyes
+for(const sx of [-.3,.3]){const e=new THREE.Mesh(new THREE.SphereGeometry(s*.18,6,6),fire);e.position.set(sx*s,s*7.1,s*.7);g.add(e)}
+// Mouth fangs
+for(let i=0;i<4;i++){const tx=(-1.5+i)*s*.2;const fang=new THREE.Mesh(new THREE.ConeGeometry(s*.1,s*.5,4),new MS({color:0xeeeedd}));fang.position.set(tx,s*6.7,s*.85);g.add(fang)}
+// Massive arms with claws
+for(const sx of [-1,1]){const arm=new THREE.Mesh(new THREE.CylinderGeometry(s*.55,s*.7,s*4,6),skin);arm.position.set(sx*s*2,s*4,s*.3);arm.rotation.z=sx*-.4;g.add(arm);
+for(let c=0;c<3;c++){const cl=new THREE.Mesh(new THREE.ConeGeometry(s*.15,s*1.2,4),horn);cl.position.set(sx*s*(2.4+c*.18),s*1.8,s*(.4+c*.1));cl.rotation.x=-.3;g.add(cl)}}
+// Wings (huge demonic)
+for(const ws of [-1,1]){const wing=new THREE.Mesh(new THREE.PlaneGeometry(s*7,s*5),new MS({color:0x441111,side:THREE.DoubleSide,roughness:.8,emissive:0x220000,emissiveIntensity:.3}));
+wing.position.set(ws*s*3,s*5.5,s*-.5);wing.rotation.set(.3,ws*.5,ws*-.4);g.add(wing);}
+// Tail with spikes
+const tail=new THREE.Mesh(new THREE.ConeGeometry(s*.4,s*5,6),skin);tail.position.set(0,s*3,s*-3);tail.rotation.x=-Math.PI/2;g.add(tail);
+for(let i=0;i<3;i++){const sp=new THREE.Mesh(new THREE.ConeGeometry(s*.18,s*.8,4),horn);sp.position.set(0,s*3.2,s*(-2-i*.8));g.add(sp)}
+// Hell aura
+const aura=new THREE.PointLight(0xff2200,8,140);aura.position.y=s*4;g.add(aura);
+return g;
+}
+
+function buildMindFlayerMesh(){
+const g=new THREE.Group();const s=1.4;
+const purple=new MS({color:0x6a4a8a,roughness:.65,emissive:0x4a2a6a,emissiveIntensity:.45});
+const robe=new MS({color:0x331144,roughness:.7});
+// Robed body
+const torso=new THREE.Mesh(new THREE.ConeGeometry(s*1.4,s*4.5,8),robe);torso.position.y=s*2.5;torso.rotation.x=Math.PI;torso.castShadow=true;g.add(torso);
+// Tall head (illithid)
+const head=new THREE.Mesh(new THREE.SphereGeometry(s*.9,12,12),purple);head.position.y=s*5.5;head.scale.set(1,1.5,1);g.add(head);
+// 4 tentacles (face)
+for(let i=0;i<4;i++){const a=(i/4-.4)*Math.PI;const ten=new THREE.Mesh(new THREE.CylinderGeometry(s*.12,s*.06,s*1.8,6),purple);
+ten.position.set(Math.cos(a)*s*.4,s*4.5,Math.sin(a)*s*.4+s*.5);ten.rotation.x=Math.PI/2-.4;ten.rotation.z=Math.cos(a)*.3;g.add(ten)}
+// Glowing white eyes
+for(const sx of [-.25,.25]){const e=new THREE.Mesh(new THREE.SphereGeometry(s*.1,6,6),new THREE.MeshBasicMaterial({color:0xeeeeff}));e.position.set(sx*s,s*5.8,s*.5);g.add(e)}
+// 4 long fingers / claws
+for(const sx of [-1,1]){const arm=new THREE.Mesh(new THREE.CylinderGeometry(s*.18,s*.18,s*2.4,6),purple);arm.position.set(sx*s*1.3,s*3.5,0);arm.rotation.z=sx*-.3;g.add(arm)}
+// Psychic aura
+const aura=new THREE.PointLight(0xaa66ff,4,50);aura.position.y=s*4;g.add(aura);
+return g;
+}
+
+const MEGA_BOSSES=[
+{key:'sephiroth_w',name:'Sephiroth, the One-Winged Angel',hp:6500,x:5800,z:-2400,radius:200,dmg:135,build:buildSephirothMesh,col:0xeeeeee,drops:['Masamune (FF7)','Buster Sword','Ultima Weapon','Apocalypse','Conformer','Death Penalty']},
+{key:'lavos_w',name:'Lavos, the Destroyer',hp:7500,x:-100,z:5800,radius:280,dmg:155,build:buildLavosMesh,col:0xaa3322,drops:['Sun Stone','Wings of Time','Rainbow Sword','Masamune','Nova Armor']},
+{key:'malenia_w',name:'Malenia, Blade of Miquella',hp:4400,x:-5800,z:-2200,radius:160,dmg:118,build:buildMaleniaMesh,col:0xff4466,drops:['Malenia\'s Armor','Rivers of Blood','Moonveil Katana','Maliketh\'s Black Blade','Marika\'s Soreseal']},
+{key:'deathclaw_w',name:'Legendary Deathclaw',hp:2400,x:2400,z:5400,radius:140,dmg:95,build:buildDeathclawMesh,col:0x6a5a4a,drops:['Anti-Materiel Rifle','Power Armor (X-01)','This Machine','Lucky','Ballistic Fist']},
+{key:'diablo_w',name:'Diablo, the Lord of Terror',hp:6500,x:5800,z:-5600,radius:240,dmg:140,build:buildDiabloMesh,col:0xaa1111,drops:['Soulstone of Diablo','The Grandfather','Stormshield','Shako (Harlequin Crest)','Enigma Rune Word Armor','Andariel\'s Visage']},
+{key:'mindflayer_w',name:'Elder Mind Flayer',hp:5800,x:-5400,z:5400,radius:200,dmg:120,build:buildMindFlayerMesh,col:0x6a4a8a,drops:['Mind Flayer Parasite','Phalar Aluve','Adamantine Splint Armor','Lae\'zel\'s Silver Sword','Blood of Lathander']},
+{key:'eredin_w',name:'Eredin, King of the Wild Hunt',hp:5200,x:-4400,z:-5200,radius:200,dmg:115,build:()=>{const m=buildSephirothMesh();m.traverse(o=>{if(o.material){o.material=o.material.clone();if(o.material.color&&o.material.color.getHex()===0xeeeeee)o.material.color.setHex(0x88aaff);if(o.material.color&&o.material.color.getHex()===0x111111)o.material.color.setHex(0x224466)}});return m},col:0x88aaff,drops:['Aerondight','Wolf School Armor','Iris','Bear School Steel Sword','Witcher\'s Wolf Medallion']}
+];
+
+const megaBosses=[];
+function spawnMegaBoss(b){
+const mesh=b.build();
+mesh.position.set(b.x,meshTerrainH(b.x,b.z),b.z);
+scene.add(mesh);
+const lblC=document.createElement('canvas');lblC.width=896;lblC.height=80;
+const ctx=lblC.getContext('2d');ctx.fillStyle='rgba(0,0,0,.72)';ctx.fillRect(0,0,896,80);
+ctx.font='bold 30px serif';ctx.textAlign='center';ctx.fillStyle='#ff4488';ctx.fillText('☠ '+b.name+' ☠',448,50);
+const tex=new THREE.CanvasTexture(lblC);
+const lbl=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+lbl.scale.set(44,4,1);lbl.position.y=22;mesh.add(lbl);
+const ib={mesh:mesh,name:b.name,key:b.key,hp:b.hp,maxHp:b.hp,home:{x:b.x,z:b.z},radius:b.radius,dmg:b.dmg,col:b.col,drops:b.drops,patrolAngle:Math.random()*Math.PI*2,attackCD:0};
+megaBosses.push(ib);
+return ib;
+}
+function damageMegaBoss(ib,dmg){ib.hp-=dmg;if(ib.hp<=0){
+log('☠ '+ib.name+' is no more.','#ff4488');
+for(const it of ib.drops){if(Math.random()<.5)grantMegaItem(it)}
+if(ib.drops.length)grantMegaItem(ib.drops[0]);
+grantMegaItem(window.__rollMegaItem());
+const gold=4500+Math.floor(Math.random()*3500);
+if(inventory.length<28)inventory.push({name:'Gold Coins x'+gold,uid:null});
+if(typeof addSkillPoints==='function')addSkillPoints(6);
+skills.Attack.xp+=1500;skills.Strength.xp+=1500;skills.Defence.xp+=1500;skills.Hitpoints.xp+=1200;
+updateInvUI();updateXpBar();
+scene.remove(ib.mesh);const idx=megaBosses.indexOf(ib);if(idx>=0)megaBosses.splice(idx,1);
+setTimeout(()=>{const seed=MEGA_BOSSES.find(x=>x.key===ib.key);if(seed)spawnMegaBoss(seed)},900000);
+}}
+window.__damageMegaBoss=damageMegaBoss;
+setTimeout(()=>{for(const b of MEGA_BOSSES)spawnMegaBoss(b);log('☠ '+MEGA_BOSSES.length+' iconic legends have manifested ☠','#ff4488')},14500);
+
+function updateMegaBosses(dt){
+for(const ib of megaBosses){if(!ib.mesh)continue;
+const dx=player.x-ib.mesh.position.x,dz=player.z-ib.mesh.position.z;const dist=Math.hypot(dx,dz);
+if(dist<ib.radius*0.6){const a=Math.atan2(dz,dx);ib.mesh.position.x+=Math.cos(a)*0.12;ib.mesh.position.z+=Math.sin(a)*0.12;ib.mesh.rotation.y=-a-Math.PI/2;
+if(dist<13&&ib.attackCD<=0){ib.attackCD=80;const def=window.__getDefenseBonus?window.__getDefenseBonus():0;const dmg=Math.round(ib.dmg*(1-def));player.hp=Math.max(0,player.hp-dmg);log('☠ '+ib.name+' strikes for '+dmg+'!','#ff4422');if(typeof hitFX==='function')hitFX(player.x,player.y+3,player.z,ib.col)}}
+else{ib.patrolAngle+=0.005;const tx=ib.home.x+Math.cos(ib.patrolAngle)*ib.radius*0.45;const tz=ib.home.z+Math.sin(ib.patrolAngle)*ib.radius*0.45;
+const a=Math.atan2(tz-ib.mesh.position.z,tx-ib.mesh.position.x);ib.mesh.position.x+=Math.cos(a)*0.07;ib.mesh.position.z+=Math.sin(a)*0.07;ib.mesh.rotation.y=-a-Math.PI/2}
+ib.mesh.position.y=meshTerrainH(ib.mesh.position.x,ib.mesh.position.z);ib.attackCD=Math.max(0,ib.attackCD-1)}}
+
+// ---- 4. CITIES ACROSS 7 IPs (efficient procedural variants) ---------
+function addMSign(g,name,y,color){
+const lblC=document.createElement('canvas');lblC.width=896;lblC.height=80;
+const ctx=lblC.getContext('2d');ctx.fillStyle='rgba(0,0,0,.75)';ctx.fillRect(0,0,896,80);
+ctx.font='bold 30px serif';ctx.textAlign='center';ctx.fillStyle=color||'#ffd6aa';ctx.fillText('⚜ '+name+' ⚜',448,50);
+const tex=new THREE.CanvasTexture(lblC);
+const lbl=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));
+lbl.scale.set(46,4,1);lbl.position.y=y;g.add(lbl);
+}
+
+function buildBeauclair(x,z){
+const g=new THREE.Group();
+const cream=new MS({color:0xeeddcc,roughness:.55,emissive:0x442200,emissiveIntensity:.15});
+const blue=new MS({color:0x4488cc,roughness:.5,metalness:.4,emissive:0x223366,emissiveIntensity:.3});
+// Fairytale white castle
+for(let i=0;i<5;i++){const ang=(i/5-.5)*Math.PI*.8;const t=new THREE.Mesh(new THREE.CylinderGeometry(4,5,40+i*5,10),cream);
+t.position.set(Math.cos(ang)*15,(40+i*5)/2,Math.sin(ang)*15);t.castShadow=true;g.add(t);
+const cap=new THREE.Mesh(new THREE.ConeGeometry(5.5,8,10),blue);cap.position.set(Math.cos(ang)*15,40+i*5+4,Math.sin(ang)*15);g.add(cap)}
+// Central spire
+const spire=new THREE.Mesh(new THREE.CylinderGeometry(5,7,60,10),cream);spire.position.y=30;spire.castShadow=true;g.add(spire);
+const spireCap=new THREE.Mesh(new THREE.ConeGeometry(8,15,10),blue);spireCap.position.y=67.5;g.add(spireCap);
+// Vineyards (rows of green)
+for(let i=0;i<6;i++){const v=new THREE.Mesh(new THREE.BoxGeometry(25,1.5,1.5),new MS({color:0x4a7733}));v.position.set(0,1,-30+i*4);g.add(v)}
+addMSign(g,'Beauclair (Toussaint)',80,'#aaccff');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildBaldursGate(x,z){
+const g=new THREE.Group();
+const stone=new MS({color:0x8a7a6a,roughness:.75});
+const slate=new MS({color:0x333344,roughness:.75});
+const torch=new MS({color:0xff8844,emissive:0xff6622,emissiveIntensity:1.4});
+// Walled city with river
+const wall1=new THREE.Mesh(new THREE.BoxGeometry(80,16,4),stone);wall1.position.set(0,8,30);wall1.castShadow=true;g.add(wall1);
+const wall2=wall1.clone();wall2.position.set(0,8,-30);g.add(wall2);
+const wall3=new THREE.Mesh(new THREE.BoxGeometry(4,16,60),stone);wall3.position.set(40,8,0);g.add(wall3);
+const wall4=wall3.clone();wall4.position.set(-40,8,0);g.add(wall4);
+// Gate towers
+for(const sx of [-40,40]){for(const sz of [-30,30]){const t=new THREE.Mesh(new THREE.CylinderGeometry(5,6,24,8),stone);t.position.set(sx,12,sz);t.castShadow=true;g.add(t);
+const cap=new THREE.Mesh(new THREE.ConeGeometry(6,5,8),slate);cap.position.set(sx,26.5,sz);g.add(cap);
+const flame=new THREE.Mesh(new THREE.SphereGeometry(1,8,8),torch);flame.position.set(sx,30,sz);g.add(flame)}}
+// Upper city — High Hall keep
+const hall=new THREE.Mesh(new THREE.BoxGeometry(25,28,25),stone);hall.position.y=14;hall.castShadow=true;g.add(hall);
+const hallCap=new THREE.Mesh(new THREE.ConeGeometry(18,12,4),slate);hallCap.position.y=33;hallCap.rotation.y=Math.PI/4;g.add(hallCap);
+// Spires
+for(const sx of [-12,12]){const sp=new THREE.Mesh(new THREE.CylinderGeometry(2,2,30,8),stone);sp.position.set(sx,15,0);g.add(sp);const cap=new THREE.Mesh(new THREE.ConeGeometry(3,5,8),slate);cap.position.set(sx,32,0);g.add(cap)}
+addMSign(g,'Baldur\'s Gate',50,'#ddccaa');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildZealKingdom(x,z){
+const g=new THREE.Group();
+const crystal=new MS({color:0x88aaff,roughness:.3,metalness:.5,emissive:0x4488cc,emissiveIntensity:.7,transparent:true,opacity:.9});
+const gold=new MS({color:0xffd770,roughness:.4,metalness:.7,emissive:0x553300,emissiveIntensity:.45});
+// Floating crystal islands in air (Zeal floats!)
+const base=new THREE.Mesh(new THREE.ConeGeometry(20,10,8),crystal);base.position.y=35;base.rotation.x=Math.PI;base.castShadow=true;g.add(base);
+// Twin towers
+for(const sx of [-1,1]){const t=new THREE.Mesh(new THREE.CylinderGeometry(3,4,30,8),crystal);t.position.set(sx*8,55,0);g.add(t);
+const cap=new THREE.Mesh(new THREE.OctahedronGeometry(4),gold);cap.position.set(sx*8,72,0);g.add(cap)}
+// Central palace
+const palace=new THREE.Mesh(new THREE.SphereGeometry(8,12,12),crystal);palace.position.y=55;g.add(palace);
+// Floating crystals around
+for(let i=0;i<10;i++){const a=i/10*Math.PI*2;const r=14+Math.random()*4;const c=new THREE.Mesh(new THREE.OctahedronGeometry(1.5+Math.random()),gold);c.position.set(Math.cos(a)*r,45+Math.random()*15,Math.sin(a)*r);g.add(c)}
+// Aura
+const aura=new THREE.PointLight(0x88ccff,5,200);aura.position.y=55;g.add(aura);
+addMSign(g,'Kingdom of Zeal',90,'#88ddff');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildMidgar(x,z){
+const g=new THREE.Group();
+const metal=new MS({color:0x444444,roughness:.6,metalness:.7,emissive:0x111111,emissiveIntensity:.15});
+const glow=new MS({color:0x44ccff,emissive:0x4488cc,emissiveIntensity:1.5,transparent:true,opacity:.85});
+const dark=new MS({color:0x222222,roughness:.85});
+// Pizza-sliced plate city (8 sectors)
+for(let i=0;i<8;i++){const a1=i/8*Math.PI*2;const a2=(i+1)/8*Math.PI*2;
+const slice=new THREE.Mesh(new THREE.CylinderGeometry(0.1,40,3,3,1,false,a1,a2-a1),metal);
+slice.position.y=22;g.add(slice);
+// Sector buildings
+const bldg=new THREE.Mesh(new THREE.BoxGeometry(8,12,8),dark);const a=(a1+a2)/2;bldg.position.set(Math.cos(a)*28,30,Math.sin(a)*28);g.add(bldg)}
+// Massive central support pillar
+const pillar=new THREE.Mesh(new THREE.CylinderGeometry(4,6,24,10),metal);pillar.position.y=12;pillar.castShadow=true;g.add(pillar);
+// Shinra HQ — tall tower in center
+const hq=new THREE.Mesh(new THREE.BoxGeometry(10,40,10),dark);hq.position.y=44;hq.castShadow=true;g.add(hq);
+const hqTop=new THREE.Mesh(new THREE.ConeGeometry(8,8,4),metal);hqTop.position.y=68;g.add(hqTop);
+// Glowing windows on HQ
+for(let i=0;i<8;i++){for(let j=0;j<4;j++){const w=new THREE.Mesh(new THREE.BoxGeometry(1,1,.3),glow);w.position.set(5.05,30+i*4,-3+j*2);g.add(w);
+const w2=w.clone();w2.position.x=-5.05;g.add(w2)}}
+// Mako reactors (8 around the rim)
+for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const reactor=new THREE.Mesh(new THREE.CylinderGeometry(2,3,8,8),metal);reactor.position.set(Math.cos(a)*36,28,Math.sin(a)*36);g.add(reactor);
+const core=new THREE.Mesh(new THREE.SphereGeometry(1.5,8,8),glow);core.position.set(Math.cos(a)*36,32,Math.sin(a)*36);g.add(core)}
+const aura=new THREE.PointLight(0x44ccff,4,160);aura.position.y=30;g.add(aura);
+addMSign(g,'Midgar',80,'#88ccff');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildLeyndell(x,z){
+const g=new THREE.Group();
+const gold=new MS({color:0xddaa44,roughness:.4,metalness:.7,emissive:0x553300,emissiveIntensity:.4});
+const stone=new MS({color:0xeeccaa,roughness:.6});
+// Massive ringed walls
+for(let r=0;r<3;r++){for(let i=0;i<16;i++){const a=i/16*Math.PI*2;const radius=20+r*8;
+const wall=new THREE.Mesh(new THREE.BoxGeometry(10,12-r*3,3),stone);wall.position.set(Math.cos(a)*radius,6-r*1.5,Math.sin(a)*radius);wall.rotation.y=-a;g.add(wall)}}
+// MASSIVE Erdtree at center (golden)
+const trunk=new THREE.Mesh(new THREE.CylinderGeometry(4,6,60,10),new MS({color:0xddaa44,roughness:.5,emissive:0x553300,emissiveIntensity:.5}));trunk.position.y=30;trunk.castShadow=true;g.add(trunk);
+// Golden canopy (multiple layers)
+for(let i=0;i<5;i++){const c=new THREE.Mesh(new THREE.SphereGeometry(20-i*2,14,12),new MS({color:0xffcc66,roughness:.4,emissive:0xaa6622,emissiveIntensity:.7,transparent:true,opacity:.85}));c.position.y=60+i*5;c.scale.set(1+i*.1,.7,1+i*.1);g.add(c)}
+// Branches glowing
+for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const br=new THREE.Mesh(new THREE.CylinderGeometry(.4,.8,12,6),gold);br.position.set(Math.cos(a)*6,55+i*1,Math.sin(a)*6);br.rotation.set(.3,a,Math.PI/4);g.add(br)}
+// Central plaza buildings
+const plaza=new THREE.Mesh(new THREE.CylinderGeometry(8,8,4,12),stone);plaza.position.y=2;g.add(plaza);
+// Aura
+const aura=new THREE.PointLight(0xffcc66,6,200);aura.position.y=60;g.add(aura);
+addMSign(g,'Leyndell, Royal Capital',95,'#ffd700');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildNewVegas(x,z){
+const g=new THREE.Group();
+const concrete=new MS({color:0x6a5a4a,roughness:.85});
+const neon=new MS({color:0xff4488,emissive:0xff2266,emissiveIntensity:1.8});
+const neon2=new MS({color:0x44ddff,emissive:0x22aacc,emissiveIntensity:1.8});
+const neon3=new MS({color:0xffdd44,emissive:0xddaa22,emissiveIntensity:1.8});
+// Lucky 38 tower (iconic)
+const l38Base=new THREE.Mesh(new THREE.CylinderGeometry(8,10,18,12),concrete);l38Base.position.y=9;l38Base.castShadow=true;g.add(l38Base);
+const l38=new THREE.Mesh(new THREE.CylinderGeometry(5,7,40,12),concrete);l38.position.y=38;g.add(l38);
+const l38Top=new THREE.Mesh(new THREE.SphereGeometry(8,12,12),concrete);l38Top.position.y=62;g.add(l38Top);
+// "38" sign
+const sign38=new THREE.Mesh(new THREE.BoxGeometry(6,3,.5),neon);sign38.position.set(0,68,0);g.add(sign38);
+// Smaller casino towers
+for(let i=0;i<4;i++){const a=i/4*Math.PI*2;const r=22;const t=new THREE.Mesh(new THREE.BoxGeometry(8,30,8),concrete);t.position.set(Math.cos(a)*r,15,Math.sin(a)*r);g.add(t);
+// Neon stripes
+const colors=[neon,neon2,neon3];
+for(let s=0;s<3;s++){const stripe=new THREE.Mesh(new THREE.BoxGeometry(8.2,1,.3),colors[(i+s)%3]);stripe.position.set(Math.cos(a)*r,5+s*8,Math.sin(a)*r+4.1);g.add(stripe);const s2=stripe.clone();s2.position.z=Math.sin(a)*r-4.1;g.add(s2)}}
+// Strip road
+const road=new THREE.Mesh(new THREE.BoxGeometry(60,.5,8),new MS({color:0x222222,roughness:.95}));road.position.set(0,.3,30);g.add(road);
+// Neon "VEGAS" arrow sign
+const arrowBack=new THREE.Mesh(new THREE.BoxGeometry(20,8,.5),concrete);arrowBack.position.set(0,15,32);g.add(arrowBack);
+const arrowFront=new THREE.Mesh(new THREE.BoxGeometry(18,5,.3),neon);arrowFront.position.set(0,15,32.3);g.add(arrowFront);
+const aura=new THREE.PointLight(0xff44aa,5,200);aura.position.y=40;g.add(aura);
+const aura2=new THREE.PointLight(0x44ccff,4,150);aura2.position.set(0,12,30);g.add(aura2);
+addMSign(g,'New Vegas Strip',80,'#ff66aa');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildTristram(x,z){
+const g=new THREE.Group();
+const stone=new MS({color:0x554a40,roughness:.85});
+const wood=new MS({color:0x4a3020,roughness:.85});
+const fire=new MS({color:0xff7733,emissive:0xff5522,emissiveIntensity:1.5});
+// Cathedral (massive central gothic)
+const cathBase=new THREE.Mesh(new THREE.BoxGeometry(28,22,40),stone);cathBase.position.y=11;cathBase.castShadow=true;g.add(cathBase);
+// Twin bell towers
+for(const sx of [-10,10]){const tower=new THREE.Mesh(new THREE.BoxGeometry(8,38,8),stone);tower.position.set(sx,19,12);g.add(tower);
+const cap=new THREE.Mesh(new THREE.ConeGeometry(7,12,4),new MS({color:0x222222}));cap.position.set(sx,44,12);cap.rotation.y=Math.PI/4;g.add(cap);}
+// Central spire
+const spire=new THREE.Mesh(new THREE.ConeGeometry(6,18,4),new MS({color:0x222222}));spire.position.set(0,30,12);spire.rotation.y=Math.PI/4;g.add(spire);
+// Stained-glass rose window (glowing)
+const window=new THREE.Mesh(new THREE.CircleGeometry(4,16),new MS({color:0xaa3322,emissive:0x661111,emissiveIntensity:1.5,transparent:true,opacity:.9}));window.position.set(0,15,32.1);g.add(window);
+// Surrounding ruined village buildings
+for(let i=0;i<5;i++){const a=i/5*Math.PI*2;const r=30;const h=new THREE.Mesh(new THREE.BoxGeometry(6,6,6),wood);h.position.set(Math.cos(a)*r,3,Math.sin(a)*r);h.rotation.y=(Math.random()-.5)*.3;g.add(h);
+const hr=new THREE.Mesh(new THREE.ConeGeometry(5,3,4),new MS({color:0x553322}));hr.position.set(Math.cos(a)*r,7.5,Math.sin(a)*r);hr.rotation.y=Math.PI/4;g.add(hr);}
+// Burning bonfire at entrance
+const fireMass=new THREE.Mesh(new THREE.ConeGeometry(2,4,6),fire);fireMass.position.set(0,2,-25);g.add(fireMass);
+const fireLight=new THREE.PointLight(0xff5522,5,80);fireLight.position.set(0,3,-25);g.add(fireLight);
+addMSign(g,'Tristram',60,'#ff8866');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+function buildPandemonium(x,z){
+const g=new THREE.Group();
+const dark=new MS({color:0x222233,roughness:.7,emissive:0x111122,emissiveIntensity:.3});
+const angel=new MS({color:0xddccff,roughness:.4,metalness:.5,emissive:0x6644aa,emissiveIntensity:.7});
+// Cubic angelic fortress
+const core=new THREE.Mesh(new THREE.BoxGeometry(30,30,30),dark);core.position.y=15;core.castShadow=true;g.add(core);
+// 4 outer pillars
+for(const sx of [-1,1]){for(const sz of [-1,1]){const p=new THREE.Mesh(new THREE.CylinderGeometry(2,2,40,8),angel);p.position.set(sx*22,20,sz*22);g.add(p);const cap=new THREE.Mesh(new THREE.OctahedronGeometry(3),angel);cap.position.set(sx*22,42,sz*22);g.add(cap)}}
+// Floating crystal ring
+const ring=new THREE.Mesh(new THREE.TorusGeometry(25,1,6,32),angel);ring.position.y=30;ring.rotation.x=Math.PI/3;g.add(ring);
+// Aura
+const aura=new THREE.PointLight(0xddccff,5,160);aura.position.y=30;g.add(aura);
+addMSign(g,'Pandemonium Fortress',58,'#ddccff');
+g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g;
+}
+
+const MEGA_CITIES=[
+{n:'Beauclair (Toussaint)',x:-5500,z:-3800,build:buildBeauclair},
+{n:'Kaer Morhen',x:-4700,z:-2600,build:(x,z)=>{const g=new THREE.Group();const stone=new MS({color:0x666666,roughness:.85});
+const wall=new THREE.Mesh(new THREE.BoxGeometry(30,18,30),stone);wall.position.y=9;wall.castShadow=true;g.add(wall);
+for(const sx of [-1,1]){for(const sz of [-1,1]){const t=new THREE.Mesh(new THREE.CylinderGeometry(3,4,28,8),stone);t.position.set(sx*15,14,sz*15);g.add(t);const cap=new THREE.Mesh(new THREE.ConeGeometry(4,5,8),new MS({color:0x333333}));cap.position.set(sx*15,30.5,sz*15);g.add(cap)}}
+addMSign(g,'Kaer Morhen',45,'#999999');g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g}},
+{n:'Baldur\'s Gate',x:5500,z:-4400,build:buildBaldursGate},
+{n:'Moonrise Towers',x:5400,z:-4800,build:(x,z)=>{const g=new THREE.Group();const dark=new MS({color:0x333344,emissive:0x111122,emissiveIntensity:.4});
+for(let i=0;i<3;i++){const t=new THREE.Mesh(new THREE.CylinderGeometry(4,5,30+i*8,8),dark);t.position.set((i-1)*14,(30+i*8)/2,0);g.add(t);
+const aura=new THREE.PointLight(0xaa44ff,3,80);aura.position.set((i-1)*14,30+i*8,0);g.add(aura)}
+addMSign(g,'Moonrise Towers',60,'#aa66ff');g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g}},
+{n:'Kingdom of Zeal',x:-200,z:6400,build:buildZealKingdom},
+{n:'Truce Dome (Chrono)',x:-300,z:6200,build:(x,z)=>{const g=new THREE.Group();const dome=new THREE.Mesh(new THREE.SphereGeometry(20,16,12,0,Math.PI*2,0,Math.PI/2),new MS({color:0x88ccff,transparent:true,opacity:.55,emissive:0x4488cc,emissiveIntensity:.4}));dome.position.y=8;g.add(dome);
+const base=new THREE.Mesh(new THREE.CylinderGeometry(20,22,4,16),new MS({color:0x554433}));base.position.y=2;g.add(base);
+addMSign(g,'Truce Dome',32,'#88ccff');g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g}},
+{n:'Midgar',x:5400,z:-3600,build:buildMidgar},
+{n:'Cosmo Canyon',x:5800,z:-3000,build:(x,z)=>{const g=new THREE.Group();const red=new MS({color:0xaa5533,roughness:.85});
+const pillar=new THREE.Mesh(new THREE.ConeGeometry(15,30,8),red);pillar.position.y=15;pillar.castShadow=true;g.add(pillar);
+const fire=new THREE.Mesh(new THREE.ConeGeometry(3,5,6),new MS({color:0xff7733,emissive:0xff5522,emissiveIntensity:1.5}));fire.position.y=32.5;g.add(fire);
+const ft=new THREE.PointLight(0xff5522,4,80);ft.position.y=33;g.add(ft);
+addMSign(g,'Cosmo Canyon',48,'#ff8855');g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g}},
+{n:'Leyndell, Royal Capital',x:-5500,z:-3500,build:buildLeyndell},
+{n:'Stormveil Castle',x:-5200,z:-2400,build:(x,z)=>{const g=new THREE.Group();const stone=new MS({color:0x554433,roughness:.85});
+const keep=new THREE.Mesh(new THREE.BoxGeometry(35,28,35),stone);keep.position.y=14;keep.castShadow=true;g.add(keep);
+for(let i=0;i<4;i++){const ang=i/4*Math.PI*2+Math.PI/4;const t=new THREE.Mesh(new THREE.CylinderGeometry(4,5,40,8),stone);t.position.set(Math.cos(ang)*22,20,Math.sin(ang)*22);g.add(t);
+const cap=new THREE.Mesh(new THREE.ConeGeometry(5,8,8),new MS({color:0x222222}));cap.position.set(Math.cos(ang)*22,44,Math.sin(ang)*22);g.add(cap)}
+addMSign(g,'Stormveil Castle',58,'#aa9966');g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g}},
+{n:'New Vegas Strip',x:2200,z:6000,build:buildNewVegas},
+{n:'Goodsprings',x:2000,z:5400,build:(x,z)=>{const g=new THREE.Group();const wood=new MS({color:0x664433,roughness:.85});
+for(let i=0;i<5;i++){const h=new THREE.Mesh(new THREE.BoxGeometry(8,6,8),wood);h.position.set((i-2)*12,3,0);h.rotation.y=(Math.random()-.5)*.2;g.add(h);
+const r=new THREE.Mesh(new THREE.ConeGeometry(6,3,4),new MS({color:0x443322}));r.position.set((i-2)*12,7.5,0);r.rotation.y=Math.PI/4;g.add(r)}
+addMSign(g,'Goodsprings',16,'#ccaa66');g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g}},
+{n:'Tristram',x:5600,z:-5800,build:buildTristram},
+{n:'Pandemonium Fortress',x:6400,z:-5400,build:buildPandemonium},
+{n:'New Tristram',x:5400,z:-5400,build:(x,z)=>{const g=new THREE.Group();const wood=new MS({color:0x4a3020,roughness:.85});
+const wall=new THREE.Mesh(new THREE.BoxGeometry(40,12,40),new MS({color:0x554a40}));wall.position.y=6;wall.castShadow=true;g.add(wall);
+const gate=new THREE.Mesh(new THREE.BoxGeometry(8,10,2),wood);gate.position.set(0,5,20);g.add(gate);
+addMSign(g,'New Tristram',22,'#aa8855');g.position.set(x,meshTerrainH(x,z),z);scene.add(g);return g}}
+];
+
+const megaCities=[];
+setTimeout(()=>{
+for(const c of MEGA_CITIES){try{
+const m=c.build(c.x,c.z);
+megaCities.push({x:c.x,z:c.z,name:c.n,mesh:m});
+makeEnterable(c.x,c.z+30,'castle',c.n+' Gate');
+if(typeof teleports!=='undefined'&&teleports.push)teleports.push({name:c.n,x:c.x,z:c.z,unlocked:true});
+}catch(e){console.warn('city '+c.n+' failed',e)}}
+log('⚜ '+MEGA_CITIES.length+' iconic settlements rise across realms ⚜','#ff4488');
+if(window.__v8&&window.__v8.rebuildEntryPrompts)window.__v8.rebuildEntryPrompts();
+},15000);
+
+// ---- 5. NAMED NPCs ACROSS IPs ---------------------------------------
+function buildMegaNPC(x,z,name,role,bodyCol,headCol){
+const h=meshTerrainH(x,z);const g=new THREE.Group();
+const body=new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.6,5.5,8),new MS({color:bodyCol,roughness:.6,emissive:0x111111,emissiveIntensity:.1}));body.position.y=2.75;body.castShadow=true;g.add(body);
+const head=new THREE.Mesh(new THREE.SphereGeometry(1.1,8,8),new MS({color:headCol||0xddccaa,roughness:.6}));head.position.y=6;g.add(head);
+const markG=new THREE.Group();markG.position.y=8;
+const mb=new THREE.Mesh(new THREE.CylinderGeometry(.45,.45,.7,8),new MS({color:0xff4488,emissive:0xff2266,emissiveIntensity:2.2}));markG.add(mb);
+const mt2=new THREE.Mesh(new THREE.OctahedronGeometry(.45),new MS({color:0xff4488,emissive:0xff2266,emissiveIntensity:2}));mt2.position.y=.65;markG.add(mt2);
+g.add(markG);
+const lblC=document.createElement('canvas');lblC.width=600;lblC.height=72;
+const ctx=lblC.getContext('2d');ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(0,0,600,72);
+ctx.font='bold 22px serif';ctx.textAlign='center';ctx.fillStyle='#ff66aa';ctx.fillText(name,300,32);ctx.font='13px serif';ctx.fillStyle='#aa6688';ctx.fillText(role,300,55);
+const tex=new THREE.CanvasTexture(lblC);
+const lbl=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));lbl.scale.set(16,2,1);lbl.position.y=10;g.add(lbl);
+g.position.set(x,h,z);scene.add(g);
+return {mesh:g,marker:markG,x:x,z:z,name:name,role:role,t:Math.random()*6};
+}
+const MEGA_NPCS_DATA=[
+{x:-5480,z:-3780,name:'Geralt of Rivia',role:'White Wolf, Witcher of Kaer Morhen',body:0x222222,head:0xddccaa,dialog:'Hmm. A coin for your trouble, perhaps?',reward:'Aerondight'},
+{x:-5470,z:-3760,name:'Yennefer of Vengerberg',role:'Sorceress of Aretuza',body:0x222244,head:0xeeddee,dialog:'Don\'t bore me with your problems.',reward:'Witcher\'s Wolf Medallion'},
+{x:-4680,z:-2580,name:'Vesemir',role:'Witcher Mentor of Kaer Morhen',body:0x666633,head:0xddccaa,dialog:'A witcher trains until his body is one with his sword.',reward:'Wolf School Steel Sword'},
+{x:5520,z:-4420,name:'Astarion',role:'Spawn of Cazador, Vampire Rogue',body:0x554455,head:0xeeeeee,dialog:'Heroics will get you killed. I should know.',reward:'Bloodthirst'},
+{x:5500,z:-4400,name:'Karlach',role:'Tiefling Barbarian',body:0xaa4422,head:0xff8844,dialog:'I AM the engine of war!',reward:'Karlach\'s Engine Heart'},
+{x:5480,z:-4380,name:'Withers',role:'Jergal\'s Servant',body:0xddccaa,head:0xeeeeee,dialog:'I have been waiting for you.',reward:'Soul Coin'},
+{x:-180,z:6380,name:'Crono',role:'Hero of Truce',body:0xddaa22,head:0xddccaa,dialog:'...',reward:'Rainbow Sword'},
+{x:-220,z:6420,name:'Marle',role:'Princess Nadia of Guardia',body:0xeeaa66,head:0xeeddaa,dialog:'I\'ll never go back to that boring palace!',reward:'PrismDress'},
+{x:-260,z:6440,name:'Lucca',role:'Inventor of Truce',body:0xaa4422,head:0xddccaa,dialog:'Science is the language of the universe!',reward:'Wondershot'},
+{x:-300,z:6460,name:'Robo',role:'R66-Y Prometheus',body:0x666666,head:0xaaaaaa,dialog:'I serve... to assist.',reward:'Crisis Arm'},
+{x:5380,z:-3620,name:'Cloud Strife',role:'Ex-SOLDIER 1st Class',body:0x224488,head:0xddcc66,dialog:'Not interested.',reward:'Buster Sword'},
+{x:5400,z:-3640,name:'Tifa Lockhart',role:'Avalanche Operative',body:0x222222,head:0xddccaa,dialog:'Words aren\'t the only way to tell someone how you feel.',reward:'Premium Heart'},
+{x:5420,z:-3660,name:'Aerith Gainsborough',role:'Last Cetra',body:0xaa66aa,head:0xddccaa,dialog:'The planet is alive, you know.',reward:'Princess Guard'},
+{x:5440,z:-3680,name:'Vincent Valentine',role:'Former Turk',body:0x222222,head:0xeeccaa,dialog:'My sins... I do not wish to remember.',reward:'Death Penalty'},
+{x:-5520,z:-3520,name:'Roundtable Hold Host',role:'Two Fingers',body:0xaa6622,head:0xddccaa,dialog:'Maidenless one... welcome.',reward:'Marika\'s Soreseal'},
+{x:-5180,z:-2420,name:'Melina',role:'Maiden of the Tarnished',body:0x444444,head:0xddccaa,dialog:'I will be your maiden. Will you accept?',reward:'Erdtree\'s Favor'},
+{x:2180,z:5980,name:'Mr. House',role:'CEO of New Vegas',body:0xaaccff,head:0xeeeeff,dialog:'I see you, Courier. I see everything.',reward:'Pip-Boy 3000'},
+{x:2200,z:6000,name:'Benny',role:'Owner of the Tops',body:0x665544,head:0xddccaa,dialog:'Truth is... the game was rigged from the start.',reward:'Maria'},
+{x:2220,z:6020,name:'Yes Man',role:'Securitron AI',body:0xddccaa,head:0xeeeeff,dialog:'Howdy! I\'m Yes Man, and I\'m here to help!',reward:'Holorifle'},
+{x:5580,z:-5780,name:'Deckard Cain',role:'Last of the Horadrim',body:0xddccaa,head:0xeeeedd,dialog:'Stay awhile and listen!',reward:'Horadric Cube'},
+{x:5620,z:-5780,name:'Tyrael',role:'Aspect of Justice',body:0xddaa44,head:0xeeeeff,dialog:'The Eternal Conflict consumes all.',reward:'Inarius\' Wings'},
+{x:6420,z:-5420,name:'Imperius',role:'Angel of Valor',body:0xffd766,head:0xeeeeff,dialog:'You are an aberration, mortal.',reward:'Imperius\' Spear'}
+];
+const megaNPCs=[];
+setTimeout(()=>{
+for(const d of MEGA_NPCS_DATA){const n=buildMegaNPC(d.x,d.z,d.name,d.role,d.body,d.head);n.dialog=d.dialog;n.reward=d.reward;n.spoken=false;megaNPCs.push(n)}
+log('⚜ '+megaNPCs.length+' legends of seven worlds walk among you ⚜','#ff66aa');
+},15500);
+
+function showMegaNPCDialog(npc){
+if(document.getElementById('mega-npc-dialog'))return;
+const d=document.createElement('div');d.id='mega-npc-dialog';
+d.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,rgba(20,10,20,.97),rgba(8,4,12,.99));border:3px solid #ff66aa;border-radius:12px;padding:20px;z-index:1500;width:480px;max-width:92vw;color:#ddd;font-family:serif;box-shadow:0 0 40px rgba(255,102,170,.4);';
+let html='<div style="text-align:center;margin-bottom:14px;"><div style="font-size:18px;color:#ff66aa;font-weight:bold;">⚜ '+npc.name+' ⚜</div><div style="font-size:11px;color:#aa6688;font-style:italic;margin-top:3px;">'+npc.role+'</div></div>';
+html+='<div style="background:rgba(60,20,40,.5);padding:14px;border-left:3px solid #ff66aa;border-radius:4px;color:#eeaadd;font-style:italic;font-size:13px;line-height:1.5;">"'+npc.dialog+'"</div>';
+if(!npc.spoken){html+='<button onclick="window.__takeMegaGift(\''+npc.name.replace(/'/g,'\\\'')+'\')" style="width:100%;margin-top:14px;padding:10px;background:#552255;color:#ffaadd;border:2px solid #aa4488;border-radius:6px;cursor:pointer;font-weight:bold;">⚜ Accept Gift: '+npc.reward+' ⚜</button>';}
+else{html+='<div style="text-align:center;margin-top:14px;color:#886677;font-size:11px;">You have already received this hero\'s gift.</div>';}
+html+='<button onclick="document.getElementById(\'mega-npc-dialog\').remove()" style="width:100%;margin-top:8px;padding:8px;background:#332233;color:#cc99bb;border:2px solid #553355;border-radius:6px;cursor:pointer;">Farewell</button>';
+d.innerHTML=html;document.body.appendChild(d);
+}
+window.__takeMegaGift=function(name){const npc=megaNPCs.find(n=>n.name===name);if(!npc||npc.spoken)return;npc.spoken=true;
+const item=grantMegaItem(npc.reward);if(item)log('⚜ '+npc.name+' bestows: '+npc.reward,'#ff66aa');else log('Hands too full to accept the gift.','#aa6622');
+const d=document.getElementById('mega-npc-dialog');if(d)d.remove();};
+
+function updateMegaNPCs(dt){for(const n of megaNPCs){n.t+=0.03;if(n.marker){n.marker.rotation.y+=0.025;n.marker.children[1].rotation.y+=0.05;n.marker.position.y=8+Math.sin(n.t)*0.4}
+const dx=player.x-n.x,dz=player.z-n.z;if(Math.hypot(dx,dz)<6 && (keys['KeyE']||(gpButtons&&gpButtons.x))){
+if(!document.getElementById('mega-npc-dialog')&&!document.getElementById('named-npc-dialog')&&!document.getElementById('extra-quest-dialog'))showMegaNPCDialog(n);break;
+}}}
+
+// ---- 6. LOOT INTEGRATION --------------------------------------------
+const _v12SpawnLoot=spawnLoot;
+spawnLoot=function(x,z,e){const r=_v12SpawnLoot(x,z,e);try{const hp=(e&&e.maxHp)||0;let chance=0,tier=null;
+if(hp>=3000){chance=.6;tier='mythic'}else if(hp>=800){chance=.20;tier='legendary'}else if(hp>=300){chance=.06;tier='epic'}
+if(chance>0&&Math.random()<chance){const pool=MEGA_ITEMS.filter(it=>it[5]===tier);if(pool.length){const name=pool[Math.floor(Math.random()*pool.length)][0];grantMegaItem(name);log('☠ Legend acquired: '+name,'#ff4488')}}}catch(e){}
+return r;
+};
+
+// ---- 7. MINIMAP MARKERS ---------------------------------------------
+const _v12DrawMM=drawMinimap;
+drawMinimap=function(){_v12DrawMM();try{const scale=.12,cx=125,cy=84;
+mmCtx.fillStyle='#ff66aa';
+for(const c of megaCities){if(Math.abs(c.x-player.x)>1100||Math.abs(c.z-player.z)>800)continue;
+const x=(c.x-player.x)*scale+cx,z=(c.z-player.z)*scale+cy;
+if(x>2&&x<243&&z>2&&z<166){mmCtx.beginPath();mmCtx.moveTo(x,z-4);mmCtx.lineTo(x+4,z);mmCtx.lineTo(x,z+4);mmCtx.lineTo(x-4,z);mmCtx.closePath();mmCtx.fill();mmCtx.strokeStyle='#000';mmCtx.stroke()}}
+mmCtx.fillStyle='#ff2266';
+for(const b of megaBosses){if(!b.mesh)continue;const bx=b.mesh.position.x,bz=b.mesh.position.z;
+if(Math.abs(bx-player.x)>1100||Math.abs(bz-player.z)>800)continue;
+const x=(bx-player.x)*scale+cx,z=(bz-player.z)*scale+cy;
+if(x>2&&x<243&&z>2&&z<166){mmCtx.beginPath();mmCtx.arc(x,z,5,0,Math.PI*2);mmCtx.fill();mmCtx.strokeStyle='#fff';mmCtx.stroke()}}
+}catch(e){}};
+
+// ---- 8. PER-FRAME HOOK ----------------------------------------------
+const _v12Orig=window.requestAnimationFrame;let _v12Last=0;
+window.requestAnimationFrame=function(cb){return _v12Orig.call(window,function(t){const dt=(t-_v12Last)/16;_v12Last=t;
+try{updateMegaBosses(dt)}catch(e){}try{updateMegaNPCs(dt)}catch(e){}cb(t)})};
+
+setTimeout(()=>{const c=document.getElementById('controls');if(c)c.innerHTML+=' &middot; <b style="color:#ff66aa">⚜ 7 worlds opened</b>';},16000);
+log('=== v12 Megapack loaded: '+Object.keys(MEGA_MOBS).length+' mobs · '+MEGA_ITEMS.length+' items · '+MEGA_BOSSES.length+' iconic bosses · '+MEGA_CITIES.length+' cities · '+MEGA_NPCS_DATA.length+' named heroes · 7 game IPs ===','#ff4488');
+})();
+// =====================================================================
+
+// =====================================================================
+// ===  v13 EXPANSION  (Master Spellbook + clickable Action Bar)     ===
+// =====================================================================
+(function v13Expansion(){
+
+// ---- 1. MASTER ABILITY CATALOG --------------------------------------
+// Schema: {k:id, n:name, ip:source, sch:school, cost, cd, dmg, r:range, heal,
+//          aoe, buff, d:desc, sym:emoji}
+const ABILS=[
+// === DARK SOULS ===
+{k:'ds_wog',n:'Wrath of the Gods',ip:'DS',sch:'Miracle',cost:60,cd:8,dmg:280,r:12,aoe:true,d:'AoE shockwave around you.',sym:'⚡'},
+{k:'ds_sunspear',n:'Sunlight Spear',ip:'DS',sch:'Miracle',cost:80,cd:6,dmg:320,r:35,d:'Cast a spear of pure sunlight.',sym:'☀'},
+{k:'ds_firetempest',n:'Fire Tempest',ip:'DS',sch:'Pyromancy',cost:90,cd:10,dmg:380,r:14,aoe:true,d:'Pillar of flame around you.',sym:'🔥'},
+{k:'ds_ironflesh',n:'Iron Flesh',ip:'DS',sch:'Pyromancy',cost:40,cd:30,buff:true,d:'+80% physical damage reduction 30s.',sym:'⛨'},
+{k:'ds_crystalsoulspear',n:'Crystal Soul Spear',ip:'DS',sch:'Sorcery',cost:70,cd:4,dmg:340,r:35,d:'Devastating sorcery projectile.',sym:'💎'},
+{k:'ds_homingsoulmass',n:'Homing Soulmass',ip:'DS',sch:'Sorcery',cost:55,cd:8,dmg:50,r:30,d:'5 homing missiles fire at target.',sym:'❉'},
+{k:'ds_whitedragonbreath',n:'White Dragon Breath',ip:'DS',sch:'Sorcery',cost:100,cd:18,dmg:420,r:18,aoe:true,d:'Channel dragon-breath in cone.',sym:'🐲'},
+{k:'ds_estusheal',n:'Drink Estus',ip:'DS',sch:'Item',cost:0,cd:8,heal:250,r:0,d:'Drink an Estus Flask — heals 250.',sym:'🍶'},
+
+// === WoW ===
+{k:'wow_pyroblast',n:'Pyroblast',ip:'WoW',sch:'Fire',cost:70,cd:4,dmg:280,r:35,d:'Massive fireball impact + burn.',sym:'🔥'},
+{k:'wow_arcaneblast',n:'Arcane Blast',ip:'WoW',sch:'Arcane',cost:35,cd:1,dmg:140,r:30,d:'Burst of pure arcane.',sym:'✨'},
+{k:'wow_shadowfury',n:'Shadowfury',ip:'WoW',sch:'Shadow',cost:60,cd:12,dmg:200,r:15,aoe:true,d:'AoE shadow stun + damage.',sym:'🌑'},
+{k:'wow_chaosbolt',n:'Chaos Bolt',ip:'WoW',sch:'Shadow',cost:55,cd:3,dmg:260,r:35,d:'Always crits. Bypasses resistance.',sym:'🌌'},
+{k:'wow_consecration',n:'Consecration',ip:'WoW',sch:'Holy',cost:50,cd:9,dmg:160,r:12,aoe:true,d:'Holy ground damages enemies.',sym:'✝'},
+{k:'wow_holyword',n:'Holy Word: Serenity',ip:'WoW',sch:'Holy',cost:0,cd:60,heal:480,r:25,d:'Massive instant heal.',sym:'⚜'},
+{k:'wow_innerfire',n:'Inner Fire',ip:'WoW',sch:'Holy',cost:30,cd:60,buff:true,d:'+50% armor, +shadow protection 30min.',sym:'☼'},
+{k:'wow_combust',n:'Combustion',ip:'WoW',sch:'Fire',cost:0,cd:120,buff:true,d:'+50% fire damage 10s + crit guarantee.',sym:'☄'},
+
+// === SKYRIM / OBLIVION ===
+{k:'sk_marked',n:'Marked for Death',ip:'TES',sch:'Shout',cost:0,cd:30,dmg:160,r:30,d:'Reduces target armor by 75%.',sym:'☠'},
+{k:'sk_dragonaspect',n:'Dragon Aspect',ip:'TES',sch:'Shout',cost:0,cd:300,buff:true,d:'Buffs all stats massively for 5min.',sym:'🐉'},
+{k:'sk_callstorm',n:'Call Storm (Storm Call)',ip:'TES',sch:'Shout',cost:0,cd:600,dmg:800,r:60,aoe:true,d:'Calls a thunderstorm — strikes all foes.',sym:'⛈'},
+{k:'sk_summondragon',n:'Call Dragon',ip:'TES',sch:'Shout',cost:0,cd:300,buff:true,d:'Summons Odahviing for 5 min.',sym:'🐲'},
+{k:'sk_bend_will',n:'Bend Will',ip:'TES',sch:'Shout',cost:0,cd:90,buff:true,d:'Mounts and rides any dragon.',sym:'🜲'},
+{k:'sk_circleprotection',n:'Circle of Protection',ip:'TES',sch:'Restoration',cost:80,cd:30,heal:0,r:8,aoe:true,buff:true,d:'Wards undead/Daedra from circle.',sym:'⊙'},
+{k:'sk_telekinesis',n:'Telekinesis',ip:'TES',sch:'Alteration',cost:30,cd:1,dmg:0,r:25,d:'Pull or push objects.',sym:'🪞'},
+{k:'sk_invisibilityms',n:'Invisibility (Master)',ip:'TES',sch:'Illusion',cost:200,cd:90,buff:true,d:'Become invisible for 60s.',sym:'👁'},
+
+// === WITCHER 3 SIGNS ===
+{k:'w3_igni',n:'Igni (Fire Sign)',ip:'Witcher',sch:'Sign',cost:25,cd:1,dmg:120,r:12,aoe:true,d:'Cone of flame. Burns enemies.',sym:'🜂'},
+{k:'w3_aard',n:'Aard (Force Sign)',ip:'Witcher',sch:'Sign',cost:25,cd:2,dmg:80,r:10,aoe:true,d:'Telekinetic shockwave knocks down.',sym:'🜁'},
+{k:'w3_yrden',n:'Yrden (Trap Sign)',ip:'Witcher',sch:'Sign',cost:30,cd:8,dmg:60,r:6,aoe:true,d:'Magical trap slows/damages enemies.',sym:'🜃'},
+{k:'w3_quen',n:'Quen (Shield Sign)',ip:'Witcher',sch:'Sign',cost:40,cd:5,buff:true,d:'Damage-absorbing barrier.',sym:'🜄'},
+{k:'w3_axii',n:'Axii (Charm Sign)',ip:'Witcher',sch:'Sign',cost:35,cd:8,dmg:0,r:15,d:'Charms target to fight for you 15s.',sym:'☯'},
+{k:'w3_swallow',n:'Swallow Potion',ip:'Witcher',sch:'Alchemy',cost:0,cd:60,heal:200,r:0,d:'Drinks Swallow — fast regen.',sym:'🧪'},
+{k:'w3_cat',n:'Cat Potion',ip:'Witcher',sch:'Alchemy',cost:0,cd:90,buff:true,d:'See in darkness 60s.',sym:'🧪'},
+{k:'w3_thunderbolt',n:'Thunderbolt Potion',ip:'Witcher',sch:'Alchemy',cost:0,cd:90,buff:true,d:'+50% damage 30s.',sym:'🧪'},
+
+// === BG3 (D&D) ===
+{k:'bg_magicmissile',n:'Magic Missile',ip:'BG3',sch:'Evocation',cost:25,cd:0,dmg:120,r:35,d:'3 darts auto-hit nearest target.',sym:'✦'},
+{k:'bg_eldritchblast',n:'Eldritch Blast',ip:'BG3',sch:'Evocation',cost:0,cd:0,dmg:90,r:35,d:'Cantrip — free force damage.',sym:'☄'},
+{k:'bg_cure_wounds',n:'Cure Wounds',ip:'BG3',sch:'Evocation',cost:40,cd:1,heal:140,r:8,d:'Touch heal an ally.',sym:'❤'},
+{k:'bg_healingword',n:'Healing Word',ip:'BG3',sch:'Evocation',cost:30,cd:1,heal:80,r:25,d:'Quick ranged heal.',sym:'❤'},
+{k:'bg_mistystep',n:'Misty Step',ip:'BG3',sch:'Conjuration',cost:35,cd:6,buff:true,d:'Teleport 30 feet away.',sym:'☁'},
+{k:'bg_counterspell',n:'Counterspell',ip:'BG3',sch:'Abjuration',cost:50,cd:0,buff:true,d:'Negate enemy spell.',sym:'⚖'},
+{k:'bg_fireball',n:'Fireball (3rd Lvl)',ip:'BG3',sch:'Evocation',cost:80,cd:4,dmg:300,r:30,aoe:true,d:'Massive AoE fire — 20ft radius.',sym:'🔥'},
+{k:'bg_holdperson',n:'Hold Person',ip:'BG3',sch:'Enchantment',cost:60,cd:8,dmg:0,r:25,d:'Paralyzes target for 1 min.',sym:'🜂'},
+{k:'bg_banishment',n:'Banishment',ip:'BG3',sch:'Abjuration',cost:120,cd:30,dmg:0,r:25,d:'Banishes target to demiplane.',sym:'⚜'},
+{k:'bg_wish',n:'Wish',ip:'BG3',sch:'Evocation',cost:300,cd:300,dmg:500,r:50,aoe:true,heal:500,d:'9th level — wish made real.',sym:'⌬'},
+
+// === CHRONO TRIGGER ===
+{k:'ct_lightning',n:'Lightning',ip:'ChronoT',sch:'Tech',cost:25,cd:1.5,dmg:130,r:25,d:'Crono\'s basic tech.',sym:'⚡'},
+{k:'ct_lightning2',n:'Lightning 2',ip:'ChronoT',sch:'Tech',cost:45,cd:3,dmg:240,r:30,aoe:true,d:'Crono\'s stronger lightning.',sym:'⚡'},
+{k:'ct_luminaire',n:'Luminaire',ip:'ChronoT',sch:'Tech',cost:160,cd:30,dmg:600,r:30,aoe:true,d:'Crono\'s ultimate light blast.',sym:'☼'},
+{k:'ct_cyclone',n:'Cyclone',ip:'ChronoT',sch:'Tech',cost:30,cd:2,dmg:160,r:8,aoe:true,d:'Crono spins in arc.',sym:'🌀'},
+{k:'ct_flamestoss',n:'Flame Toss',ip:'ChronoT',sch:'Tech',cost:25,cd:1,dmg:120,r:30,d:'Lucca\'s fire projectile.',sym:'🔥'},
+{k:'ct_megablast',n:'Mega Blast',ip:'ChronoT',sch:'Tech',cost:200,cd:60,dmg:780,r:30,aoe:true,d:'Robo\'s ultimate.',sym:'☢'},
+{k:'ct_iceshower',n:'Ice Sword',ip:'ChronoT',sch:'Tech',cost:60,cd:6,dmg:280,r:30,aoe:true,d:'Dual ice technique.',sym:'❄'},
+{k:'ct_grandstone',n:'Grand Stone (Heal)',ip:'ChronoT',sch:'Tech',cost:80,cd:5,heal:400,r:20,aoe:true,d:'Marle\'s mass heal.',sym:'❤'},
+{k:'ct_finalhour',n:'Final Hour',ip:'ChronoT',sch:'Tech',cost:300,cd:120,dmg:999,r:30,aoe:true,d:'Magus\' apocalyptic spell.',sym:'☠'},
+
+// === FF7 MATERIA & LIMIT BREAKS ===
+{k:'ff_fire',n:'Fire',ip:'FF7',sch:'Materia',cost:20,cd:1,dmg:100,r:30,d:'Basic fire materia.',sym:'🔥'},
+{k:'ff_fira',n:'Fira',ip:'FF7',sch:'Materia',cost:45,cd:2,dmg:220,r:30,d:'Stronger fire spell.',sym:'🔥'},
+{k:'ff_firaga',n:'Firaga',ip:'FF7',sch:'Materia',cost:120,cd:6,dmg:480,r:30,aoe:true,d:'Master fire spell.',sym:'☄'},
+{k:'ff_cure',n:'Cure',ip:'FF7',sch:'Materia',cost:30,cd:1,heal:120,r:0,d:'Basic restorative.',sym:'❤'},
+{k:'ff_cura',n:'Cura',ip:'FF7',sch:'Materia',cost:60,cd:2,heal:280,r:0,d:'Stronger restorative.',sym:'❤'},
+{k:'ff_curaga',n:'Curaga',ip:'FF7',sch:'Materia',cost:120,cd:4,heal:600,r:15,aoe:true,d:'Master restorative — AoE.',sym:'💚'},
+{k:'ff_bahamut',n:'Summon: Bahamut',ip:'FF7',sch:'Summon',cost:200,cd:90,dmg:680,r:40,aoe:true,d:'Mega Flare — Bahamut summon.',sym:'🐉'},
+{k:'ff_ifrit',n:'Summon: Ifrit',ip:'FF7',sch:'Summon',cost:120,cd:45,dmg:380,r:30,aoe:true,d:'Hellfire — Ifrit summon.',sym:'🔥'},
+{k:'ff_shiva',n:'Summon: Shiva',ip:'FF7',sch:'Summon',cost:120,cd:45,dmg:380,r:30,aoe:true,d:'Diamond Dust — Shiva summon.',sym:'❄'},
+{k:'ff_kotr',n:'Knights of the Round',ip:'FF7',sch:'Summon',cost:500,cd:300,dmg:1300,r:50,aoe:true,d:'13 knight summons — ultimate.',sym:'⚜'},
+{k:'ff_omnislash',n:'Omnislash (Cloud LB)',ip:'FF7',sch:'LimitBreak',cost:0,cd:90,dmg:850,r:8,aoe:true,d:'Cloud\'s 15-hit ultimate.',sym:'⚔'},
+{k:'ff_finalheaven',n:'Final Heaven (Tifa LB)',ip:'FF7',sch:'LimitBreak',cost:0,cd:90,dmg:780,r:5,d:'Tifa\'s mountain-shattering punch.',sym:'👊'},
+{k:'ff_catastrophe',n:'Catastrophe (Barret LB)',ip:'FF7',sch:'LimitBreak',cost:0,cd:90,dmg:760,r:30,aoe:true,d:'Barret\'s bombardment.',sym:'💥'},
+{k:'ff_gigaflash',n:'Gigaflash (Red XIII)',ip:'FF7',sch:'LimitBreak',cost:0,cd:60,dmg:580,r:30,aoe:true,d:'Beast god\'s blinding flash.',sym:'☀'},
+{k:'ff_meteor',n:'Meteor',ip:'FF7',sch:'Materia',cost:250,cd:120,dmg:1100,r:40,aoe:true,d:'Massive meteor strike.',sym:'☄'},
+{k:'ff_ultima',n:'Ultima',ip:'FF7',sch:'Materia',cost:300,cd:90,dmg:980,r:35,aoe:true,d:'Pure non-elemental devastation.',sym:'⊛'},
+
+// === ELDEN RING ===
+{k:'er_glintpebble',n:'Glintstone Pebble',ip:'EldenR',sch:'Sorcery',cost:20,cd:1,dmg:120,r:35,d:'Carian basic sorcery.',sym:'💎'},
+{k:'er_cometazur',n:'Comet Azur',ip:'EldenR',sch:'Sorcery',cost:200,cd:30,dmg:850,r:50,d:'Channel a beam of starlight.',sym:'☄'},
+{k:'er_ranni',n:'Ranni\'s Dark Moon',ip:'EldenR',sch:'Sorcery',cost:140,cd:12,dmg:520,r:40,d:'Casts a frozen dark moon.',sym:'☾'},
+{k:'er_starsofruin',n:'Stars of Ruin',ip:'EldenR',sch:'Sorcery',cost:100,cd:8,dmg:380,r:30,aoe:true,d:'Volley of stellar fragments.',sym:'✨'},
+{k:'er_bloodflame',n:'Bloodflame Blade',ip:'EldenR',sch:'Incantation',cost:35,cd:30,buff:true,d:'+25% physical, applies bleed/burn.',sym:'🩸'},
+{k:'er_blackflame',n:'Black Flame',ip:'EldenR',sch:'Incantation',cost:55,cd:3,dmg:280,r:30,d:'Godslayer flame — percent dmg.',sym:'🔥'},
+{k:'er_lordsaid',n:'Lord\'s Aid',ip:'EldenR',sch:'Incantation',cost:60,cd:8,heal:360,r:10,aoe:true,d:'Healing aura, removes status.',sym:'⚜'},
+{k:'er_pestthreads',n:'Pest Threads',ip:'EldenR',sch:'Incantation',cost:45,cd:3,dmg:240,r:20,d:'Volley of pest cocoons.',sym:'🕸'},
+{k:'er_greyollsroar',n:'Greyoll\'s Roar',ip:'EldenR',sch:'Incantation',cost:120,cd:60,dmg:280,r:15,aoe:true,d:'Dragon roar staggers all.',sym:'🐲'},
+{k:'er_taker',n:'Taker\'s Flames',ip:'EldenR',sch:'Incantation',cost:80,cd:4,dmg:340,r:25,d:'Godrick\'s grafted flames.',sym:'🔥'},
+
+// === FALLOUT NEW VEGAS ===
+{k:'fnv_vats',n:'V.A.T.S.',ip:'FNV',sch:'Tech',cost:40,cd:8,dmg:360,r:40,d:'Vault-Tec auto-targeting — slows time.',sym:'⌖'},
+{k:'fnv_stimpak',n:'Stimpak',ip:'FNV',sch:'Item',cost:0,cd:6,heal:180,r:0,d:'Instant healing injection.',sym:'💉'},
+{k:'fnv_stealthboy',n:'Stealth Boy',ip:'FNV',sch:'Tech',cost:0,cd:60,buff:true,d:'Active camouflage — 30s invisibility.',sym:'👻'},
+{k:'fnv_psycho',n:'Psycho',ip:'FNV',sch:'Drug',cost:0,cd:60,buff:true,d:'+25% melee damage 4 min.',sym:'💊'},
+{k:'fnv_jet',n:'Jet',ip:'FNV',sch:'Drug',cost:0,cd:45,buff:true,d:'Time perception slows 30s.',sym:'💨'},
+{k:'fnv_med_x',n:'Med-X',ip:'FNV',sch:'Drug',cost:0,cd:60,buff:true,d:'+25 DR for 4 min.',sym:'💉'},
+{k:'fnv_powerarmor',n:'Power Armor: Brace',ip:'FNV',sch:'Tech',cost:0,cd:90,buff:true,d:'-50% damage taken 20s.',sym:'⛨'},
+{k:'fnv_minigun',n:'Mini-Nuke',ip:'FNV',sch:'Tech',cost:200,cd:30,dmg:980,r:25,aoe:true,d:'Fat Man — tactical mini-nuke.',sym:'☢'},
+
+// === DIABLO CLASS SKILLS ===
+{k:'di_whirlwind',n:'Whirlwind',ip:'Diablo',sch:'Barbarian',cost:30,cd:8,dmg:340,r:8,aoe:true,d:'Spin & shred all in range.',sym:'🌀'},
+{k:'di_frenzy',n:'Frenzy',ip:'Diablo',sch:'Barbarian',cost:25,cd:0,dmg:180,r:5,d:'Faster attacks with each hit.',sym:'🪓'},
+{k:'di_leap',n:'Leap Attack',ip:'Diablo',sch:'Barbarian',cost:35,cd:12,dmg:280,r:25,aoe:true,d:'Leap to target — AoE on landing.',sym:'⤴'},
+{k:'di_hotg',n:'Hammer of the Ancients',ip:'Diablo',sch:'Barbarian',cost:50,cd:6,dmg:440,r:6,aoe:true,d:'Crushing ancestral hammer.',sym:'🔨'},
+{k:'di_meteor',n:'Meteor (Sorceress)',ip:'Diablo',sch:'Sorceress',cost:75,cd:8,dmg:520,r:35,aoe:true,d:'Calls meteor from sky.',sym:'☄'},
+{k:'di_blizzard',n:'Blizzard',ip:'Diablo',sch:'Sorceress',cost:90,cd:15,dmg:420,r:30,aoe:true,d:'Rain of ice 10s.',sym:'❄'},
+{k:'di_hydra',n:'Hydra',ip:'Diablo',sch:'Sorceress',cost:80,cd:20,dmg:60,r:25,d:'Summons 3 fire-spitting heads 30s.',sym:'🐍'},
+{k:'di_chargedbolt',n:'Charged Bolt',ip:'Diablo',sch:'Sorceress',cost:30,cd:1,dmg:150,r:25,d:'Erratic shock bolts.',sym:'⚡'},
+{k:'di_raiseskel',n:'Raise Skeleton',ip:'Diablo',sch:'Necromancer',cost:80,cd:6,buff:true,d:'Summons a skeleton warrior 5min.',sym:'💀'},
+{k:'di_bonespear',n:'Bone Spear',ip:'Diablo',sch:'Necromancer',cost:55,cd:2,dmg:340,r:35,d:'Bone-piercing projectile.',sym:'🦴'},
+{k:'di_lightningfury',n:'Lightning Fury',ip:'Diablo',sch:'Amazon',cost:65,cd:3,dmg:260,r:25,aoe:true,d:'Bouncing lightning javelin.',sym:'⚡'},
+{k:'di_multishot',n:'Multiple Shot',ip:'Diablo',sch:'Amazon',cost:45,cd:2,dmg:180,r:30,aoe:true,d:'Fires arrows in cone.',sym:'➹'},
+{k:'di_hammerdin',n:'Blessed Hammer',ip:'Diablo',sch:'Paladin',cost:50,cd:1,dmg:280,r:15,d:'Spirit hammer orbits & strikes.',sym:'🔨'},
+{k:'di_convocation',n:'Convocation',ip:'Diablo',sch:'Necromancer',cost:40,cd:10,buff:true,d:'Replaces all minions instantly.',sym:'☥'},
+
+// === GUILD WARS 2 ===
+{k:'gw_mistfire',n:'Mistfire Wolf',ip:'GW2',sch:'Elite',cost:0,cd:120,buff:true,d:'Summons mistfire wolf 60s.',sym:'🐺'},
+{k:'gw_dragonsbreath',n:'Dragon\'s Breath',ip:'GW2',sch:'Elementalist',cost:55,cd:8,dmg:380,r:12,aoe:true,d:'Massive fire breath cone.',sym:'🐲'},
+{k:'gw_meteorshower',n:'Meteor Shower',ip:'GW2',sch:'Elementalist',cost:150,cd:30,dmg:680,r:25,aoe:true,d:'Rain meteors 9s.',sym:'☄'},
+{k:'gw_chaosstorm',n:'Chaos Storm',ip:'GW2',sch:'Mesmer',cost:80,cd:25,dmg:280,r:15,aoe:true,d:'Magical confusion storm.',sym:'❉'},
+{k:'gw_signetinspiration',n:'Signet of Inspiration',ip:'GW2',sch:'Mesmer',cost:30,cd:60,buff:true,d:'Shares all boons with allies.',sym:'⊛'},
+
+// === GAME OF THRONES ===
+{k:'got_dragonfire',n:'Dragonfire (Dracarys)',ip:'GoT',sch:'Magic',cost:120,cd:30,dmg:680,r:25,aoe:true,d:'Targaryen dragonfire breath.',sym:'🐉'},
+{k:'got_lightbringer',n:'Lightbringer Slash',ip:'GoT',sch:'Magic',cost:50,cd:8,dmg:380,r:6,d:'Flaming sword of R\'hllor strike.',sym:'🗡'},
+{k:'got_resurrection',n:'Lord of Light\'s Resurrection',ip:'GoT',sch:'Magic',cost:0,cd:600,heal:9999,r:0,d:'Resurrect from death (10-min CD).',sym:'⚜'},
+{k:'got_direwolf',n:'Warg with Direwolf',ip:'GoT',sch:'Magic',cost:0,cd:90,buff:true,d:'Move as a direwolf — +speed/dmg 30s.',sym:'🐺'},
+{k:'got_ironcoin',n:'Valar Morghulis',ip:'GoT',sch:'Magic',cost:100,cd:60,dmg:500,r:25,d:'Faceless death-touch.',sym:'☠'}
+];
+const ABIL_INDEX={};for(const a of ABILS)ABIL_INDEX[a.k]=a;
+const abilCD={};
+
+// ---- 2. CAST LOGIC --------------------------------------------------
+function abilFindTarget(maxRange){
+let best=null,bestD=maxRange;
+for(const e of enemies){const dx=e.mesh.position.x-player.x,dz=e.mesh.position.z-player.z;
+const d=Math.hypot(dx,dz);if(d<bestD){bestD=d;best=e}}
+return best;
+}
+function schoolHex(s){
+const map={Fire:0xff5a10,Frost:0x44aaff,Shadow:0x8855aa,Holy:0xffd700,Nature:0x55cc44,Arcane:0xcc66ff,Shout:0xffaa44,Sign:0xff8844,Sorcery:0x88ccff,Incantation:0xffcc66,Tech:0x44ddff,Materia:0xddcc66,Summon:0xff6666,LimitBreak:0xffcc44,Pyromancy:0xff5500,Miracle:0xffd700,Evocation:0xcc44ff,Conjuration:0x88ff88,Enchantment:0xff88cc,Abjuration:0x66ddff,Item:0x66ff66,Drug:0xaaff66,Magic:0xff8844,Elementalist:0x44ddff,Mesmer:0xff66ff,Elite:0xddaa44,Barbarian:0xff4422,Sorceress:0x4488ff,Necromancer:0x88ff44,Amazon:0xffaa33,Paladin:0xffd700,Alchemy:0x66ccaa};
+return map[s]||0xffffff;
+}
+function castAbil(k){
+const s=ABIL_INDEX[k];if(!s)return;
+const now=performance.now()/1000;
+if((abilCD[k]||0)>now){log(s.n+' is on cooldown.','#888');return}
+if(typeof player.mana==='number'&&s.cost>0&&player.mana<s.cost){log('Not enough magicka/mana.','#88f');return}
+if(typeof player.mana==='number'&&s.cost>0)player.mana-=s.cost;
+abilCD[k]=now+s.cd;
+const bonus=window.__getCombatBonus?window.__getCombatBonus(null,!!inDungeon,null):1.0;
+const ench=window.__getEnchantBonus?window.__getEnchantBonus():1.0;
+const sc=schoolHex(s.sch);
+if(s.heal){player.hp=Math.min(player.maxHp,player.hp+Math.round(s.heal*ench));log('+'+Math.round(s.heal*ench)+' '+s.n,'#0f8');
+if(typeof hitFX==='function')hitFX(player.x,player.y+3,player.z,sc);return}
+if(s.buff&&!s.dmg){log(s.sym+' '+s.n+' cast — effect active','#ff8');
+if(typeof hitFX==='function')hitFX(player.x,player.y+3,player.z,sc);return}
+if(s.aoe){let count=0;for(const e of enemies){const dx=e.mesh.position.x-player.x,dz=e.mesh.position.z-player.z;const d=Math.hypot(dx,dz);
+if(d<=s.r){const dmg=Math.round(s.dmg*bonus*ench);e.hp-=dmg;count++;
+if(typeof hitFX==='function')hitFX(e.mesh.position.x,e.mesh.position.y+2,e.mesh.position.z,sc)}}
+log(s.sym+' '+s.n+' — '+count+' targets','#fa4');
+}else{const target=abilFindTarget(s.r);if(!target){log(s.sym+' '+s.n+' — no target in range','#888');return}
+const dmg=Math.round(s.dmg*bonus*ench);target.hp-=dmg;
+if(typeof hitFX==='function')hitFX(target.mesh.position.x,target.mesh.position.y+2,target.mesh.position.z,sc);
+log(s.sym+' '+s.n+' hits '+target.type+' for '+dmg,'#fa4')}
+}
+window.__castAbil=castAbil;
+
+// ---- 3. ACTION BAR (click-to-bind, hotkeys Shift+1..0) --------------
+const NSLOTS=10;
+let bar=JSON.parse(localStorage.getItem('ss_abilbar_v13')||'null');
+if(!bar||bar.length!==NSLOTS)bar=new Array(NSLOTS).fill(null);
+function saveBar(){localStorage.setItem('ss_abilbar_v13',JSON.stringify(bar))}
+let waitingToBindIdx=null;// when user clicks an ability, where it goes
+let bindMode='auto';// 'auto' = next empty slot; 'pick' = wait for slot click
+
+function buildBarUI(){
+if(document.getElementById('v13-abilbar'))return;
+const bar_el=document.createElement('div');bar_el.id='v13-abilbar';
+bar_el.style.cssText='position:fixed;top:64%;right:8px;z-index:550;display:flex;flex-direction:column;gap:4px;padding:6px;background:linear-gradient(180deg,rgba(20,12,8,.85),rgba(8,4,2,.92));border:2px solid #aa6644;border-radius:8px;box-shadow:0 0 16px rgba(170,102,68,.4);font-family:serif;color:#ddd;pointer-events:auto;';
+let html='<div style="font-size:10px;color:#ddaa66;text-align:center;margin-bottom:3px;font-weight:bold;letter-spacing:2px;">⚔ ABILITY BAR ⚔</div>';
+for(let i=0;i<NSLOTS;i++){
+const slotKey='Shift+'+((i+1)%10);
+html+='<div class="v13-slot" data-idx="'+i+'" oncontextmenu="window.__abilSlotRmb(event,'+i+');return false" onclick="window.__abilSlotLmb(event,'+i+')" style="display:flex;align-items:center;gap:4px;background:rgba(30,20,12,.7);border:1px solid #553322;border-radius:4px;padding:3px 6px;width:160px;cursor:pointer;transition:border-color .15s;font-size:10px;">';
+html+='<span style="color:#aa8855;width:32px;font-weight:bold;">'+slotKey+'</span>';
+html+='<span class="v13-name" id="v13-slot-name-'+i+'" style="flex:1;color:#ddcc88;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">[empty]</span>';
+html+='<span class="v13-cd" id="v13-slot-cd-'+i+'" style="color:#ff8844;font-size:9px;width:24px;text-align:right;"></span>';
+html+='</div>';
+}
+bar_el.innerHTML=html;document.body.appendChild(bar_el);
+refreshBarUI();
+}
+function refreshBarUI(){
+const now=performance.now()/1000;
+for(let i=0;i<NSLOTS;i++){
+const k=bar[i];const ne=document.getElementById('v13-slot-name-'+i);const ce=document.getElementById('v13-slot-cd-'+i);if(!ne||!ce)continue;
+if(k&&ABIL_INDEX[k]){const a=ABIL_INDEX[k];ne.textContent=a.sym+' '+a.n.length>20?a.n.slice(0,18)+'…':a.n;ne.textContent=a.sym+' '+(a.n.length>16?a.n.slice(0,14)+'…':a.n);
+ne.style.color='#'+schoolHex(a.sch).toString(16).padStart(6,'0');
+const left=Math.max(0,(abilCD[k]||0)-now);ce.textContent=left>0?left.toFixed(1)+'s':'';
+}else{ne.textContent='[empty]';ne.style.color='#aa8855';ce.textContent='';}}
+}
+setInterval(refreshBarUI,200);
+
+window.__abilSlotLmb=function(ev,idx){
+// If we have a "pending" bind, place it here
+if(window.__pendingAbil){bar[idx]=window.__pendingAbil;saveBar();log('Bound '+ABIL_INDEX[window.__pendingAbil].n+' to slot '+(idx+1),'#aa66ff');window.__pendingAbil=null;refreshBarUI();return}
+// Otherwise cast it if assigned
+if(bar[idx])castAbil(bar[idx]);
+};
+window.__abilSlotRmb=function(ev,idx){if(bar[idx]){log('Unbound slot '+(idx+1),'#aa6622');bar[idx]=null;saveBar();refreshBarUI()}};
+
+// Hotkeys Shift+1..Shift+0 → slot 0..9
+document.addEventListener('keydown',e=>{
+if(!gameStarted)return;
+const tag=(document.activeElement&&document.activeElement.tagName)||'';if(tag==='INPUT'||tag==='TEXTAREA')return;
+if(!e.shiftKey)return;
+const map={'Digit1':0,'Digit2':1,'Digit3':2,'Digit4':3,'Digit5':4,'Digit6':5,'Digit7':6,'Digit8':7,'Digit9':8,'Digit0':9};
+const idx=map[e.code];
+if(idx===undefined)return;
+e.preventDefault();
+if(bar[idx]){castAbil(bar[idx])}else{log('Slot '+(idx+1)+' is empty. Open M to bind.','#888')}
+});
+
+setTimeout(buildBarUI,15500);
+
+// ---- 4. MASTER SPELLBOOK UI (M key) ---------------------------------
+function openMasterBook(){
+if(document.getElementById('v13-spellbook'))return;
+const d=document.createElement('div');d.id='v13-spellbook';
+d.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,rgba(15,10,18,.97),rgba(5,3,10,.99));border:3px solid #aa66ff;border-radius:14px;padding:18px;z-index:1500;width:1000px;max-width:96vw;max-height:92vh;overflow-y:auto;color:#ddd;font-family:serif;box-shadow:0 0 40px rgba(170,102,255,.55);';
+let html='<div style="text-align:center;margin-bottom:12px;"><div style="font-size:24px;color:#cc88ff;font-weight:bold;letter-spacing:3px;">📖 MASTER GRIMOIRE 📖</div>';
+html+='<div style="color:#aa88dd;font-size:12px;margin-top:4px;">All abilities from every realm. <b>Click an ability</b> then <b>click an action-bar slot</b> to bind, or click directly to cast. Slots fire with <b>Shift+1..0</b>.</div></div>';
+// Group by IP
+const ips={};for(const a of ABILS){if(!ips[a.ip])ips[a.ip]=[];ips[a.ip].push(a)}
+const ipOrder=['DS','WoW','TES','Witcher','BG3','ChronoT','FF7','EldenR','FNV','Diablo','GW2','GoT'];
+const ipName={DS:'Dark Souls',WoW:'World of Warcraft',TES:'Skyrim / Oblivion',Witcher:'Witcher 3',BG3:'Baldur\'s Gate 3',ChronoT:'Chrono Trigger',FF7:'Final Fantasy VII',EldenR:'Elden Ring',FNV:'Fallout: New Vegas',Diablo:'Diablo',GW2:'Guild Wars 2',GoT:'Game of Thrones'};
+const ipColor={DS:'#ddaa66',WoW:'#ff8844',TES:'#ffd96a',Witcher:'#ddccaa',BG3:'#aaccff',ChronoT:'#ff66aa',FF7:'#88ccff',EldenR:'#ffd700',FNV:'#ddcc66',Diablo:'#cc4422',GW2:'#aa88ff',GoT:'#ff8844'};
+for(const ip of ipOrder){if(!ips[ip])continue;const c=ipColor[ip]||'#cccccc';
+html+='<div style="margin-top:14px;background:rgba(40,20,60,.4);border-left:3px solid '+c+';padding:10px;border-radius:6px;">';
+html+='<div style="color:'+c+';font-weight:bold;font-size:15px;letter-spacing:2px;margin-bottom:8px;">'+ipName[ip]+' &middot; <span style="font-size:11px;color:#aa9;font-weight:normal;">('+ips[ip].length+' abilities)</span></div>';
+html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">';
+for(const a of ips[ip]){const sc='#'+schoolHex(a.sch).toString(16).padStart(6,'0');
+html+='<div onclick="window.__pickAbil(\''+a.k+'\')" style="background:rgba(50,30,70,.7);border:1px solid '+sc+';border-radius:5px;padding:6px;cursor:pointer;transition:transform .1s,box-shadow .1s;" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 4px 12px rgba(170,102,255,.4)\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\'">';
+html+='<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:18px;">'+a.sym+'</span><span style="color:'+sc+';font-weight:bold;font-size:12px;">'+a.n+'</span></div>';
+html+='<div style="font-size:9px;color:#aa9;margin-top:2px;">'+a.d+'</div>';
+html+='<div style="display:flex;justify-content:space-between;margin-top:3px;font-size:9px;color:#776;"><span>'+a.sch+'</span><span>'+(a.cost?'M'+a.cost:'free')+' · CD '+a.cd+'s</span></div>';
+html+='</div>';
+}
+html+='</div></div>';
+}
+html+='<button onclick="document.getElementById(\'v13-spellbook\').remove()" style="width:100%;margin-top:14px;padding:10px;background:#332244;color:#ccaaff;border:2px solid #6644aa;border-radius:6px;cursor:pointer;font-weight:bold;">Close [M]</button>';
+d.innerHTML=html;document.body.appendChild(d);
+}
+window.__pickAbil=function(k){
+if(window.__pendingAbil===k){window.__pendingAbil=null;log('Cancelled bind.','#888');return}
+// If shift held, cast directly
+window.__pendingAbil=k;
+log('Selected: '+ABIL_INDEX[k].n+'. Click an action-bar slot to bind, or click again to cast.','#aa66ff');
+// Highlight pending in title
+const ex=document.getElementById('v13-spellbook');
+// Find next empty slot — auto-place if double-click style
+};
+
+document.addEventListener('keydown',e=>{
+if(!gameStarted)return;
+const tag=(document.activeElement&&document.activeElement.tagName)||'';if(tag==='INPUT'||tag==='TEXTAREA')return;
+if(e.key&&e.key.toLowerCase()==='m'&&!e.shiftKey&&!e.ctrlKey){
+e.preventDefault();const ex=document.getElementById('v13-spellbook');if(ex){ex.remove();window.__pendingAbil=null;return}
+openMasterBook();
+}
+// Escape cancels pending bind
+if(e.key==='Escape'&&window.__pendingAbil){window.__pendingAbil=null;log('Bind cancelled.','#888')}
+});
+
+// Add mana / magicka pool if missing
+if(typeof player.mana!=='number'){player.mana=200;player.maxMana=200;setInterval(()=>{player.mana=Math.min(player.maxMana,player.mana+3)},1000)}
+
+// ---- 5. HUD HINT ----------------------------------------------------
+setTimeout(()=>{
+const c=document.getElementById('controls');
+if(c)c.innerHTML+=' &middot; <b style="color:#cc88ff">M</b> Grimoire &middot; <b style="color:#ddaa66">Shift+1-0</b> abilities';
+},16500);
+
+log('=== v13 Master Spellbook loaded: '+ABILS.length+' abilities across 12 game IPs · 10-slot ability bar · M to open grimoire ===','#cc88ff');
+})();
+// =====================================================================
+
+// =====================================================================
+// ===  v14 EXPANSION  (World Map upgrade — show ALL new cities)     ===
+// =====================================================================
+(function v14Expansion(){
+const ATLAS={
+wow:[
+['Stormwind',3000,0],['Ironforge',-3500,-1800],['Darnassus',-4200,2400],['Orgrimmar',2400,-1200],['Undercity',1600,2200],
+['Goldshire',2700,-300],['Sentinel Hill',-1400,2800],['Hillsbrad Foothills',1100,1900],['Tarren Mill',1200,2100],['Brill',1500,2400],
+['Tirisfal Crossroads',1700,2700],['Ashenvale Crossroads',-3600,2700],['Crossroads (Barrens)',2700,-1700],['Booty Bay',1800,3400],
+['Stranglethorn Outpost',2200,3000],['Gadgetzan',3300,600],['Theramore Isle',3600,-600],['Astranaar',-3900,2200],
+['Auberdine',-4400,2800],['Shattrath',-4200,-2400],['Dalaran',-2000,-3200]
+],
+other_og:[['Bree',-1800,1500],['Riften',1800,-3400],['Novigrad',-2600,600]],
+skyrim:[
+['Whiterun',3600,1400],['Solitude',4200,-1400],['Markarth',-4600,2200],['Riften (Skyrim)',4500,2400],['Windhelm',4800,-2200],
+['Falkreath',2200,2800],['Morthal',2800,-2800],['Dawnstar',3400,-3400],['Winterhold',4400,-3000],
+['Riverwood',2900,1600],['Ivarstead',3800,2200],['Helgen (Ruins)',2400,2100],['Rorikstead',2800,1200]
+],
+oblivion:[
+['Imperial City',-3600,-100],['Anvil',-4400,-600],['Bravil',-3000,600],['Bruma',-3700,-1100],
+['Cheydinhal',-2500,-300],['Chorrol',-4000,-400],['Kvatch',-4500,300],['Leyawiin',-2800,1000],['Skingrad',-3300,200]
+],
+ds:[
+['Anor Londo',-3800,-1200],['Sen\'s Fortress',-3000,-300],['Firelink Shrine',-200,-1500],['New Londo Ruins',-1500,-2200],
+['Lost Izalith',-2500,-3800],['Ash Lake',-4200,-3500],['Undead Burg',-500,-1100],['Undead Parish',-700,-1300],
+['Painted World',-2400,1400],['Duke\'s Archives',-4400,-2800],['Catacombs',-1000,-3400],['Tomb of the Giants',-1200,-4400]
+],
+got:[
+['King\'s Landing',-3300,200],['Winterfell',-3200,-2200],['Casterly Rock',-2200,1200],['The Wall',0,-4800],
+['Dragonstone',-1800,-100],['Highgarden',-2800,1800],['Pyke',-4200,1400],['The Eyrie',-2400,-1400],
+['Storm\'s End',-2000,1600],['Sunspear',-3000,2400],['Riverrun',-2600,-600],['Meereen',4400,1900],
+['Braavos',5200,200],['Harrenhal',-2800,-1000]
+],
+gw2:[
+['Divinity\'s Reach',-4800,3000],['Hoelbrak',-200,-3300],['Rata Sum',5500,2900],['The Grove',-5500,1500],
+['Black Citadel',5000,-3800],['Lion\'s Arch',2400,3300],['New Kaineng',5800,2200],['Amnoon',3000,4300]
+],
+mega:[
+['Beauclair',-5500,-3800],['Kaer Morhen',-4700,-2600],['Baldur\'s Gate',5500,-4400],['Moonrise Towers',5400,-4800],
+['Kingdom of Zeal',-200,6400],['Truce Dome',-300,6200],['Midgar',5400,-3600],['Cosmo Canyon',5800,-3000],
+['Leyndell',-5500,-3500],['Stormveil Castle',-5200,-2400],['New Vegas Strip',2200,6000],['Goodsprings',2000,5400],
+['Tristram',5600,-5800],['Pandemonium',6400,-5400],['New Tristram',5400,-5400]
+]
+};
+const BOSS_ATLAS=[
+['Onyxia',1500,-2000,'#ff8844'],['Nefarian',-2800,-1800,'#222222'],['Ragnaros',2200,1900,'#ff5520'],
+['Cho\'gall',-2200,2200,'#aa44aa'],['Arthas LK',-1200,-3800,'#88aaff'],['Kel\'Thuzad',-3600,-3200,'#aaccff'],
+['Illidan',-4500,1200,'#8866cc'],['Deathwing',3200,-2500,'#aa2222'],['Sapphiron',-2400,-2800,'#88ccff'],['Gruul',3500,300,'#886655'],
+['Onyxia v7',2400,-2400,'#ff8844'],['Ragnaros v7',1800,2200,'#ff4422'],['Illidan v7',-4500,1800,'#8866cc'],
+['Deathwing v7',3400,-2800,'#aa2222'],['Arthas v7',-2400,-4200,'#88ccff'],['Hogger',-260,80,'#886633'],
+['Black Knight',-1700,-2700,'#1a1a1a'],['Artorias',-3700,-450,'#3a3a5a'],['Ornstein',-1500,-1900,'#ffd700'],
+['Smough',-1450,-1880,'#eeddaa'],['Sif',-3600,-400,'#7a6a4a'],['Asylum Demon',300,-2800,'#8a5a3a'],['Gwyn',-3800,-4500,'#ffaa44'],
+['Night King',1500,-5000,'#aaddff'],['Drogon',4800,1800,'#222222'],['Rhaegal',5200,1400,'#447a4a'],['Viserion',1400,-4600,'#aaccff'],
+['The Mountain',-2200,200,'#664422'],['The Hound',-2100,600,'#886655'],['Khal Drogo',4400,-200,'#aa6633'],
+['Queen Cersei',-2800,-200,'#ddaa44'],['Jon Snow',-3300,-1900,'#222222'],
+['Kralkatorrik',5500,-1200,'#aa44ff'],['Jormag',200,-5400,'#88ccff'],['Mordremoth',-5800,2200,'#447733'],
+['Zhaitan',5200,2400,'#5a6a4a'],['Aurene',-5500,-1100,'#ddccff'],['Shatterer',3800,-3000,'#cc44ff'],
+['Sephiroth',5800,-2400,'#eeeeee'],['Lavos',-100,5800,'#ff5522'],['Malenia',-5800,-2200,'#ff4488'],
+['Legendary Deathclaw',2400,5400,'#886655'],['Diablo',5800,-5600,'#aa1111'],['Mind Flayer',-5400,5400,'#aa66ff'],
+['Eredin',-4400,-5200,'#88aaff']
+];
+if(typeof drawWorldMap!=='function'){console.warn('v14: drawWorldMap missing');return}
+const _origDrawWM=drawWorldMap;
+drawWorldMap=function(){
+_origDrawWM();
+try{
+const W=900,H=700,scale=W/16000,ox=W/2,oy=H/2;
+function drawIP(list,opts){
+wmCtx.save();
+for(const [name,x,z] of list){
+const cx=x*scale+ox,cy=z*scale+oy;
+if(cx<5||cx>W-5||cy<5||cy>H-5)continue;
+wmCtx.fillStyle=opts.fill;wmCtx.strokeStyle=opts.stroke||'#000';wmCtx.lineWidth=1.5;
+if(opts.shape==='diamond'){wmCtx.beginPath();wmCtx.moveTo(cx,cy-opts.size);wmCtx.lineTo(cx+opts.size,cy);wmCtx.lineTo(cx,cy+opts.size);wmCtx.lineTo(cx-opts.size,cy);wmCtx.closePath();wmCtx.fill();wmCtx.stroke()}
+else if(opts.shape==='triangle'){wmCtx.beginPath();wmCtx.moveTo(cx,cy-opts.size);wmCtx.lineTo(cx+opts.size,cy+opts.size*.8);wmCtx.lineTo(cx-opts.size,cy+opts.size*.8);wmCtx.closePath();wmCtx.fill();wmCtx.stroke()}
+else if(opts.shape==='star'){wmCtx.beginPath();for(let i=0;i<10;i++){const a=(i/10-.25)*Math.PI*2;const r=i%2?opts.size:opts.size*.5;
+if(i===0)wmCtx.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);else wmCtx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r)}wmCtx.closePath();wmCtx.fill();wmCtx.stroke()}
+else if(opts.shape==='square'){wmCtx.fillRect(cx-opts.size,cy-opts.size,opts.size*2,opts.size*2);wmCtx.strokeRect(cx-opts.size,cy-opts.size,opts.size*2,opts.size*2)}
+else{wmCtx.beginPath();wmCtx.arc(cx,cy,opts.size,0,Math.PI*2);wmCtx.fill();wmCtx.stroke()}
+wmCtx.fillStyle=opts.label;wmCtx.font='bold 9px serif';wmCtx.textAlign='center';
+wmCtx.strokeStyle='rgba(0,0,0,.85)';wmCtx.lineWidth=3;wmCtx.strokeText(name,cx,cy-opts.size-3);
+wmCtx.fillText(name,cx,cy-opts.size-3);
+}
+wmCtx.restore();
+}
+// Bosses first (below cities)
+wmCtx.save();
+for(const [name,x,z,col] of BOSS_ATLAS){
+const cx=x*scale+ox,cy=z*scale+oy;
+if(cx<5||cx>W-5||cy<5||cy>H-5)continue;
+wmCtx.fillStyle=col;wmCtx.strokeStyle='#ff2222';wmCtx.lineWidth=2;
+wmCtx.beginPath();for(let i=0;i<10;i++){const a=(i/10-.25)*Math.PI*2;const r=i%2?6:3;
+if(i===0)wmCtx.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);else wmCtx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r)}
+wmCtx.closePath();wmCtx.fill();wmCtx.stroke();
+wmCtx.fillStyle='#ff8888';wmCtx.font='bold 8px serif';wmCtx.textAlign='center';
+wmCtx.strokeStyle='rgba(0,0,0,.85)';wmCtx.lineWidth=2.5;wmCtx.strokeText('☠ '+name,cx,cy+12);
+wmCtx.fillText('☠ '+name,cx,cy+12);
+}
+wmCtx.restore();
+// Cities by IP
+drawIP(ATLAS.wow,{shape:'circle',size:4,fill:'#ff8844',stroke:'#552200',label:'#ffaa66'});
+drawIP(ATLAS.other_og,{shape:'circle',size:4,fill:'#ddcc66',stroke:'#553300',label:'#ffdd88'});
+drawIP(ATLAS.skyrim,{shape:'triangle',size:5,fill:'#ffd96a',stroke:'#553300',label:'#ffea88'});
+drawIP(ATLAS.oblivion,{shape:'triangle',size:5,fill:'#ddccaa',stroke:'#664422',label:'#eeddbb'});
+drawIP(ATLAS.ds,{shape:'square',size:4,fill:'#aa8855',stroke:'#332200',label:'#ccaa77'});
+drawIP(ATLAS.got,{shape:'diamond',size:5,fill:'#ff8844',stroke:'#551100',label:'#ffaa66'});
+drawIP(ATLAS.gw2,{shape:'triangle',size:5,fill:'#aa88ff',stroke:'#221144',label:'#ccaaff'});
+drawIP(ATLAS.mega,{shape:'star',size:5,fill:'#ff66aa',stroke:'#440022',label:'#ffaadd'});
+// Legend (bottom-left)
+wmCtx.save();
+const lgX=14,lgY=H-132;
+wmCtx.fillStyle='rgba(15,10,5,.9)';wmCtx.fillRect(lgX-4,lgY-6,228,132);
+wmCtx.strokeStyle='#5a4a32';wmCtx.lineWidth=1.5;wmCtx.strokeRect(lgX-4,lgY-6,228,132);
+wmCtx.fillStyle='#c8a96e';wmCtx.font='bold 10px serif';wmCtx.textAlign='left';
+wmCtx.fillText('═══ ATLAS LEGEND ═══',lgX,lgY+6);
+const legend=[
+['● WoW capitals','#ff8844'],['● Other OG cities','#ddcc66'],
+['▲ Skyrim Holds','#ffd96a'],['▲ Oblivion cities','#ddccaa'],
+['■ Dark Souls landmarks','#aa8855'],['◆ Westeros (GoT)','#ff8844'],
+['▲ GW2 cities','#aa88ff'],['★ Megapack (Midgar/Tristram…)','#ff66aa'],
+['☠ Iconic Bosses','#ff5555']
+];
+wmCtx.font='9px sans-serif';
+for(let i=0;i<legend.length;i++){wmCtx.fillStyle=legend[i][1];wmCtx.fillText(legend[i][0],lgX,lgY+22+i*12)}
+wmCtx.restore();
+// Count summary
+wmCtx.save();
+wmCtx.fillStyle='#aa9060';wmCtx.font='italic 9px serif';wmCtx.textAlign='right';
+const total=ATLAS.wow.length+ATLAS.other_og.length+ATLAS.skyrim.length+ATLAS.oblivion.length+ATLAS.ds.length+ATLAS.got.length+ATLAS.gw2.length+ATLAS.mega.length;
+wmCtx.fillText(total+' settlements · '+BOSS_ATLAS.length+' boss lairs',W-14,H-14);
+wmCtx.restore();
+}catch(err){console.warn('v14 world map overlay failed',err)}
+};
+const total=ATLAS.wow.length+ATLAS.other_og.length+ATLAS.skyrim.length+ATLAS.oblivion.length+ATLAS.ds.length+ATLAS.got.length+ATLAS.gw2.length+ATLAS.mega.length;
+log('=== v14: World Map upgraded — '+total+' settlements and '+BOSS_ATLAS.length+' boss lairs now visible ===','#ffd700');
+})();
+// =====================================================================
+
+// =====================================================================
+// ===  v15  (Re-brand title + extra classes + Teleport List UI)     ===
+// =====================================================================
+(function v15Expansion(){
+
+// ---- 1. RE-BRAND TITLE / SUBTITLE -----------------------------------
+function rebrand(){
+const sub=document.getElementById('menu-sub');
+if(sub)sub.innerHTML='A MULTIVERSE OF LEGENDS &nbsp;&middot;&nbsp; <span style="color:#aa9060">WoW · Skyrim · Witcher · BG3 · Chrono · FF7 · Elden Ring · Diablo · Game of Thrones · Guild Wars 2 · Fallout · Dark Souls</span>';
+const ver=document.getElementById('menu-ver');
+if(ver)ver.innerHTML='Ver. 15.0<br>SoulScape · Multiverse';
+const footer=document.getElementById('menu-footer');
+if(footer)footer.textContent='SOUL SCAPE v15.0 — 14 game IPs combined · 100+ cities · 45+ iconic bosses · 102 abilities';
+const escVer=document.getElementById('esc-version');
+if(escVer)escVer.textContent='v15.0 — Multiverse Edition';
+// Update tab title too
+document.title='SOULSCAPE — Multiverse of Legends';
+}
+rebrand();
+setTimeout(rebrand,200);// in case DOM not ready
+
+// ---- 2. EXTRA CHARACTER CLASSES (themed by IP) ----------------------
+const NEW_CLASSES=[
+{c:'witcher',n:'Witcher',d:'Monster hunter with signs.',s:'STR 14 SIG 13<br>HP 140 STA 130'},
+{c:'paladin',n:'Paladin',d:'Holy plate-armored champion.',s:'STR 13 FAI 14<br>HP 170 MP 100'},
+{c:'druid',n:'Druid',d:'Nature & shapeshifter.',s:'WIS 14 NAT 14<br>HP 130 MP 130'},
+{c:'necromancer',n:'Necromancer',d:'Master of bone & shadow.',s:'INT 16 DAR 14<br>HP 100 MP 160'},
+{c:'samurai',n:'Samurai',d:'Honor-bound katana wielder.',s:'STR 13 AGI 15<br>HP 140 STA 130'},
+{c:'soldier',n:'SOLDIER',d:'Mako-enhanced 1st class.',s:'STR 16 SPD 14<br>HP 160 MP 110'},
+{c:'tarnished',n:'Tarnished',d:'Lord-seeker of the Lands Between.',s:'STR 12 INT 12<br>HP 120 STA 100'},
+{c:'courier',n:'Courier',d:'Wasteland wanderer.',s:'PER 16 LUK 14<br>HP 130 STA 110'},
+{c:'demonhunter',n:'Demon Hunter',d:'Vengeance from Sanctuary.',s:'DEX 16 HAT 13<br>HP 120 STA 130'},
+{c:'crystal_pact',n:'Crystal Pact',d:'Aurene-blessed champion.',s:'INT 14 LUM 14<br>HP 130 MP 140'}
+];
+
+function addClasses(){
+const grid=document.querySelector('.class-grid');
+if(!grid){setTimeout(addClasses,250);return}
+if(document.querySelector('.class-card[data-c="witcher"]'))return;// already added
+for(const cl of NEW_CLASSES){
+const card=document.createElement('div');
+card.className='class-card';
+card.setAttribute('data-c',cl.c);
+card.innerHTML='<h3>'+cl.n+'</h3><p>'+cl.d+'</p><div class="cst">'+cl.s+'</div>';
+grid.appendChild(card);
+// Wire up click — call the same path the existing cards do
+card.addEventListener('click',function(){
+// The existing class selection handler reads data-c and sets playerClass
+try{if(typeof window.__selectClass==='function'){window.__selectClass(cl.c);return}}catch(e){}
+// Simulate clicking the first existing card to trigger normal flow,
+// then patch the chosen class
+const first=document.querySelector('.class-card[data-c="warrior"]')||document.querySelector('.class-card[data-c="knight"]');
+if(first){try{playerClass=cl.c;}catch(e){}first.click();}
+});
+}
+log('Added '+NEW_CLASSES.length+' new character classes to chargen','#ddccaa');
+}
+addClasses();
+setTimeout(addClasses,500);
+setTimeout(addClasses,1500);
+
+// ---- 3. TELEPORT LIST UI (key P) ------------------------------------
+// Master list of every named city with coords + IP category color
+const ALL_CITIES=[
+['Base game','#ddcc66','Lumbridge',0,0],['Base game','#ddcc66','Varrock',555,50],['Base game','#ddcc66','Falador',-480,280],['Base game','#ddcc66','Ardougne',-1200,100],
+['Base game','#ddcc66','Al Kharid',580,400],['Base game','#ddcc66','Draynor Village',-320,-160],['Base game','#ddcc66','Edgeville',150,-350],['Base game','#ddcc66','Catherby',-500,-400],
+['WoW','#ff8844','Stormwind',3000,0],['WoW','#ff8844','Ironforge',-3500,-1800],['WoW','#ff8844','Darnassus',-4200,2400],['WoW','#ff8844','Orgrimmar',2400,-1200],
+['WoW','#ff8844','Undercity',1600,2200],['WoW','#ff8844','Goldshire',2700,-300],['WoW','#ff8844','Sentinel Hill',-1400,2800],['WoW','#ff8844','Hillsbrad Foothills',1100,1900],
+['WoW','#ff8844','Tarren Mill',1200,2100],['WoW','#ff8844','Brill',1500,2400],['WoW','#ff8844','Tirisfal Crossroads',1700,2700],['WoW','#ff8844','Ashenvale Crossroads',-3600,2700],
+['WoW','#ff8844','Crossroads (Barrens)',2700,-1700],['WoW','#ff8844','Booty Bay',1800,3400],['WoW','#ff8844','Stranglethorn Outpost',2200,3000],['WoW','#ff8844','Gadgetzan',3300,600],
+['WoW','#ff8844','Theramore Isle',3600,-600],['WoW','#ff8844','Astranaar',-3900,2200],['WoW','#ff8844','Auberdine',-4400,2800],['WoW','#ff8844','Shattrath',-4200,-2400],
+['WoW','#ff8844','Dalaran',-2000,-3200],
+['Other OG','#ddaa44','Bree',-1800,1500],['Other OG','#ddaa44','Riften',1800,-3400],['Other OG','#ddaa44','Novigrad',-2600,600],
+['Skyrim','#ffd96a','Whiterun',3600,1400],['Skyrim','#ffd96a','Solitude',4200,-1400],['Skyrim','#ffd96a','Markarth',-4600,2200],['Skyrim','#ffd96a','Riften (Skyrim)',4500,2400],
+['Skyrim','#ffd96a','Windhelm',4800,-2200],['Skyrim','#ffd96a','Falkreath',2200,2800],['Skyrim','#ffd96a','Morthal',2800,-2800],['Skyrim','#ffd96a','Dawnstar',3400,-3400],
+['Skyrim','#ffd96a','Winterhold',4400,-3000],['Skyrim','#ffd96a','Riverwood',2900,1600],['Skyrim','#ffd96a','Ivarstead',3800,2200],['Skyrim','#ffd96a','Helgen (Ruins)',2400,2100],
+['Skyrim','#ffd96a','Rorikstead',2800,1200],
+['Oblivion','#ddccaa','Imperial City',-3600,-100],['Oblivion','#ddccaa','Anvil',-4400,-600],['Oblivion','#ddccaa','Bravil',-3000,600],['Oblivion','#ddccaa','Bruma',-3700,-1100],
+['Oblivion','#ddccaa','Cheydinhal',-2500,-300],['Oblivion','#ddccaa','Chorrol',-4000,-400],['Oblivion','#ddccaa','Kvatch',-4500,300],['Oblivion','#ddccaa','Leyawiin',-2800,1000],
+['Oblivion','#ddccaa','Skingrad',-3300,200],
+['Dark Souls','#aa8855','Anor Londo',-3800,-1200],['Dark Souls','#aa8855','Sen\'s Fortress',-3000,-300],['Dark Souls','#aa8855','Firelink Shrine',-200,-1500],
+['Dark Souls','#aa8855','New Londo Ruins',-1500,-2200],['Dark Souls','#aa8855','Lost Izalith',-2500,-3800],['Dark Souls','#aa8855','Ash Lake',-4200,-3500],
+['Dark Souls','#aa8855','Undead Burg',-500,-1100],['Dark Souls','#aa8855','Undead Parish',-700,-1300],['Dark Souls','#aa8855','Painted World',-2400,1400],
+['Dark Souls','#aa8855','Duke\'s Archives',-4400,-2800],['Dark Souls','#aa8855','Catacombs',-1000,-3400],['Dark Souls','#aa8855','Tomb of the Giants',-1200,-4400],
+['Westeros','#cc4488','King\'s Landing',-3300,200],['Westeros','#cc4488','Winterfell',-3200,-2200],['Westeros','#cc4488','Casterly Rock',-2200,1200],
+['Westeros','#cc4488','The Wall · Castle Black',0,-4800],['Westeros','#cc4488','Dragonstone',-1800,-100],['Westeros','#cc4488','Highgarden',-2800,1800],
+['Westeros','#cc4488','Pyke',-4200,1400],['Westeros','#cc4488','The Eyrie',-2400,-1400],['Westeros','#cc4488','Storm\'s End',-2000,1600],
+['Westeros','#cc4488','Sunspear',-3000,2400],['Westeros','#cc4488','Riverrun',-2600,-600],['Westeros','#cc4488','Meereen',4400,1900],
+['Westeros','#cc4488','Braavos',5200,200],['Westeros','#cc4488','Harrenhal',-2800,-1000],
+['GW2','#aa88ff','Divinity\'s Reach',-4800,3000],['GW2','#aa88ff','Hoelbrak',-200,-3300],['GW2','#aa88ff','Rata Sum',5500,2900],['GW2','#aa88ff','The Grove',-5500,1500],
+['GW2','#aa88ff','Black Citadel',5000,-3800],['GW2','#aa88ff','Lion\'s Arch',2400,3300],['GW2','#aa88ff','New Kaineng City',5800,2200],['GW2','#aa88ff','Amnoon',3000,4300],
+['Megapack','#ff66aa','Beauclair (Toussaint)',-5500,-3800],['Megapack','#ff66aa','Kaer Morhen',-4700,-2600],['Megapack','#ff66aa','Baldur\'s Gate',5500,-4400],
+['Megapack','#ff66aa','Moonrise Towers',5400,-4800],['Megapack','#ff66aa','Kingdom of Zeal',-200,6400],['Megapack','#ff66aa','Truce Dome',-300,6200],
+['Megapack','#ff66aa','Midgar',5400,-3600],['Megapack','#ff66aa','Cosmo Canyon',5800,-3000],['Megapack','#ff66aa','Leyndell, Royal Capital',-5500,-3500],
+['Megapack','#ff66aa','Stormveil Castle',-5200,-2400],['Megapack','#ff66aa','New Vegas Strip',2200,6000],['Megapack','#ff66aa','Goodsprings',2000,5400],
+['Megapack','#ff66aa','Tristram',5600,-5800],['Megapack','#ff66aa','Pandemonium Fortress',6400,-5400],['Megapack','#ff66aa','New Tristram',5400,-5400]
+];
+
+function teleportTo(x,z,name){
+try{player.x=x;player.z=z;
+if(typeof meshTerrainH==='function')player.y=meshTerrainH(x,z)+2;
+if(typeof player.vy!=='undefined')player.vy=0;
+log('Teleported to '+name+' ('+x+', '+z+')','#aaccff');
+const d=document.getElementById('v15-teleport');if(d)d.remove();
+// Particle puff effect
+if(typeof hitFX==='function'){for(let i=0;i<8;i++){hitFX(x+Math.random()*6-3,player.y+Math.random()*4,z+Math.random()*6-3,0x88ccff)}}
+}catch(e){console.warn('teleport failed',e);log('Teleport failed','#f88')}
+}
+window.__teleportToCity=function(idx){const c=ALL_CITIES[idx];if(c)teleportTo(c[3],c[4],c[2])};
+
+function openTeleportList(){
+if(document.getElementById('v15-teleport'))return;
+const d=document.createElement('div');d.id='v15-teleport';
+d.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(180deg,rgba(15,12,8,.97),rgba(8,4,2,.99));border:3px solid #aa66ff;border-radius:14px;padding:18px;z-index:1600;width:920px;max-width:96vw;max-height:90vh;overflow-y:auto;color:#ddd;font-family:serif;box-shadow:0 0 40px rgba(170,102,255,.55);';
+let html='<div style="text-align:center;margin-bottom:14px;"><div style="font-size:22px;color:#aa88ff;font-weight:bold;letter-spacing:3px;">🌀 PORTAL NETWORK 🌀</div>';
+html+='<div style="color:#cc99dd;font-size:11px;margin-top:4px;">Click any settlement to teleport instantly. Press P to close. '+ALL_CITIES.length+' destinations available.</div></div>';
+// Group by category
+const groups={};const order=[];
+for(let i=0;i<ALL_CITIES.length;i++){const c=ALL_CITIES[i];if(!groups[c[0]]){groups[c[0]]={col:c[1],items:[]};order.push(c[0])}groups[c[0]].items.push({idx:i,name:c[2],x:c[3],z:c[4]})}
+for(const cat of order){const g=groups[cat];
+html+='<div style="margin-top:10px;background:rgba(40,20,40,.4);border-left:3px solid '+g.col+';padding:8px 10px;border-radius:6px;">';
+html+='<div style="color:'+g.col+';font-weight:bold;font-size:13px;letter-spacing:2px;margin-bottom:6px;">'+cat+' &middot; <span style="color:#aaa;font-size:10px;font-weight:normal;">('+g.items.length+' cities)</span></div>';
+html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;">';
+for(const it of g.items){
+html+='<div onclick="window.__teleportToCity('+it.idx+')" style="background:rgba(50,30,50,.6);border:1px solid '+g.col+'66;border-radius:4px;padding:6px 8px;cursor:pointer;transition:transform .1s,box-shadow .1s,border-color .1s;font-size:11px;" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.borderColor=\''+g.col+'\';this.style.boxShadow=\'0 4px 12px '+g.col+'66\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\''+g.col+'66\';this.style.boxShadow=\'\'">';
+html+='<div style="color:'+g.col+';font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📍 '+it.name+'</div>';
+html+='<div style="color:#998866;font-size:9px;margin-top:2px;">('+it.x+', '+it.z+')</div>';
+html+='</div>';
+}
+html+='</div></div>';
+}
+html+='<div style="margin-top:14px;display:flex;gap:6px;">';
+html+='<input type="text" id="v15-tp-search" placeholder="Search cities… (regex ok)" style="flex:1;padding:8px;background:#2a1f15;border:2px solid #6a4a3a;border-radius:6px;color:#ddd;font-family:serif;" oninput="window.__v15Search()">';
+html+='<button onclick="document.getElementById(\'v15-teleport\').remove()" style="padding:8px 18px;background:#332244;color:#ccaaff;border:2px solid #6644aa;border-radius:6px;cursor:pointer;font-weight:bold;">Close [P]</button>';
+html+='</div>';
+d.innerHTML=html;document.body.appendChild(d);
+}
+window.__v15Search=function(){
+const q=document.getElementById('v15-tp-search');if(!q)return;
+const s=q.value.toLowerCase();
+const tiles=document.querySelectorAll('#v15-teleport [onclick^="window.__teleportToCity"]');
+let re;try{re=new RegExp(s,'i')}catch(e){re=null}
+for(const t of tiles){const txt=(t.textContent||'').toLowerCase();
+t.style.display=(s==='' || (re?re.test(txt):txt.indexOf(s)>=0))?'block':'none'}
+};
+
+// P key opens / closes teleport list. Also expose for action bar.
+document.addEventListener('keydown',e=>{
+if(typeof gameStarted!=='undefined'&&!gameStarted)return;
+const tag=(document.activeElement&&document.activeElement.tagName)||'';if(tag==='INPUT'||tag==='TEXTAREA')return;
+if(e.key&&e.key.toLowerCase()==='p'&&!e.shiftKey&&!e.ctrlKey){
+e.preventDefault();
+const ex=document.getElementById('v15-teleport');if(ex){ex.remove();return}
+openTeleportList();
+}
+});
+window.__openTeleport=openTeleportList;
+
+// HUD hint
+setTimeout(()=>{const c=document.getElementById('controls');if(c)c.innerHTML+=' &middot; <b style="color:#aa88ff">P</b> Portal List';},1000);
+
+log('=== v15: Re-branded multiverse · '+NEW_CLASSES.length+' new classes · '+ALL_CITIES.length+'-city portal network (press P) ===','#aa88ff');
+})();
+// =====================================================================
+
 </script>
 </body>
 </html>"""
